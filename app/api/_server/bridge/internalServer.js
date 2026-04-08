@@ -1,4 +1,7 @@
 import http from "http";
+import fs from "fs";
+import os from "os";
+import path from "path";
 import app, { initializeServer } from "../app.js";
 // Explicit import so Next.js standalone file tracer includes mysql2.
 // Sequelize loads it dynamically (require(dialect)) which the tracer can't detect.
@@ -9,35 +12,31 @@ import "mysql2";
 const globalState = globalThis.__infixmartInternalServer ||
   (globalThis.__infixmartInternalServer = { promise: null });
 
-export async function getInternalServerBaseUrl() {
+export async function getInternalServer() {
   if (!globalState.promise) {
     globalState.promise = (async () => {
       await initializeServer();
+
+      // Use a Unix domain socket — no TCP, no ports, no network restrictions.
+      // Each worker process gets its own socket file keyed by PID.
+      const socketPath = path.join(os.tmpdir(), `infixmart-${process.pid}.sock`);
+
+      // Remove stale socket file if it exists
+      try { fs.unlinkSync(socketPath); } catch {}
 
       const server = http.createServer(app);
 
       await new Promise((resolve, reject) => {
         server.once("error", (err) => {
-          // EADDRINUSE means another worker already owns this port — reset and retry
           globalState.promise = null;
           reject(err);
         });
-        server.listen(0, "127.0.0.1", resolve);
+        server.listen(socketPath, resolve);
       });
 
-      const address = server.address();
-      if (!address || typeof address === "string") {
-        globalState.promise = null;
-        throw new Error("Failed to determine internal server address");
-      }
-
-      return {
-        server,
-        baseUrl: `http://127.0.0.1:${address.port}`,
-      };
+      return { server, socketPath };
     })();
   }
 
-  const { baseUrl } = await globalState.promise;
-  return baseUrl;
+  return globalState.promise;
 }
