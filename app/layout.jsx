@@ -66,7 +66,7 @@ const orgJsonLd = {
   "@type": "Organization",
   name: "InfixMart",
   url: siteUrl,
-  logo: `${siteUrl}/favicon.ico`,
+  logo: `${siteUrl}/icon.jpg`,
   sameAs: [],
 };
 
@@ -95,7 +95,6 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
           rel="stylesheet"
         />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}

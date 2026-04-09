@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import NextImage from 'next/image';
-import logo from '../../assets/logo.jpg';
+import logo from '../../assets/logo.webp';
 import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp, FaLinkedinIn, FaTwitter } from 'react-icons/fa';
 import { MdLocalShipping, MdVerified, MdSupportAgent } from 'react-icons/md';
 import { FaShieldAlt, FaUndo } from 'react-icons/fa';

@@ -303,6 +303,9 @@ export default function ProductForm() {
           )}
           {form.images.length < 5 && (
             <>
+              <p style={{ fontSize: "0.78rem", color: "#888", marginBottom: "0.4rem", marginTop: 0 }}>
+                📐 <strong>800 × 800 px</strong> square images recommended. First image = main display image. JPG or WebP. Max 5 images.
+              </p>
               <div
                 onClick={() => fileRef.current.click()}
                 style={{ border: "2px dashed #BDBDBD", borderRadius: 8, padding: "1.25rem", textAlign: "center", cursor: "pointer", background: "#FAFAFA", color: "#888", fontSize: "0.875rem" }}

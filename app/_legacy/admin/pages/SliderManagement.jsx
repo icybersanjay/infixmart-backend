@@ -249,7 +249,7 @@ export default function SliderManagement() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", borderBottom: "1px solid #E0E0E0", marginBottom: "1.25rem" }}>
+      <div style={{ display: "flex", borderBottom: "1px solid #E0E0E0", marginBottom: "1rem" }}>
         {["main", "side"].map((t) => (
           <button key={t} onClick={() => setTab(t)} style={{ padding: "0.6rem 1.25rem", background: "none", border: "none", cursor: "pointer", fontWeight: tab === t ? 600 : 400, color: tab === t ? "#1565C0" : "#666", borderBottom: tab === t ? "2px solid #1565C0" : "2px solid transparent", textTransform: "capitalize", marginBottom: -1, fontSize: "0.9rem" }}>
             {t === "main" ? "Main Sliders" : "Side Banners"}
@@ -258,6 +258,24 @@ export default function SliderManagement() {
             </span>
           </button>
         ))}
+      </div>
+
+      {/* Contextual tip */}
+      <div style={{ background: "#E3F2FD", border: "1px solid #BBDEFB", borderRadius: 8, padding: "0.75rem 1rem", marginBottom: "1.25rem", fontSize: "0.82rem", color: "#1A237E", lineHeight: 1.6 }}>
+        {tab === "main" ? (
+          <>
+            <strong>Main Sliders</strong> — displayed as the full-width hero carousel at the top of the homepage.<br />
+            📐 <strong>Recommended size: 1920 × 600 px</strong> (wide landscape). Use JPG/WebP for faster loading.<br />
+            💡 Keep text minimal — use the Title field, not text baked into the image, for mobile readability.<br />
+            🔗 Set a Link URL (e.g. <code>/productListing?sort=newest</code>) so the banner is clickable.
+          </>
+        ) : (
+          <>
+            <strong>Side Banners</strong> — shown in the sidebar/secondary banner slot beside the main slider.<br />
+            📐 <strong>Recommended size: 400 × 500 px</strong> (portrait, ~4:5 ratio). Use JPG/WebP.<br />
+            💡 Great for category promotions or deals. Typically 1–2 banners are ideal.
+          </>
+        )}
       </div>
 
       {/* Grid */}
@@ -309,6 +327,9 @@ export default function SliderManagement() {
 
               {/* Image upload */}
               <label style={labelStyle}>Image <span style={{ color: "#E53935" }}>*</span></label>
+              <p style={{ fontSize: "0.78rem", color: "#888", marginBottom: "0.4rem", marginTop: 0 }}>
+                {formType === "main" ? "📐 Recommended: 1920 × 600 px (landscape). JPG or WebP." : "📐 Recommended: 400 × 500 px (portrait). JPG or WebP."}
+              </p>
               <div onClick={() => fileRef.current.click()} style={{ border: "2px dashed #BDBDBD", borderRadius: 8, padding: "1rem", textAlign: "center", cursor: "pointer", background: "#FAFAFA", color: "#888", fontSize: "0.875rem", marginBottom: "0.75rem" }}>
                 {imgUploading ? "Uploading…" : "Click to upload image"}
               </div>

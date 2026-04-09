@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import NextImage from 'next/image';
-import logo from '../../assets/logo.jpg';
+import logo from '../../assets/logo.webp';
 import Search from '../Search';
 import Badge from '@mui/material/Badge';
 import { styled } from '@mui/material/styles';
@@ -119,11 +119,8 @@ const Header = () => {
           <div className='flex items-center gap-3 sm:gap-4 h-[62px] sm:h-[68px]'>
 
             {/* Logo */}
-            <Link to='/' className='flex-shrink-0 flex flex-col items-start mr-1 sm:mr-2'>
+            <Link to='/' className='flex-shrink-0 mr-1 sm:mr-2'>
               <NextImage src={logoSrc} alt='InfixMart' width={140} height={36} className='h-8 sm:h-9 object-contain w-auto' />
-              <span className='text-[7px] font-[900] tracking-[3px] uppercase text-[#1565C0] leading-none -mt-0.5'>
-                WHOLESALE
-              </span>
             </Link>
 
             {/* Search — desktop */}

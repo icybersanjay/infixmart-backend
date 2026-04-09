@@ -250,6 +250,9 @@ export default function CategoryManagement() {
               </select>
 
               <label style={labelStyle}>Category Image</label>
+              <p style={{ fontSize: "0.78rem", color: "#888", marginBottom: "0.4rem", marginTop: 0 }}>
+                📐 <strong>300 × 300 px</strong> square recommended. Shown as the category thumbnail. JPG or WebP.
+              </p>
               <div
                 onClick={() => fileRef.current.click()}
                 style={{ border: "2px dashed #BDBDBD", borderRadius: 8, padding: "1rem", textAlign: "center", cursor: "pointer", marginBottom: "0.75rem", background: "#FAFAFA", color: "#888", fontSize: "0.875rem" }}

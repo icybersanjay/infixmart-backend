@@ -274,8 +274,20 @@ function CardListTab({ section, fields }) {
 
   if (loading) return <div style={{ color: "#999", padding: "2rem" }}>Loading…</div>;
 
+  const sectionTips = {
+    collection: "Collections appear as category cards (e.g. Men's, Women's). Use 500 × 500 px images. Add a Link URL to filter products by category.",
+    price_tiers: "Price tier cards (e.g. Under ₹199). No image needed — set background colors. Set maxPrice in Meta JSON: {\"maxPrice\": 199}. Link: /productListing?maxPrice=199",
+    why_choose_us: "Trust badges shown to customers. 3–5 items ideal. Title = benefit name, Subtitle = short description. Use colors to style each card.",
+    stats: "Trust numbers (e.g. 10,000+ Products). Title = the number/stat, Subtitle = the label below it. No images needed.",
+  };
+
   return (
     <div>
+      {sectionTips[section] && (
+        <div style={{ background: "#FFF8E1", border: "1px solid #FFE082", borderRadius: 8, padding: "0.65rem 1rem", marginBottom: "1rem", fontSize: "0.82rem", color: "#5D4037" }}>
+          💡 <strong>Tip:</strong> {sectionTips[section]}
+        </div>
+      )}
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
         <button onClick={openCreate} style={primaryBtn}><MdAdd /> Add Item</button>
       </div>
@@ -359,6 +371,9 @@ function CardListTab({ section, fields }) {
               {fields.includes("image") && (
                 <div style={formGroup}>
                   <label style={labelStyle}>Image</label>
+                  <p style={{ fontSize: "0.78rem", color: "#888", marginBottom: "0.4rem", marginTop: 0 }}>
+                    📐 Recommended: <strong>500 × 500 px</strong> (square). JPG or WebP for best quality &amp; speed.
+                  </p>
                   <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
                     {form.image && (
                       <img src={imgSrc(form.image)} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 6, border: "1px solid #E0E0E0" }} />
@@ -594,12 +609,41 @@ export default function HomePageManagement() {
     <div>
       <Toaster position="top-right" />
 
-      <div style={{ marginBottom: "1.25rem" }}>
+      <div style={{ marginBottom: "1rem" }}>
         <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#1A237E", margin: 0 }}>Home Page Management</h2>
         <p style={{ color: "#666", fontSize: "0.85rem", marginTop: 4 }}>
           All changes take effect immediately on the live home page — no code changes needed.
         </p>
       </div>
+
+      {/* Admin setup guide */}
+      <details style={{ marginBottom: "1.5rem" }}>
+        <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.9rem", color: "#1565C0", background: "#E3F2FD", border: "1px solid #BBDEFB", borderRadius: 8, padding: "0.65rem 1rem", userSelect: "none", listStyle: "none", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          💡 How to build your homepage — Admin Guide (click to expand)
+        </summary>
+        <div style={{ background: "#F8FBFF", border: "1px solid #BBDEFB", borderTop: "none", borderRadius: "0 0 8px 8px", padding: "1.25rem 1.5rem", fontSize: "0.83rem", color: "#333", lineHeight: 1.8 }}>
+          <p style={{ fontWeight: 700, marginBottom: "0.5rem", color: "#1A237E" }}>Step-by-step homepage setup:</p>
+          <ol style={{ margin: 0, paddingLeft: "1.4rem" }}>
+            <li><strong>Sliders tab (Admin → Sliders)</strong> — Upload your hero banner images first. Add 2–4 main slider images. Each should be 1920 × 600 px. Add a Link URL so the banner is clickable.</li>
+            <li><strong>Sections tab</strong> — Toggle which sections are visible and drag to reorder them. Only show sections that have content. Hide empty sections.</li>
+            <li><strong>Collections tab</strong> — "Shop by Collection" cards (e.g. Men's, Women's, Kids). Add 4–8 cards. Each card: Title + Image (500 × 500 px) + Link URL to a filtered product listing.</li>
+            <li><strong>Price Tiers tab</strong> — "Shop by Price" cards (e.g. Under ₹199). Set the <code>maxPrice</code> in the Meta JSON field: <code>{"{"}"maxPrice": 199{"}"}</code>. Add a Link URL like <code>/productListing?maxPrice=199</code>.</li>
+            <li><strong>Why Choose Us tab</strong> — Trust badges (e.g. Fast Delivery, Secure Payments). Add 3–5 items. Use the Meta JSON to set an icon: <code>{"{"}"icon": "delivery"{"}"}</code>.</li>
+            <li><strong>Stats Bar tab</strong> — Numbers that build trust (e.g. 10,000+ Products). Title = the number, Subtitle = the label.</li>
+            <li><strong>Flash Deals tab</strong> — Configure the flash deals section heading and set a max price in Meta: <code>{"{"}"maxPrice": 499{"}"}</code>.</li>
+            <li><strong>Newsletter tab</strong> — Configure the email subscription strip title and description.</li>
+          </ol>
+          <div style={{ marginTop: "1rem", padding: "0.75rem", background: "#FFF8E1", borderRadius: 6, borderLeft: "4px solid #F9A825" }}>
+            <strong>Responsiveness tips:</strong>
+            <ul style={{ margin: "0.3rem 0 0 1rem", paddingLeft: "1rem" }}>
+              <li>All images are auto-resized to fit mobile screens — upload high-quality originals.</li>
+              <li>Avoid text baked into images — use the Title/Subtitle fields for text so it's readable on mobile.</li>
+              <li>Test on a phone after saving — the site is fully responsive.</li>
+              <li>Keep section order logical: Slider → Categories → Collections → Flash Deals → Price Tiers → Newsletter.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
 
       {/* Tabs */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", borderBottom: "2px solid #E0E0E0", marginBottom: "1.5rem" }}>

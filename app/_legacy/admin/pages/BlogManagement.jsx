@@ -136,6 +136,9 @@ const BlogForm = ({ initial, onSave, onCancel }) => {
           {/* Image upload */}
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={labelCls}>Cover Image</label>
+            <p style={{ fontSize: '0.78rem', color: '#888', marginBottom: '0.4rem', marginTop: 0 }}>
+              📐 <strong>1200 × 630 px</strong> recommended (landscape, 1.9:1 ratio). Also used as the social share preview image. JPG or WebP.
+            </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               {preview && (
                 <img src={preview} alt='preview' style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid #eee' }} />
