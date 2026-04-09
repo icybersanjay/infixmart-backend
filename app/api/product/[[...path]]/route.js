@@ -1,6 +1,7 @@
 import { fail, handleRouteError, ok } from "../../../../lib/server/api/http.js";
 import { requireAccessUserId } from "../../../../lib/server/auth/session.js";
 import { requireAdmin } from "../../../../lib/server/services/admin.js";
+import { writeAuditLog } from "../../../../lib/server/repositories/audit.js";
 import {
   bulkDeleteProducts,
   createProductRecord,
@@ -39,6 +40,12 @@ async function parseJson(request) {
 async function requireAdminRequest(request) {
   const userId = requireAccessUserId(request);
   await requireAdmin(userId);
+  return userId;
+}
+
+function getIp(request) {
+  const fwd = request.headers.get("x-forwarded-for");
+  return fwd ? fwd.split(",")[0].trim() : (request.headers.get("x-real-ip") || null);
 }
 
 async function dispatchNativeRoute(request, segments) {
@@ -152,8 +159,11 @@ async function dispatchNativeRoute(request, segments) {
   }
 
   if (request.method === "POST" && first === "create") {
-    await requireAdminRequest(request);
-    return ok(await createProductRecord(await parseJson(request)), 201);
+    const adminId = await requireAdminRequest(request);
+    const body = await parseJson(request);
+    const result = await createProductRecord(body);
+    await writeAuditLog({ adminId, action: "CREATE", entity: "product", entityId: result?.data?.id, detail: `Product created: ${body?.name || ""}`, ip: getIp(request) });
+    return ok(result, 201);
   }
 
   if (request.method === "POST" && first === "upload-images") {
@@ -162,8 +172,11 @@ async function dispatchNativeRoute(request, segments) {
   }
 
   if (request.method === "PUT" && first === "updateproduct" && second) {
-    await requireAdminRequest(request);
-    return ok(await updateProductRecord(second, await parseJson(request)));
+    const adminId = await requireAdminRequest(request);
+    const body = await parseJson(request);
+    const result = await updateProductRecord(second, body);
+    await writeAuditLog({ adminId, action: "UPDATE", entity: "product", entityId: second, detail: `Product updated: ${body?.name || ""}`, ip: getIp(request) });
+    return ok(result);
   }
 
   if (request.method === "DELETE" && first === "deleteimage") {
@@ -172,14 +185,18 @@ async function dispatchNativeRoute(request, segments) {
   }
 
   if (request.method === "DELETE" && first === "deleteproduct" && second) {
-    await requireAdminRequest(request);
-    return ok(await deleteProductRecord(second));
+    const adminId = await requireAdminRequest(request);
+    const result = await deleteProductRecord(second);
+    await writeAuditLog({ adminId, action: "DELETE", entity: "product", entityId: second, ip: getIp(request) });
+    return ok(result);
   }
 
   if (request.method === "POST" && first === "delete-multiple") {
-    await requireAdminRequest(request);
+    const adminId = await requireAdminRequest(request);
     const body = await parseJson(request);
-    return ok(await bulkDeleteProducts(body?.ids));
+    const result = await bulkDeleteProducts(body?.ids);
+    await writeAuditLog({ adminId, action: "DELETE", entity: "product", detail: `Bulk delete: ${(body?.ids || []).join(", ")}`, ip: getIp(request) });
+    return ok(result);
   }
 
   return null;

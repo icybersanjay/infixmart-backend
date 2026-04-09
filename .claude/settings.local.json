@@ -23,7 +23,11 @@
       "Bash(powershell -Command \"Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 1; Remove-Item -Recurse -Force 'c:\\\\Users\\\\ashis\\\\OneDrive\\\\Desktop\\\\NextJs InfixMart\\\\.next' -ErrorAction SilentlyContinue; Write-Host 'Done — all node processes killed and cache cleared'\")",
       "Bash(node app/api/_server/createAdmin.js)",
       "Bash(ADMIN_EMAIL=infixmarthelp@gmail.com ADMIN_PASSWORD=Shukla@1234 ADMIN_NAME=Admin DB_HOST=127.0.0.1 DB_PORT=3306 DB_NAME=infixmart DB_USER=root DB_PASSWORD= NODE_ENV=development node app/api/_server/createAdmin.js)",
-      "Bash(powershell -Command \"Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 1; Remove-Item -Recurse -Force 'c:\\\\Users\\\\ashis\\\\OneDrive\\\\Desktop\\\\NextJs InfixMart\\\\.next' -ErrorAction SilentlyContinue; Write-Host 'Done'\")"
+      "Bash(powershell -Command \"Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 1; Remove-Item -Recurse -Force 'c:\\\\Users\\\\ashis\\\\OneDrive\\\\Desktop\\\\NextJs InfixMart\\\\.next' -ErrorAction SilentlyContinue; Write-Host 'Done'\")",
+      "Bash(node -e \"const bcrypt = require\\('bcryptjs'\\); bcrypt.hash\\('Shukla@1234', 10\\).then\\(h => console.log\\(h\\)\\)\")",
+      "Bash(node -e \"const bcrypt = require\\('bcryptjs'\\); bcrypt.compare\\('Shukla@1234', '\\\\$2b\\\\$10\\\\$8uJYlKaohABBwYKA1W.EpeCKIvRr9bGj3J1bVyTQevvfwz2Mt8.3i'\\).then\\(r => console.log\\('Match:', r\\)\\)\")",
+      "Bash(del \"c:\\\\Users\\\\ashis\\\\OneDrive\\\\Desktop\\\\NextJs InfixMart\\\\public\\\\robots.txt\")",
+      "Bash(grep -n \"findProductBySlug\\\\|findPublishedBlogBySlug\" lib/server/repositories/*.js)"
     ]
   }
 }

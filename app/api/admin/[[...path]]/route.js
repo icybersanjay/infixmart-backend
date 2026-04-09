@@ -1,6 +1,7 @@
 import { fail, handleRouteError, ok } from "../../../../lib/server/api/http.js";
 import { setAuthCookies } from "../../../../lib/server/auth/cookies.js";
 import { requireAccessUserId } from "../../../../lib/server/auth/session.js";
+import { writeAuditLog } from "../../../../lib/server/repositories/audit.js";
 import {
   adminLogin,
   getAllOrdersAdmin,
@@ -55,6 +56,11 @@ async function requireAdminRequest(request) {
   return userId;
 }
 
+function getIp(request) {
+  const fwd = request.headers.get("x-forwarded-for");
+  return fwd ? fwd.split(",")[0].trim() : (request.headers.get("x-real-ip") || null);
+}
+
 async function dispatchNativeRoute(request, segments) {
   const [first, second, third] = segments;
 
@@ -89,9 +95,11 @@ async function dispatchNativeRoute(request, segments) {
   }
 
   if (request.method === "PUT" && first === "users" && second && third === "status") {
-    await requireAdminRequest(request);
+    const adminId = await requireAdminRequest(request);
     const body = await parseJson(request);
-    return ok(await updateUserStatus(second, body?.isActive === true));
+    const result = await updateUserStatus(second, body?.isActive === true);
+    await writeAuditLog({ adminId, action: "UPDATE", entity: "user", entityId: second, detail: `Status set to ${body?.isActive ? "active" : "Suspended"}`, ip: getIp(request) });
+    return ok(result);
   }
 
   if (request.method === "GET" && first === "users" && second && third === "stats") {
@@ -111,8 +119,11 @@ async function dispatchNativeRoute(request, segments) {
   }
 
   if (request.method === "PUT" && first === "settings" && !second) {
-    await requireAdminRequest(request);
-    return ok(await saveSetting(await parseJson(request)));
+    const adminId = await requireAdminRequest(request);
+    const body = await parseJson(request);
+    const result = await saveSetting(body);
+    await writeAuditLog({ adminId, action: "UPDATE", entity: "settings", detail: `Settings updated`, ip: getIp(request) });
+    return ok(result);
   }
 
   if (request.method === "GET" && first === "homepage" && !second) {
@@ -146,18 +157,26 @@ async function dispatchNativeRoute(request, segments) {
   }
 
   if (request.method === "POST" && first === "coupons" && !second) {
-    await requireAdminRequest(request);
-    return await createCouponRecord(await parseJson(request));
+    const adminId = await requireAdminRequest(request);
+    const body = await parseJson(request);
+    const result = await createCouponRecord(body);
+    await writeAuditLog({ adminId, action: "CREATE", entity: "coupon", detail: `Coupon created: ${body?.code || ""}`, ip: getIp(request) });
+    return result;
   }
 
   if (request.method === "PUT" && first === "coupons" && second && !third) {
-    await requireAdminRequest(request);
-    return await updateCouponRecord(second, await parseJson(request));
+    const adminId = await requireAdminRequest(request);
+    const body = await parseJson(request);
+    const result = await updateCouponRecord(second, body);
+    await writeAuditLog({ adminId, action: "UPDATE", entity: "coupon", entityId: second, detail: `Coupon updated`, ip: getIp(request) });
+    return result;
   }
 
   if (request.method === "DELETE" && first === "coupons" && second && !third) {
-    await requireAdminRequest(request);
-    return await deleteCouponRecord(second);
+    const adminId = await requireAdminRequest(request);
+    const result = await deleteCouponRecord(second);
+    await writeAuditLog({ adminId, action: "DELETE", entity: "coupon", entityId: second, ip: getIp(request) });
+    return result;
   }
 
   if (first === "attributes" && request.method === "GET" && !second) {

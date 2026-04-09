@@ -5,6 +5,7 @@ import { FaRegUser, FaRegHeart, FaMapMarkerAlt } from "react-icons/fa";
 import { LuClipboardCheck } from "react-icons/lu";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { NavLink } from "react-router-dom";
+import NextImage from "next/image";
 import { MyContext } from "../../LegacyProviders";
 import CircularProgress from "@mui/material/CircularProgress";
 import { putDataForImage } from "../../utils/api";
@@ -56,7 +57,7 @@ const AccountSidebar = () => {
           {uploading ? (
             <CircularProgress size={28} />
           ) : (
-            <img src={avatarSrc} alt="profile" className="object-cover w-full h-full" />
+            <NextImage src={avatarSrc} alt="profile" fill className="object-cover" sizes="90px" />
           )}
           <div className="absolute inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.55)] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
             <RiFolderUploadFill className="text-white text-[18px]" />

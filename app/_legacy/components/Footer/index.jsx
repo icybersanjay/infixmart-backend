@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import NextImage from 'next/image';
 import logo from '../../assets/logo.jpg';
 import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp, FaLinkedinIn, FaTwitter } from 'react-icons/fa';
 import { MdLocalShipping, MdVerified, MdSupportAgent } from 'react-icons/md';
@@ -82,7 +83,7 @@ const Footer = () => (
         {/* Col 1 — Brand + contact */}
         <div>
           <Link to='/' className='flex flex-col items-start mb-4'>
-            <img src={logoSrc} alt='InfixMart' className='h-9 object-contain' />
+            <NextImage src={logoSrc} alt='InfixMart' width={140} height={36} className='h-9 object-contain w-auto' />
             <span className='text-[7.5px] font-[900] tracking-[3px] uppercase text-[#1565C0] mt-0.5'>WHOLESALE</span>
           </Link>
           <p className='text-[13px] text-gray-500 leading-relaxed mb-5'>

@@ -1,6 +1,7 @@
 import { fail, handleRouteError, ok } from "../../../../lib/server/api/http.js";
 import { requireAccessUserId } from "../../../../lib/server/auth/session.js";
 import { requireAdmin } from "../../../../lib/server/services/admin.js";
+import { writeAuditLog } from "../../../../lib/server/repositories/audit.js";
 import {
   createCodOrder,
   getAllOrdersForRoute,
@@ -53,9 +54,13 @@ async function dispatchNativeRoute(request, segments) {
   }
 
   if (request.method === "PUT" && first && second === "status") {
-    await requireAdminRequest(request);
+    const adminId = await requireAdminRequest(request);
     const body = await parseJson(request);
-    return ok(await updateOrderStatus(first, body?.status));
+    const result = await updateOrderStatus(first, body?.status);
+    const fwd = request.headers.get("x-forwarded-for");
+    const ip = fwd ? fwd.split(",")[0].trim() : (request.headers.get("x-real-ip") || null);
+    await writeAuditLog({ adminId, action: "UPDATE", entity: "order", entityId: first, detail: `Order status changed to ${body?.status}`, ip });
+    return ok(result);
   }
 
   return null;

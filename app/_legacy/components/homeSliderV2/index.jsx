@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import NextImage from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/effect-fade';
@@ -55,9 +56,9 @@ const HomeSliderV2 = () => {
         const image = imgUrl(slide.images?.[0] || slide.image);
         return (
           <SwiperSlide key={slide.id || idx}>
-            <div className='relative w-full overflow-hidden rounded-md item'>
+            <div className='relative w-full overflow-hidden rounded-md item' style={{ height: 400 }}>
               {image && (
-                <img src={image} alt={slide.title || `Slide ${idx + 1}`} className='w-full object-cover' style={{ maxHeight: 400 }} />
+                <NextImage src={image} alt={slide.title || `Slide ${idx + 1}`} fill className='object-cover' sizes="100vw" priority={idx === 0} />
               )}
               <div className='absolute top-0 -right-[100%] opacity-0 duration-700 transition-all info w-[50%] h-full flex flex-col justify-center items-center p-8 z-50'>
                 {slide.subTitle && (
