@@ -1,6 +1,5 @@
 import { Readable } from "stream";
 import app, { initializeServer } from "../app.js";
-import "mysql2"; // ensure standalone tracer includes mysql2
 
 const globalState = globalThis.__infixmartBridge ||
   (globalThis.__infixmartBridge = { ready: null });
