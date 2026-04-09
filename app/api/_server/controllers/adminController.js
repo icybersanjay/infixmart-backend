@@ -52,6 +52,7 @@ export const adminLoginController = async (req, res) => {
       data: { user: safeUser },
     });
   } catch (error) {
+    console.error("[adminLogin] error:", error?.message, error?.stack);
     return res.status(500).json({ message: "Internal server error", error: true, success: false });
   }
 };
