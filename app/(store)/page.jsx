@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import HomePage from "../_legacy/Pages/Home/index.jsx";
 
 export const metadata = {
@@ -25,5 +26,9 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <HomePage />;
+  return (
+    <Suspense fallback={null}>
+      <HomePage />
+    </Suspense>
+  );
 }
