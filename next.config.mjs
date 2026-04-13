@@ -134,10 +134,6 @@ const nextConfig = {
     "/api/**": ["./node_modules/mysql2/**/*"],
   },
 
-  experimental: {
-    cpus: 1,
-  },
-
   compress: true,
   poweredByHeader: false,
 };

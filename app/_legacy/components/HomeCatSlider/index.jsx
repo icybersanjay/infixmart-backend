@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
@@ -24,7 +24,7 @@ const CatSkeleton = () => (
 
 const HomeCatSlider = () => {
   const [categories, setCategories] = useState(null);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     getData('/api/category')
@@ -63,7 +63,7 @@ const HomeCatSlider = () => {
               <SwiperSlide key={cat.id}>
                 <div
                   className='flex flex-col items-center py-3 cursor-pointer group'
-                  onClick={() => navigate(`/productListing?category=${cat.id}`)}
+                  onClick={() => router.push(`/productListing?category=${cat.id}`)}
                 >
                   {/* Hexagon container */}
                   <div className='relative mb-3 transition-transform duration-300 group-hover:scale-110'>

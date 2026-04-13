@@ -71,7 +71,7 @@ function LegacyProviders({ children }) {
 
   return (
     <>
-      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
+      <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
         <MyContext.Provider value={values}>
           <SettingsProvider>
             <CartProvider enabled={isLogin}>

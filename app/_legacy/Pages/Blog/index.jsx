@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import SEO from '../../components/SEO';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { getData } from '../../utils/api';
 import { imgUrl } from '../../utils/imageUrl';
 import { IoMdTime } from 'react-icons/io';
@@ -26,7 +26,7 @@ const BlogCard = ({ blog }) => (
     <div className='p-4'>
       <p className='text-[11px] text-[#1565C0] font-[700] uppercase tracking-wider mb-1'>{blog.author}</p>
       <h2 className='text-[15px] font-[700] text-gray-800 mb-2 line-clamp-2 leading-snug'>
-        <Link to={`/blog/${blog.slug}`} className='hover:text-[#1565C0] transition-colors'>
+        <Link href={`/blog/${blog.slug}`} className='hover:text-[#1565C0] transition-colors'>
           {blog.title}
         </Link>
       </h2>
@@ -34,7 +34,7 @@ const BlogCard = ({ blog }) => (
         <p className='text-[13px] text-gray-500 mb-3 line-clamp-2 leading-5'>{blog.excerpt}</p>
       ) : null}
       <Link
-        to={`/blog/${blog.slug}`}
+        href={`/blog/${blog.slug}`}
         className='inline-flex items-center gap-1 text-[13px] font-[600] text-[#1565C0] hover:underline'
       >
         Read More <IoIosArrowForward />

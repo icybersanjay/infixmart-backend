@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import SEO from '../../components/SEO';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter, useParams } from 'next/navigation';
 import { getData } from '../../utils/api';
 import { imgUrl } from '../../utils/imageUrl';
 import { IoMdTime } from 'react-icons/io';
@@ -13,7 +14,7 @@ const fmt = (date) =>
 
 const BlogDetail = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -58,7 +59,7 @@ const BlogDetail = () => {
         <SEO title='Blog Not Found' url='/blog' noIndex />
         <p className='text-[3rem] mb-3'>404</p>
         <h2 className='text-[20px] font-[700] text-gray-700 mb-2'>Blog post not found</h2>
-        <Link to='/blog' className='text-[#1565C0] font-[600] hover:underline text-[14px]'>
+        <Link href='/blog' className='text-[#1565C0] font-[600] hover:underline text-[14px]'>
           Back to Blog
         </Link>
       </section>
@@ -120,7 +121,7 @@ const BlogDetail = () => {
       />
       <div className='container max-w-3xl mx-auto'>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => router.push(-1)}
           className='flex items-center gap-1.5 text-[13px] font-[600] text-[#1565C0] mb-6 hover:underline'
         >
           <IoArrowBack /> Back to Blog
@@ -159,7 +160,7 @@ const BlogDetail = () => {
 
         <div className='mt-10 pt-6 border-t border-gray-200'>
           <Link
-            to='/blog'
+            href='/blog'
             className='inline-flex items-center gap-2 text-[13px] font-[600] text-[#1565C0] border border-[#1565C0] px-5 py-2.5 rounded-full hover:bg-[#1565C0] hover:text-white transition-colors'
           >
             All Blog Posts

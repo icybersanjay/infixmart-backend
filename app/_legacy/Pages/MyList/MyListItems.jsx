@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link';
 import { IoClose } from "react-icons/io5";
 import { Button, Rating } from '@mui/material';
 
@@ -7,7 +7,7 @@ const MyListItems = (props) => {
   return (
         <div className='flex items-center w-full gap-4 p-3 pb-5 border-b border-[rgba(0,0,0,0.1)] cartItem'>
                         <div className='img w-[15%] rounded-md overflow-hidden group'>
-                            <Link to='/product/834'>
+                            <Link href='/product/834'>
                                 <img src='https://serviceapi.spicezgold.com/download/1742463096955_hbhb1.jpg' alt='Product' 
                                 className='w-full transition-all group-hover:scale-105' />
                             </Link>

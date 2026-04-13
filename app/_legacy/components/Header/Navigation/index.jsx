@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import { getData } from '../../../utils/api';
 import { IoGridOutline } from 'react-icons/io5';
 import { FaAngleDown, FaFire } from 'react-icons/fa';
@@ -18,8 +19,8 @@ const Navigation = () => {
   const [categories, setCategories] = useState([]);
   const [catOpen, setCatOpen]       = useState(false);
   const [priceOpen, setPriceOpen]   = useState(false);
-  const location  = useLocation();
-  const navigate  = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const navRef    = useRef(null);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ const Navigation = () => {
   useEffect(() => {
     setCatOpen(false);
     setPriceOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   // Close on outside click
   useEffect(() => {
@@ -64,7 +65,7 @@ const Navigation = () => {
 
   const linkCls = (path) =>
     `flex-shrink-0 flex items-center gap-1.5 px-3.5 py-3 text-[13px] font-[500] whitespace-nowrap transition-colors border-b-2 ${
-      location.pathname === path
+      pathname === path
         ? 'text-yellow-300 border-yellow-300 font-[700]'
         : 'text-white/85 border-transparent hover:text-white hover:border-white/30'
     }`;
@@ -104,7 +105,7 @@ const Navigation = () => {
                   <button
                     key={cat.id}
                     role='option'
-                    onClick={() => { navigate(`/productListing?category=${cat.id}`); closeAll(); }}
+                    onClick={() => { router.push(`/productListing?category=${cat.id}`); closeAll(); }}
                     className='w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-gray-700 hover:bg-[#EEF4FF] hover:text-[#1565C0] transition-colors text-left'
                   >
                     <span className='w-1.5 h-1.5 rounded-full bg-[#1565C0] flex-shrink-0' />
@@ -113,7 +114,7 @@ const Navigation = () => {
                 ))}
                 <div className='border-t border-gray-100 mt-1 pt-1'>
                   <button
-                    onClick={() => { navigate('/productListing'); closeAll(); }}
+                    onClick={() => { router.push('/productListing'); closeAll(); }}
                     className='w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-[#1565C0] font-[700] hover:bg-[#EEF4FF] transition-colors'
                   >
                     View All Categories →
@@ -127,24 +128,24 @@ const Navigation = () => {
           <div className='w-px h-5 bg-white/20 flex-shrink-0 mx-0.5' />
 
           {/* Static nav links */}
-          <Link to='/'                          className={linkCls('/')}>Home</Link>
+          <Link href='/'                          className={linkCls('/')}>Home</Link>
 
-          <Link to='/productListing?sort=newest' className={linkCls('/new-arrivals')}>
+          <Link href='/productListing?sort=newest' className={linkCls('/new-arrivals')}>
             <MdNewReleases className='text-yellow-300 text-[14px]' />
             New Arrivals
           </Link>
 
-          <Link to='/productListing?sort=popular' className={linkCls('/trending')}>
+          <Link href='/productListing?sort=popular' className={linkCls('/trending')}>
             <FaFire className='text-orange-300 text-[12px]' />
             Trending
           </Link>
 
-          <Link to='/productListing?onSale=true' className={linkCls('/on-sale')}>
+          <Link href='/productListing?onSale=true' className={linkCls('/on-sale')}>
             <MdLocalOffer className='text-yellow-300 text-[14px]' />
             On Sale
           </Link>
 
-          <Link to='/productListing?sort=bestseller' className={linkCls('/best-sellers')}>
+          <Link href='/productListing?sort=bestseller' className={linkCls('/best-sellers')}>
             <BsStars className='text-yellow-300 text-[12px]' />
             Best Sellers
           </Link>
@@ -178,7 +179,7 @@ const Navigation = () => {
                       const params = new URLSearchParams();
                       if (r.max) params.set('maxPrice', r.max);
                       if (r.min) params.set('minPrice', r.min);
-                      navigate(`/productListing?${params.toString()}`);
+                      router.push(`/productListing?${params.toString()}`);
                       closeAll();
                     }}
                     className='w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-gray-700 hover:bg-[#EEF4FF] hover:text-[#1565C0] transition-colors text-left'
@@ -194,7 +195,7 @@ const Navigation = () => {
           {categories.slice(0, 4).map((cat) => (
             <button
               key={cat.id}
-              onClick={() => navigate(`/productListing?category=${cat.id}`)}
+              onClick={() => router.push(`/productListing?category=${cat.id}`)}
               className='flex-shrink-0 px-3.5 py-3 text-[13px] font-[500] text-white/80 hover:text-white border-b-2 border-transparent hover:border-white/30 transition-colors whitespace-nowrap'
             >
               {cat.name}
@@ -205,7 +206,7 @@ const Navigation = () => {
 
           {/* View All */}
           <Link
-            to='/productListing'
+            href='/productListing'
             className='flex-shrink-0 px-4 py-3 text-[13px] font-[700] text-yellow-300 hover:text-yellow-200 whitespace-nowrap transition-colors'
           >
             View All →

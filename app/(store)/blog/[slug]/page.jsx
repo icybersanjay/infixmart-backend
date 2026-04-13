@@ -2,6 +2,8 @@
 import BlogDetailPage from "../../../_legacy/Pages/Blog/BlogDetail.jsx";
 import { getBlogPublic } from "../../../../lib/server/services/blogs.js";
 
+export const dynamic = "force-dynamic";
+
 const siteUrl =
   process.env.FRONTEND_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||

@@ -2,6 +2,8 @@
 import ProductDetailsPage from "../../../_legacy/Pages/ProductDetails/index.jsx";
 import { getProductBySlugValue, getSingleProduct } from "../../../../lib/server/services/products.js";
 
+export const dynamic = "force-dynamic";
+
 const siteUrl =
   process.env.FRONTEND_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||

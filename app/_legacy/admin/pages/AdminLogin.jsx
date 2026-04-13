@@ -1,14 +1,12 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
-const BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== "undefined" ? window.location.origin : "");
-
 export default function AdminLogin() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -20,7 +18,7 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
     try {
-      const res = await axios.post(`${BASE_URL}/api/admin/login`, { email, password }, { withCredentials: true });
+      const res = await axios.post("/api/admin/login", { email, password }, { withCredentials: true });
       const data = res.data;
 
       if (!data.success) {
@@ -28,7 +26,7 @@ export default function AdminLogin() {
         return;
       }
 
-      navigate("/admin/dashboard");
+      router.push("/admin/dashboard");
     } catch (err) {
       const msg = err.response?.data?.message || "Login failed. Please try again.";
       setError(msg);

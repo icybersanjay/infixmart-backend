@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import {
   MdShoppingBag,
   MdAttachMoney,
@@ -206,7 +208,7 @@ export default function Dashboard() {
             Recent Orders
           </h2>
           <Link
-            to="/admin/orders"
+            href="/admin/orders"
             style={{ fontSize: "0.8rem", color: "#1565C0", textDecoration: "none", fontWeight: 500 }}
           >
             View all →
@@ -280,7 +282,7 @@ export default function Dashboard() {
                       </td>
                       <td style={{ padding: "0.75rem 1rem" }}>
                         <Link
-                          to="/admin/orders"
+                          href="/admin/orders"
                           style={{
                             color: "#1565C0",
                             textDecoration: "none",
@@ -301,7 +303,7 @@ export default function Dashboard() {
       {/* ── Quick links ─────────────────────────────── */}
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
         <Link
-          to="/admin/products/new"
+          href="/admin/products/new"
           style={{
             padding: "0.6rem 1.25rem",
             background: "#1565C0",
@@ -315,7 +317,7 @@ export default function Dashboard() {
           + Add Product
         </Link>
         <Link
-          to="/admin/categories"
+          href="/admin/categories"
           style={{
             padding: "0.6rem 1.25rem",
             background: "#1565C0",
@@ -329,7 +331,7 @@ export default function Dashboard() {
           + Add Category
         </Link>
         <Link
-          to="/admin/orders"
+          href="/admin/orders"
           style={{
             padding: "0.6rem 1.25rem",
             background: "transparent",

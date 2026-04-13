@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/blog/[[...path]]": {},
+    "/api/admin/[[...path]]": {},
+    "/api/category/[[...path]]": {},
+    "/api/cart/[[...path]]": {},
+    "/api/health": {},
+    "/api/coupon/apply": {},
+    "/api/homeSlide/[[...path]]": {},
+    "/api/mylist/[[...path]]": {},
+    "/api/order/[[...path]]": {},
+    "/api/homepage/[[...path]]": {},
+    "/api/payment/[[...path]]": {},
+    "/api/productRam/[[...path]]": {},
+    "/api/productSize/[[...path]]": {},
+    "/api/productWeight/[[...path]]": {},
+    "/api/product/[[...path]]": {},
+    "/api/returns/[[...path]]": {},
+    "/api/settings": {},
+    "/api/reviews/[[...path]]": {},
+    "/api/uploads/[...path]": {},
+    "/api/user/[[...path]]": {},
+    "/api/user/addresses/[id]": {},
+    "/api/user/addresses": {},
+    "/sitemap.xml": {}
+  }
+}

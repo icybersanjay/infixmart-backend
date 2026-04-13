@@ -2,7 +2,8 @@ import React, { useState, useContext } from "react";
 import TextField from "@mui/material/TextField";
 import { Button, CircularProgress } from "@mui/material";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { MyContext } from "../../LegacyProviders";
 import { postData } from "../../utils/api";
 import SEO from "../../components/SEO";
@@ -17,8 +18,8 @@ const ForgotPassword = () => {
   });
 
   const context = useContext(MyContext);
-  const history = useNavigate();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
   const onChangeInput = (e) => {
@@ -34,7 +35,7 @@ const ForgotPassword = () => {
         <div className="container">
           <div className="shadow-md w-full max-w-[400px] m-auto rounded-md bg-white p-5 px-6 sm:px-10 card text-center">
             <p className="text-red-500 mb-4">Session expired. Please start the password reset again.</p>
-            <Link to="/login" className="link text-primary font-[600]">Back to Login</Link>
+            <Link href="/login" className="link text-primary font-[600]">Back to Login</Link>
           </div>
         </div>
       </section>
@@ -66,7 +67,7 @@ const ForgotPassword = () => {
     postData("/api/user/reset-password", { email, newPassword, confirmPassword }).then((res) => {
       if (!res.error) {
         context.openAlertBox("success", res?.message);
-        history("/login");
+        router.push("/login");
       } else {
         context.openAlertBox("error", res?.message);
         setIsLoading(false);
@@ -159,7 +160,7 @@ const ForgotPassword = () => {
             </div>
 
             <p className="text-center mt-2">
-              <Link to="/login" className="link text-[14px] font-[600] text-primary">
+              <Link href="/login" className="link text-[14px] font-[600] text-primary">
                 Back to Login
               </Link>
             </p>

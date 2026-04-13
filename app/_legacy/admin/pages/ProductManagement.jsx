@@ -1,13 +1,14 @@
+"use client";
+
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { MdEdit, MdDelete, MdAdd, MdSearch } from "react-icons/md";
 import adminAxios from "../utils/adminAxios";
 import TableRowSkeleton from "../../components/skeletons/TableRowSkeleton";
 import EmptyState from "../../components/EmptyState";
 import { MdInventory } from "react-icons/md";
 
-const BASE = import.meta.env.VITE_API_URL || "";
-const imgUrl = (p) => (p ? `${BASE}${p}` : "");
+const imgUrl = (p) => (p ? p : "");
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
 const primaryBtn = { padding: "0.55rem 1.1rem", background: "#1565C0", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 500, fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.35rem" };
@@ -41,7 +42,7 @@ function Pagination({ page, totalPages, onChange }) {
 }
 
 export default function ProductManagement() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -106,7 +107,7 @@ export default function ProductManagement() {
               style={{ padding: "0.55rem 0.875rem 0.55rem 2rem", border: "1px solid #ddd", borderRadius: 6, fontSize: "0.875rem", outline: "none", width: 200 }}
             />
           </div>
-          <button onClick={() => navigate("/admin/products/new")} style={primaryBtn}>
+          <button onClick={() => router.push("/admin/products/new")} style={primaryBtn}>
             <MdAdd style={{ fontSize: "1.1rem" }} /> Add Product
           </button>
         </div>
@@ -127,7 +128,7 @@ export default function ProductManagement() {
               {loading
                 ? Array.from({ length: 8 }).map((_, i) => <TableRowSkeleton key={i} cols={7} widths={[50, 160, 90, 70, 55, 60, 80]} />)
                 : products.length === 0
-                ? <tr><td colSpan={7}><EmptyState icon={<MdInventory style={{ fontSize: 64 }} />} title="No products yet" subtitle="Add your first product to get started." actionLabel="Add Product" onAction={() => navigate('/admin/products/new')} /></td></tr>
+                ? <tr><td colSpan={7}><EmptyState icon={<MdInventory style={{ fontSize: 64 }} />} title="No products yet" subtitle="Add your first product to get started." actionLabel="Add Product" onAction={() => router.push('/admin/products/new')} /></td></tr>
                 : products.map((product, i) => (
                     <tr key={product.id} style={{ background: i % 2 === 0 ? "#fff" : "#F9FAFB", borderBottom: "1px solid #F0F0F0" }}>
                       {/* Image */}
@@ -175,7 +176,7 @@ export default function ProductManagement() {
                       {/* Actions */}
                       <td style={{ padding: "0.65rem 1rem" }}>
                         <div style={{ display: "flex", gap: "0.4rem" }}>
-                          <button onClick={() => navigate(`/admin/products/${product.id}/edit`)} title="Edit" style={{ background: "#E3F2FD", border: "none", borderRadius: 6, padding: "0.35rem 0.5rem", cursor: "pointer", color: "#1565C0", fontSize: "1rem", display: "flex", alignItems: "center" }}>
+                          <button onClick={() => router.push(`/admin/products/${product.id}/edit`)} title="Edit" style={{ background: "#E3F2FD", border: "none", borderRadius: 6, padding: "0.35rem 0.5rem", cursor: "pointer", color: "#1565C0", fontSize: "1rem", display: "flex", alignItems: "center" }}>
                             <MdEdit />
                           </button>
                           <button onClick={() => setDeleteTarget(product)} title="Delete" style={{ background: "#FFEBEE", border: "none", borderRadius: 6, padding: "0.35rem 0.5rem", cursor: "pointer", color: "#E53935", fontSize: "1rem", display: "flex", alignItems: "center" }}>

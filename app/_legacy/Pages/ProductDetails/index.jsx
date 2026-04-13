@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import SEO from '../../components/SEO';
 import toast from 'react-hot-toast';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter, useParams } from 'next/navigation';
 import Rating from '@mui/material/Rating';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -523,7 +524,7 @@ const ReviewsSection = ({ productId }) => {
             </button>
           )}
           {!isLogin && !filterRating && (
-            <Link to='/login' className='mt-2 block text-[13px] text-[#1565C0] hover:underline font-[500]'>
+            <Link href='/login' className='mt-2 block text-[13px] text-[#1565C0] hover:underline font-[500]'>
               Login to write the first review
             </Link>
           )}
@@ -614,7 +615,7 @@ const ReviewsSection = ({ productId }) => {
 /* ══════════════════════════════════════════════════════════════════════════ */
 const ProductDetails = () => {
   const { productParam } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState(null);
@@ -671,9 +672,9 @@ const ProductDetails = () => {
   };
 
   const handleBuyNow = () => {
-    if (!isLogin) { navigate('/login'); return; }
+    if (!isLogin) { router.push('/login'); return; }
     addToCart(product.id);
-    navigate('/checkout');
+    router.push('/checkout');
   };
 
   /* ── Loading skeleton ─────────────────────────────────────────────────── */
@@ -710,7 +711,7 @@ const ProductDetails = () => {
       <div className='container py-20 text-center'>
         <BsBoxSeam className='text-gray-200 text-[64px] mx-auto mb-4' />
         <p className='text-[18px] font-[600] text-gray-500 mb-2'>Product not found</p>
-        <Link to='/productListing' className='text-[#1565C0] hover:underline font-[500]'>Browse all products</Link>
+        <Link href='/productListing' className='text-[#1565C0] hover:underline font-[500]'>Browse all products</Link>
       </div>
     );
   }
@@ -799,11 +800,11 @@ const ProductDetails = () => {
       <div className='bg-white border-b border-gray-100'>
         <div className='container py-3'>
           <nav className='text-[12px] text-gray-400 flex gap-1.5 items-center flex-wrap'>
-            <Link to='/' className='hover:text-[#1565C0] transition-colors'>Home</Link>
+            <Link href='/' className='hover:text-[#1565C0] transition-colors'>Home</Link>
             <span>/</span>
             {product.catName && (
               <>
-                <Link to={`/productListing?category=${product.catId}`} className='hover:text-[#1565C0] transition-colors'>
+                <Link href={`/productListing?category=${product.catId}`} className='hover:text-[#1565C0] transition-colors'>
                   {product.catName}
                 </Link>
                 <span>/</span>
@@ -850,7 +851,7 @@ const ProductDetails = () => {
             <div className='flex items-center gap-2 mb-2 flex-wrap'>
               {product.catName && (
                 <Link
-                  to={`/productListing?category=${product.catId}`}
+                  href={`/productListing?category=${product.catId}`}
                   className='text-[11px] font-[700] uppercase tracking-wider text-[#1565C0] bg-[#EEF4FF] border border-[#C0D9FF] px-2.5 py-1 rounded-full hover:bg-[#1565C0] hover:text-white transition-colors'
                 >
                   {product.catName}
@@ -1165,7 +1166,7 @@ const ProductDetails = () => {
             <div className='flex items-center justify-between mb-4'>
               <h2 className='text-[18px] font-[800] text-gray-800'>Similar Products</h2>
               <Link
-                to={`/productListing?category=${product.catId}`}
+                href={`/productListing?category=${product.catId}`}
                 className='text-[13px] text-[#1565C0] font-[600] hover:underline'
               >
                 View all →

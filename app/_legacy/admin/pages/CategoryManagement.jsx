@@ -5,8 +5,8 @@ import TableRowSkeleton from "../../components/skeletons/TableRowSkeleton";
 import EmptyState from "../../components/EmptyState";
 import { required, minLength } from "../../hooks/useForm";
 
-const BASE = import.meta.env.VITE_API_URL || "";
-const imgUrl = (p) => (p ? `${BASE}${p}` : "");
+
+const imgUrl = (p) => (p ? p : "");
 
 function flatten(cats, depth = 0) {
   return cats.flatMap((cat) => [

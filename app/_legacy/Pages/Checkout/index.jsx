@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { MyContext } from '../../LegacyProviders';
 import { useCart } from '../../context/CartContext';
@@ -195,7 +195,7 @@ const PriceSummary = ({ cartItems, discount, couponMsg, couponStatus, gstAmount,
 const Checkout = () => {
   const context = useContext(MyContext);
   const { cartItems, fetchCart } = useCart();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { codEnabled, gstPercent, cartMilestones } = useStoreSettings();
 
   const [step, setStep] = useState(1);
@@ -337,7 +337,7 @@ const Checkout = () => {
 
     const options = {
       // OWASP A05: key injected from frontend env var, never from API response
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
       amount: orderData.amount,
       currency: orderData.currency || 'INR',
       name: 'InfixMart',
@@ -383,7 +383,7 @@ const Checkout = () => {
       toast.dismiss(loadingToast);
       toast.success('Order placed successfully!');
       await fetchCart();
-      navigate(`/order-success?orderId=${verifyRes.order?.id || ''}`);
+      router.push(`/order-success?orderId=${verifyRes.order?.id || ''}`);
     } catch (err) {
       toast.dismiss(loadingToast);
       toast.error('Something went wrong. Please contact support.');
@@ -414,7 +414,7 @@ const Checkout = () => {
       await fetchCart();
       toast.dismiss(loadingToast);
       toast.success('Order placed successfully!');
-      navigate(`/order-success?orderId=${orderRes.order?.id || ''}`);
+      router.push(`/order-success?orderId=${orderRes.order?.id || ''}`);
     } catch (err) {
       toast.dismiss(loadingToast);
       toast.error('Something went wrong. Please contact support.');

@@ -1,12 +1,13 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useRouter, useParams } from "next/navigation";
 import { MdClose, MdArrowBack } from "react-icons/md";
 import adminAxios from "../utils/adminAxios";
 import toast, { Toaster } from "react-hot-toast";
 import { useForm, required, minLength, greaterThan, minVal } from "../../hooks/useForm";
 
-const BASE = import.meta.env.VITE_API_URL || "";
-const imgUrl = (p) => (p ? `${BASE}${p}` : "");
+const imgUrl = (p) => (p ? p : "");
 
 const inputStyle = { width: "100%", padding: "0.6rem 0.875rem", border: "1px solid #ddd", borderRadius: 6, fontSize: "0.9rem", outline: "none", boxSizing: "border-box" };
 const labelStyle = { display: "block", marginBottom: "0.35rem", fontSize: "0.875rem", fontWeight: 500, color: "#444" };
@@ -26,8 +27,9 @@ const runValidators = (validators, value) => {
 };
 
 export default function ProductForm() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const id = params?.id;
+  const router = useRouter();
   const isEdit = Boolean(id);
   const fileRef = useRef();
 
@@ -182,7 +184,7 @@ export default function ProductForm() {
         await adminAxios.post("/api/product/create", payload);
       }
       toast.success("Product saved!");
-      setTimeout(() => navigate("/admin/products"), 900);
+      setTimeout(() => router.push("/admin/products"), 900);
     } catch (err) {
       toast.error(err.response?.data?.message || "Save failed");
     } finally {
@@ -204,7 +206,7 @@ export default function ProductForm() {
 
       {/* Back + title */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
-        <button onClick={() => navigate("/admin/products")} style={{ background: "none", border: "none", cursor: "pointer", color: "#1565C0", fontSize: "1.4rem", lineHeight: 1, display: "flex" }}>
+        <button onClick={() => router.push("/admin/products")} style={{ background: "none", border: "none", cursor: "pointer", color: "#1565C0", fontSize: "1.4rem", lineHeight: 1, display: "flex" }}>
           <MdArrowBack />
         </button>
         <h2 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#1A237E", margin: 0 }}>
@@ -338,7 +340,7 @@ export default function ProductForm() {
 
         {/* ── Actions ── */}
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-          <button type="button" onClick={() => navigate("/admin/products")} style={{ padding: "0.65rem 1.25rem", background: "#F5F5F5", color: "#555", border: "1px solid #ddd", borderRadius: 6, cursor: "pointer", fontWeight: 500 }}>
+          <button type="button" onClick={() => router.push("/admin/products")} style={{ padding: "0.65rem 1.25rem", background: "#F5F5F5", color: "#555", border: "1px solid #ddd", borderRadius: 6, cursor: "pointer", fontWeight: 500 }}>
             Cancel
           </button>
           <button

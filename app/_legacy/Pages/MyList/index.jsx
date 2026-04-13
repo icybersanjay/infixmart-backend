@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { FaRegHeart, FaHeart, FaShoppingCart } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { Rating } from '@mui/material';
@@ -71,7 +71,7 @@ const WishlistRow = ({ item, onRemove, onMoveToCart }) => {
     <div className="flex items-center w-full gap-4 p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors group">
       {/* Image */}
       <div className="w-[100px] h-[100px] flex-shrink-0 rounded-md overflow-hidden relative">
-        <Link to={`/product/${item.productId}`}>
+        <Link href={`/product/${item.productId}`}>
           <img
             src={imgUrl(item.image) || 'https://via.placeholder.com/100'}
             alt={item.productTitle}
@@ -92,7 +92,7 @@ const WishlistRow = ({ item, onRemove, onMoveToCart }) => {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <Link to={`/product/${item.productId}`}>
+        <Link href={`/product/${item.productId}`}>
           <h3 className="text-[14px] font-[500] text-gray-800 hover:text-[#1565C0] transition-colors line-clamp-2">
             {item.productTitle}
           </h3>

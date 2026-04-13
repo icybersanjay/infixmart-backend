@@ -2,7 +2,8 @@ import React, { useContext, useState, useEffect, useRef } from "react";
 import OtpBox from "../../components/OtpBox";
 import { Button, CircularProgress } from "@mui/material";
 import { postData } from "../../utils/api";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { MyContext } from "../../LegacyProviders";
 import SEO from "../../components/SEO";
 
@@ -16,8 +17,8 @@ const Verify = () => {
   const timerRef = useRef(null);
 
   const context = useContext(MyContext);
-  const history = useNavigate();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const email = searchParams.get("email");
   const actionType = searchParams.get("actionType");
   const isForgotPassword = actionType === "forgot-password";
@@ -50,7 +51,7 @@ const Verify = () => {
         <div className="container">
           <div className="shadow-md w-full max-w-[400px] m-auto rounded-md bg-white p-5 px-6 sm:px-10 card text-center">
             <p className="text-red-500 mb-4">Session expired. Please start again.</p>
-            <Link to="/login" className="link text-primary font-[600]">Back to Login</Link>
+            <Link href="/login" className="link text-primary font-[600]">Back to Login</Link>
           </div>
         </div>
       </section>
@@ -74,9 +75,9 @@ const Verify = () => {
       if (res?.error === false) {
         context.openAlertBox("success", res?.message);
         if (isForgotPassword) {
-          history(`/forgot-password?email=${encodeURIComponent(email)}`);
+          router.push(`/forgot-password?email=${encodeURIComponent(email)}`);
         } else {
-          history("/login");
+          router.push("/login");
         }
       } else {
         context.openAlertBox("error", res?.message);
@@ -153,7 +154,7 @@ const Verify = () => {
           </div>
 
           <div className="text-center mt-3">
-            <Link to="/login" className="text-[13px] text-gray-400 hover:text-primary">
+            <Link href="/login" className="text-[13px] text-gray-400 hover:text-primary">
               Back to Login
             </Link>
           </div>

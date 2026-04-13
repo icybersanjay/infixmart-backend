@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import Rating from '@mui/material/Rating';
 import Tooltip from '@mui/material/Tooltip';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
@@ -63,7 +63,7 @@ const ProductItem = ({ item }) => {
         </button>
 
         {/* Product image */}
-        <Link to={productLink} className='block w-full h-full'>
+        <Link href={productLink} className='block w-full h-full'>
           {primaryImg && (
             <img
               src={primaryImg}
@@ -102,7 +102,7 @@ const ProductItem = ({ item }) => {
 
         {/* Name */}
         <h3 className='text-[12.5px] font-[500] text-gray-800 line-clamp-2 mb-2 leading-snug flex-1'>
-          <Link to={productLink} className='hover:text-[#1565C0] transition-colors'>
+          <Link href={productLink} className='hover:text-[#1565C0] transition-colors'>
             {item.name}
           </Link>
         </h3>

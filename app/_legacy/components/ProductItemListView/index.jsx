@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link';
 import Rating from '@mui/material/Rating';
 import Button from '@mui/material/Button';
 import { FaRegHeart } from "react-icons/fa";
@@ -19,7 +19,7 @@ const ProductItemListView = () => {
   return (
     <div className='overflow-hidden shadow-lg border-[rgba(0,0,0,0.1)] flex items-center rounded-md productItem border'>
         <div className='group m-4 imgWrapper w-[25%] rounded-md relative'>
-            <Link to='/'>
+            <Link href='/'>
                 <div className='h-auto overflow-hidden rounded-md img'>
                     <img src="https://serviceapi.spicezgold.com/download/1742463096955_hbhb1.jpg"
                     alt=""
@@ -59,10 +59,10 @@ const ProductItemListView = () => {
 
         <div className='p-3 py-5 px-8 info w-[75%]'>
             <h6 className='text-[15px] !font-[400]'>
-                <Link to='/' className='transition-all link'>Soylent Green</Link>
+                <Link href='/' className='transition-all link'>Soylent Green</Link>
             </h6>
             <h3 className='text-[18px] title mt-3 mb-3 font-[500] text-[#000]'>
-                <Link to='/' className='transition-all link'>Sirii Georgette Pink Color Saree with Blouse piece</Link>
+                <Link href='/' className='transition-all link'>Sirii Georgette Pink Color Saree with Blouse piece</Link>
             </h3>
             <p className='text-[14px] mb-3'>
                 Lorem ipsum dolor sit, amet consectetur adipisicing elit. Asperiores dignissimos obcaecati rerum corporis beatae quasi unde provident expedita qui ducimus totam doloribus quis voluptatum dolorem, libero accusamus ex culpa atque!

@@ -4,7 +4,8 @@ import { RiFolderUploadFill } from "react-icons/ri";
 import { FaRegUser, FaRegHeart, FaMapMarkerAlt } from "react-icons/fa";
 import { LuClipboardCheck } from "react-icons/lu";
 import { RiLogoutBoxRLine } from "react-icons/ri";
-import { NavLink } from "react-router-dom";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import NextImage from "next/image";
 import { MyContext } from "../../LegacyProviders";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -46,8 +47,11 @@ const AccountSidebar = () => {
       ? imgUrl(context.userData.avatar)
       : 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 
-  const navCls = ({ isActive }) =>
-    `flex py-2 px-5 text-left justify-start items-center w-full gap-2 rounded-none text-[13px] font-[500] transition-colors ${isActive ? 'text-[#1565C0] bg-[#e3f0ff]' : 'text-[rgba(0,0,0,0.7)] hover:text-[#1565C0] hover:bg-[#f0f5ff]'}`;
+  const pathname = usePathname();
+  const navCls = (href) => {
+    const isActive = pathname === href || pathname.startsWith(href + '/');
+    return `flex py-2 px-5 text-left justify-start items-center w-full gap-2 rounded-none text-[13px] font-[500] transition-colors ${isActive ? 'text-[#1565C0] bg-[#e3f0ff]' : 'text-[rgba(0,0,0,0.7)] hover:text-[#1565C0] hover:bg-[#f0f5ff]'}`;
+  };
 
   return (
     <div className="sticky bg-white rounded-lg shadow-sm border border-[rgba(0,0,0,0.08)] card top-[80px]">
@@ -77,24 +81,24 @@ const AccountSidebar = () => {
       {/* Nav links */}
       <ul className="list-none py-2 myAccountTabs">
         <li>
-          <NavLink to="/my-account" className={navCls}>
+          <Link href="/my-account" className={navCls("/my-account")}>
             <FaRegUser className="text-[16px]" /> My Profile
-          </NavLink>
+          </Link>
         </li>
         <li>
-          <NavLink to="/my-list" className={navCls}>
+          <Link href="/my-list" className={navCls("/my-list")}>
             <FaRegHeart className="text-[16px]" /> My Wishlist
-          </NavLink>
+          </Link>
         </li>
         <li>
-          <NavLink to="/my-orders" className={navCls}>
+          <Link href="/my-orders" className={navCls("/my-orders")}>
             <LuClipboardCheck className="text-[16px]" /> My Orders
-          </NavLink>
+          </Link>
         </li>
         <li>
-          <NavLink to="/my-address" className={navCls}>
+          <Link href="/my-address" className={navCls("/my-address")}>
             <FaMapMarkerAlt className="text-[16px]" /> My Addresses
-          </NavLink>
+          </Link>
         </li>
         <li className="border-t border-gray-100 mt-1 pt-1">
           <button

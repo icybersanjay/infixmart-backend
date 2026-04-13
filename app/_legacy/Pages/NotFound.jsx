@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import SEO from '../components/SEO';
 
 export default function NotFound() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div
@@ -55,7 +55,7 @@ export default function NotFound() {
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => router.push('/')}
           style={{
             padding: '0.75rem 1.75rem',
             background: '#1565C0',
@@ -70,7 +70,7 @@ export default function NotFound() {
           Go Home
         </button>
         <button
-          onClick={() => navigate('/productListing')}
+          onClick={() => router.push('/productListing')}
           style={{
             padding: '0.75rem 1.75rem',
             background: 'transparent',

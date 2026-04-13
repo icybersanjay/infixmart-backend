@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { MyContext } from '../LegacyProviders';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -9,7 +9,7 @@ const useLogout = () => {
   const context = useContext(MyContext);
   const { clearCart } = useCart();
   const { clearWishlist } = useWishlist();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return async () => {
     // server-side logout clears httpOnly cookies
@@ -18,7 +18,7 @@ const useLogout = () => {
     context.setUserData(null);
     clearCart();
     clearWishlist();
-    navigate('/login');
+    router.push('/login');
   };
 };
 

@@ -1,9 +1,18 @@
-import React, { useContext } from 'react';
-import { Navigate } from 'react-router-dom';
+"use client";
+
+import React, { useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MyContext } from '../LegacyProviders';
 
 const ProtectedRoute = ({ children }) => {
   const { isLogin, authLoading } = useContext(MyContext);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !isLogin) {
+      router.replace('/login');
+    }
+  }, [authLoading, isLogin, router]);
 
   if (authLoading) {
     return (
@@ -13,7 +22,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  return isLogin ? children : <Navigate to="/login" replace />;
+  return isLogin ? children : null;
 };
 
 export default ProtectedRoute;

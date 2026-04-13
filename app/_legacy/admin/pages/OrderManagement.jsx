@@ -6,8 +6,8 @@ import TableRowSkeleton from "../../components/skeletons/TableRowSkeleton";
 import EmptyState from "../../components/EmptyState";
 import { MdShoppingBag } from "react-icons/md";
 
-const BASE = import.meta.env.VITE_API_URL || "";
-const imgUrl = (p) => (p ? `${BASE}${p}` : "");
+
+const imgUrl = (p) => (p ? p : "");
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 

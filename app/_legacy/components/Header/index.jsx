@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import NextImage from 'next/image';
 import logo from '../../assets/logo.webp';
 import Search from '../Search';
@@ -104,12 +104,12 @@ const Header = () => {
               </a>
             </div>
             <div className='flex items-center gap-4'>
-              <Link to='/blog'       className='hover:text-[#1565C0] transition-colors'>Wholesale Tips</Link>
+              <Link href='/blog'       className='hover:text-[#1565C0] transition-colors'>Wholesale Tips</Link>
               <span className='opacity-30'>|</span>
-              <Link to='/my-orders'  className='hover:text-[#1565C0] transition-colors'>Track Order</Link>
+              <Link href='/my-orders'  className='hover:text-[#1565C0] transition-colors'>Track Order</Link>
               <span className='opacity-30'>|</span>
               {!context.isLogin
-                ? <Link to='/login' className='hover:text-[#1565C0] transition-colors font-[600]'>Login / Register</Link>
+                ? <Link href='/login' className='hover:text-[#1565C0] transition-colors font-[600]'>Login / Register</Link>
                 : <span className='text-gray-600 font-[600] capitalize'>{context?.userData?.name}</span>
               }
             </div>
@@ -119,7 +119,7 @@ const Header = () => {
           <div className='flex items-center gap-3 sm:gap-4 h-[62px] sm:h-[68px]'>
 
             {/* Logo */}
-            <Link to='/' className='flex-shrink-0 mr-1 sm:mr-2'>
+            <Link href='/' className='flex-shrink-0 mr-1 sm:mr-2'>
               <NextImage src={logoSrc} alt='InfixMart' width={140} height={36} className='h-8 sm:h-9 object-contain w-auto' />
             </Link>
 
@@ -133,7 +133,7 @@ const Header = () => {
 
               {/* Wishlist */}
               <Link
-                to='/my-list'
+                href='/my-list'
                 aria-label={`Wishlist (${wishlistCount} items)`}
                 className='flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl hover:bg-gray-50 transition-colors group'
               >
@@ -150,7 +150,7 @@ const Header = () => {
 
               {/* Cart */}
               <Link
-                to='/cart'
+                href='/cart'
                 aria-label={`Cart (${cartCount} items)`}
                 className='flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl hover:bg-gray-50 transition-colors group'
               >
@@ -166,13 +166,13 @@ const Header = () => {
               {!context.isLogin ? (
                 <div className='hidden md:flex items-center gap-2 ml-2'>
                   <Link
-                    to='/login'
+                    href='/login'
                     className='text-[13px] font-[500] text-gray-600 hover:text-[#1565C0] px-3 py-2 rounded-lg border border-gray-200 hover:border-[#1565C0] transition-colors'
                   >
                     Log in
                   </Link>
                   <Link
-                    to='/register'
+                    href='/register'
                     className='text-[13px] font-[700] bg-[#1565C0] hover:bg-[#0D47A1] text-white px-4 py-2 rounded-lg transition-colors shadow-sm'
                   >
                     Sign up
@@ -234,22 +234,22 @@ const Header = () => {
                       </div>
                     </div>
                     <div className='py-1'>
-                      <Link to='/my-account' className='block'>
+                      <Link href='/my-account' className='block'>
                         <MenuItem className='!py-2.5 !text-[13px] !text-gray-700 hover:!bg-[#EEF4FF] !gap-2.5 !mx-1 !rounded-lg'>
                           <FaRegUser className='text-[#1565C0] text-[12px]' /> My Profile
                         </MenuItem>
                       </Link>
-                      <Link to='/my-orders' className='block'>
+                      <Link href='/my-orders' className='block'>
                         <MenuItem className='!py-2.5 !text-[13px] !text-gray-700 hover:!bg-[#EEF4FF] !gap-2.5 !mx-1 !rounded-lg'>
                           <LuClipboardCheck className='text-[#1565C0] text-[13px]' /> My Orders
                         </MenuItem>
                       </Link>
-                      <Link to='/my-list' className='block'>
+                      <Link href='/my-list' className='block'>
                         <MenuItem className='!py-2.5 !text-[13px] !text-gray-700 hover:!bg-[#EEF4FF] !gap-2.5 !mx-1 !rounded-lg'>
                           <FaRegHeart className='text-[#1565C0] text-[12px]' /> Wishlist
                         </MenuItem>
                       </Link>
-                      <Link to='/my-address' className='block'>
+                      <Link href='/my-address' className='block'>
                         <MenuItem className='!py-2.5 !text-[13px] !text-gray-700 hover:!bg-[#EEF4FF] !gap-2.5 !mx-1 !rounded-lg'>
                           <FaMapMarkerAlt className='text-[#1565C0] text-[12px]' /> Addresses
                         </MenuItem>
@@ -337,11 +337,11 @@ const Header = () => {
                   </div>
                 ) : (
                   <div className='flex gap-2'>
-                    <Link to='/login' onClick={closeMobile}
+                    <Link href='/login' onClick={closeMobile}
                       className='flex-1 py-2.5 text-center border-2 border-[#1565C0] text-[#1565C0] rounded-xl text-[13px] font-[600] hover:bg-[#EEF4FF] active:bg-[#EEF4FF] transition-colors'>
                       Log in
                     </Link>
-                    <Link to='/register' onClick={closeMobile}
+                    <Link href='/register' onClick={closeMobile}
                       className='flex-1 py-2.5 text-center bg-[#1565C0] text-white rounded-xl text-[13px] font-[700] hover:bg-[#0D47A1] active:bg-[#0D47A1] transition-colors'>
                       Sign up
                     </Link>
@@ -362,7 +362,7 @@ const Header = () => {
                 ].map(({ to, label, icon }) => (
                   <Link
                     key={to}
-                    to={to}
+                    href={to}
                     onClick={closeMobile}
                     className='flex items-center justify-between px-5 py-3.5 text-[14px] text-gray-700 hover:text-[#1565C0] hover:bg-[#EEF4FF] active:bg-[#EEF4FF] transition-colors border-b border-gray-50'
                   >

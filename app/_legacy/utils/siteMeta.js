@@ -1,5 +1,5 @@
-export const SITE_NAME = import.meta.env.VITE_SITE_NAME || "InfixMart Wholesale";
-export const SITE_URL = (import.meta.env.VITE_SITE_URL || "https://infixmart.com").replace(/\/+$/, "");
+export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "InfixMart Wholesale";
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://infixmart.com").replace(/\/+$/, "");
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/images/strechBanner.png`;
 
 export const buildAbsoluteUrl = (path = "/") => {

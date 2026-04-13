@@ -7,7 +7,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { EffectFade, Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Button } from '@mui/material';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { getData } from '../../utils/api';
 import { imgUrl } from '../../utils/imageUrl';
 
@@ -77,7 +77,7 @@ const HomeSliderV2 = () => {
                   </h3>
                 )}
                 <div className='w-full relative -bottom-[100%] opacity-0 btn_'>
-                  <Link to={slide.link || '/productListing'}>
+                  <Link href={slide.link || '/productListing'}>
                     <Button className='btn-org'>SHOP NOW</Button>
                   </Link>
                 </div>

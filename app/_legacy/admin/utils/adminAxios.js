@@ -1,11 +1,7 @@
 import axios from "axios";
 
-const BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== "undefined" ? window.location.origin : "");
-
 const adminAxios = axios.create({
-  baseURL: BASE_URL,
+  baseURL: "",
   withCredentials: true,
 });
 
@@ -40,7 +36,7 @@ adminAxios.interceptors.response.use(
 
     try {
       await axios.post(
-        `${BASE_URL}/api/user/refresh-token`,
+        "/api/user/refresh-token",
         {},
         { withCredentials: true }
       );

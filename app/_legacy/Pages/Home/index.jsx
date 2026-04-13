@@ -8,7 +8,8 @@
 
 import React, { useState, useEffect } from 'react';
 import SEO from '../../components/SEO';
-import { Link, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import HeroSlider from '../../components/HeroSlider';
 import ProductItem from '../../components/ProductItem';
 import BlogItem from '../../components/BLogItem';
@@ -54,7 +55,7 @@ const SectionHead = ({ tag, title, accent, sub, viewAll }) => (
       {sub && <p className='text-[15px] text-slate-500 mt-3 font-medium'>{sub}</p>}
     </div>
     {viewAll && (
-      <Link to={viewAll} className='group flex items-center gap-1 text-[14px] font-[700] text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap ml-4 flex-shrink-0'>
+      <Link href={viewAll} className='group flex items-center gap-1 text-[14px] font-[700] text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap ml-4 flex-shrink-0'>
         View All <IoIosArrowRoundForward className='text-[24px] group-hover:translate-x-1.5 transition-transform' />
       </Link>
     )}
@@ -78,7 +79,7 @@ const CAT_PALETTES = [
 const CategoryGrid = () => {
   const [cats, setCats] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     getData('/api/category').then((res) => {
@@ -106,7 +107,7 @@ const CategoryGrid = () => {
           {display.map((cat, i) => {
             const p = CAT_PALETTES[i % CAT_PALETTES.length];
             return cat ? (
-              <button key={cat.id} onClick={() => navigate(`/productListing?category=${cat.id}`)}
+              <button key={cat.id} onClick={() => router.push(`/productListing?category=${cat.id}`)}
                 className='group relative flex flex-col items-center justify-center gap-4 p-6 rounded-3xl hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden border border-transparent'
                 style={{ background: `linear-gradient(135deg, ${p.bg} 0%, #ffffff 100%)`, borderColor: p.bg }}
               >
@@ -126,7 +127,7 @@ const CategoryGrid = () => {
           {display.slice(0, 8).map((cat, i) => {
             const p = CAT_PALETTES[i % CAT_PALETTES.length];
             return cat ? (
-              <button key={cat.id} onClick={() => navigate(`/productListing?category=${cat.id}`)}
+              <button key={cat.id} onClick={() => router.push(`/productListing?category=${cat.id}`)}
                 className='flex flex-col items-center gap-2 p-3 rounded-2xl cursor-pointer active:scale-95 transition-transform'
                 style={{ background: p.bg }}
               >
@@ -150,7 +151,7 @@ const CategoryGrid = () => {
 
 /* 2. Shop by Price ─────────────────────────────────────────────────────────── */
 const ShopByPrice = ({ items }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   if (!items || items.length === 0) return null;
   return (
     <section className='py-16 bg-slate-50'>
@@ -166,7 +167,7 @@ const ShopByPrice = ({ items }) => {
                   const params = new URLSearchParams();
                   if (meta.maxPrice) params.set('maxPrice', meta.maxPrice);
                   if (meta.minPrice) params.set('minPrice', meta.minPrice);
-                  navigate(params.toString() ? `/productListing?${params.toString()}` : (tier.link || '/productListing'));
+                  router.push(params.toString() ? `/productListing?${params.toString()}` : (tier.link || '/productListing'));
                 }}
                 className='group flex flex-col items-center justify-center gap-2 p-6 sm:p-8 rounded-3xl border-2 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer text-center relative overflow-hidden'
                 style={{ background: tier.bgColor, borderColor: tier.badgeColor || 'transparent' }}
@@ -211,7 +212,7 @@ const TodaysBestDeals = ({ products }) => (
       )}
       <div className='flex justify-center mt-8'>
         <Link
-          to='/productListing'
+          href='/productListing'
           className='inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-[14px] font-[800] px-8 py-3 rounded-full shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.5)] transition-all duration-300 group'
         >
           View All Products
@@ -248,7 +249,7 @@ const FlashDealsGrid = ({ products, config }) => {
             </h2>
             <p className='text-[15px] text-slate-500 mt-2 font-medium'>{cfg.subtitle || 'Unbeatable prices — grab them before they\'re absolutely gone!'}</p>
           </div>
-          <Link to={cfg.link || `/productListing?maxPrice=${maxPrice}`} className='group flex items-center gap-1 text-[14px] font-[700] text-red-600 hover:text-red-800 transition-colors whitespace-nowrap ml-4'>
+          <Link href={cfg.link || `/productListing?maxPrice=${maxPrice}`} className='group flex items-center gap-1 text-[14px] font-[700] text-red-600 hover:text-red-800 transition-colors whitespace-nowrap ml-4'>
             View All <IoIosArrowRoundForward className='text-[24px] group-hover:translate-x-1.5 transition-transform' />
           </Link>
         </div>
@@ -285,7 +286,7 @@ const ShopByCollection = ({ items }) => {
         ) : (
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
           {items.map((col) => (
-            <Link key={col.id} to={col.link || '/productListing'} className='group relative overflow-hidden rounded-3xl h-[280px] sm:h-[320px] shadow-sm hover:shadow-2xl transition-all duration-500 block'>
+            <Link key={col.id} href={col.link || '/productListing'} className='group relative overflow-hidden rounded-3xl h-[280px] sm:h-[320px] shadow-sm hover:shadow-2xl transition-all duration-500 block'>
               <img src={col.image} alt={col.title} className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110' />
               <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent' />
               {col.badge && (

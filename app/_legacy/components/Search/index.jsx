@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { IoSearch, IoClose } from 'react-icons/io5';
 import { getData } from '../../utils/api';
 import { imgUrl } from '../../utils/imageUrl';
@@ -15,7 +15,7 @@ const Search = () => {
   const [loading, setLoading] = useState(false);
   const wrapperRef = useRef(null);
   const debounceRef = useRef(null);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // Fetch categories for dropdown
   useEffect(() => {
@@ -68,18 +68,18 @@ const Search = () => {
     const params = new URLSearchParams();
     params.set('search', query.trim());
     if (category) params.set('category', category);
-    navigate(`/productListing?${params.toString()}`);
+    router.push(`/productListing?${params.toString()}`);
   };
 
   const handleSuggestionClick = (item) => {
     setOpen(false);
-    navigate(`/product/${item.id}`);
+    router.push(`/product/${item.id}`);
   };
 
   const handleMostSearched = (term) => {
     setQuery(term);
     setOpen(false);
-    navigate(`/productListing?search=${encodeURIComponent(term)}`);
+    router.push(`/productListing?search=${encodeURIComponent(term)}`);
   };
 
   const clearQuery = () => {

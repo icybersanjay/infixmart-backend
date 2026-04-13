@@ -7,7 +7,7 @@
  * Recommended banner size: 1400 × 500 px
  */
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper/modules';
 import 'swiper/css';
@@ -64,7 +64,7 @@ const HeroSlider = () => {
           >
             {slides.map((slide, i) => (
               <SwiperSlide key={i}>
-                <Link to={slide.link} className='block w-full h-full'>
+                <Link href={slide.link} className='block w-full h-full'>
                   <img
                     src={slide.src}
                     alt={slide.alt}

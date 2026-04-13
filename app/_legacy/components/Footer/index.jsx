@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import NextImage from 'next/image';
 import logo from '../../assets/logo.webp';
 import { FaFacebookF, FaInstagram, FaYoutube, FaWhatsapp, FaLinkedinIn, FaTwitter } from 'react-icons/fa';
@@ -82,7 +82,7 @@ const Footer = () => (
 
         {/* Col 1 — Brand + contact */}
         <div>
-          <Link to='/' className='flex flex-col items-start mb-4'>
+          <Link href='/' className='flex flex-col items-start mb-4'>
             <NextImage src={logoSrc} alt='InfixMart' width={140} height={36} className='h-9 object-contain w-auto' />
             <span className='text-[7.5px] font-[900] tracking-[3px] uppercase text-[#1565C0] mt-0.5'>WHOLESALE</span>
           </Link>
@@ -135,7 +135,7 @@ const Footer = () => (
             {POLICIES.map(({ label, to }) => (
               <li key={label}>
                 <Link
-                  to={to}
+                  href={to}
                   className='text-[13px] text-gray-500 hover:text-[#1565C0] transition-colors flex items-center gap-1.5'
                 >
                   <span className='w-1 h-1 rounded-full bg-gray-300 flex-shrink-0' />
@@ -153,7 +153,7 @@ const Footer = () => (
             {QUICK_LINKS.map(({ label, to }) => (
               <li key={label}>
                 <Link
-                  to={to}
+                  href={to}
                   className='text-[13px] text-gray-500 hover:text-[#1565C0] transition-colors flex items-center gap-1.5'
                 >
                   <span className='w-1 h-1 rounded-full bg-gray-300 flex-shrink-0' />
@@ -171,7 +171,7 @@ const Footer = () => (
             {ACCOUNT_LINKS.map(({ label, to }) => (
               <li key={label}>
                 <Link
-                  to={to}
+                  href={to}
                   className='text-[13px] text-gray-500 hover:text-[#1565C0] transition-colors flex items-center gap-1.5'
                 >
                   <span className='w-1 h-1 rounded-full bg-gray-300 flex-shrink-0' />

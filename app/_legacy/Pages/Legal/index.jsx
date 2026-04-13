@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import SEO from '../../components/SEO';
 
 const LEGAL_CONTENT = {
@@ -217,7 +218,7 @@ const ROUTES_MAP = {
 };
 
 const LegalPage = () => {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const key = ROUTES_MAP[pathname] || '';
   const content = LEGAL_CONTENT[key];
 
@@ -225,7 +226,7 @@ const LegalPage = () => {
     return (
       <section className="py-20 text-center">
         <h1 className="text-[22px] font-[700] text-gray-800 mb-3">Page Not Found</h1>
-        <Link to="/" className="text-[#1565C0] hover:underline text-[14px]">← Back to Home</Link>
+        <Link href="/" className="text-[#1565C0] hover:underline text-[14px]">← Back to Home</Link>
       </section>
     );
   }
@@ -269,7 +270,7 @@ const LegalPage = () => {
 
         {/* Breadcrumb */}
         <nav className="text-[12px] text-gray-400 mb-6 flex items-center gap-1.5">
-          <Link to="/" className="hover:text-[#1565C0] transition-colors">Home</Link>
+          <Link href="/" className="hover:text-[#1565C0] transition-colors">Home</Link>
           <span>/</span>
           <span className="text-gray-600">{content.title}</span>
         </nav>

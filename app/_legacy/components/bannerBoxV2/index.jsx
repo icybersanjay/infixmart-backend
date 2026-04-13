@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link';
 import NextImage from 'next/image'
 
 const BannerBoxV2 = (props) => {
@@ -14,7 +14,7 @@ const BannerBoxV2 = (props) => {
             <span className='text-[20px] w-full font-[600] text-primary'>499</span>
 
             <div className='w-full'>
-                <Link to='/' className='text-[16px] font-[600] link underline'>SHOP NOW</Link>
+                <Link href='/' className='text-[16px] font-[600] link underline'>SHOP NOW</Link>
             </div>
          </div>
     </div>

@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { FaCheckCircle, FaBoxOpen, FaShoppingBag } from 'react-icons/fa';
 
 const OrderSuccess = () => {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
   // Confetti via CDN
@@ -51,13 +52,13 @@ const OrderSuccess = () => {
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            to="/my-orders"
+            href="/my-orders"
             className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1565C0] text-white text-[13px] font-[700] rounded-lg hover:bg-[#0D47A1] transition-colors"
           >
             <FaBoxOpen className="text-[14px]" /> Track My Orders
           </Link>
           <Link
-            to="/productListing"
+            href="/productListing"
             className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-[#1565C0] text-[#1565C0] text-[13px] font-[700] rounded-lg hover:bg-[#f0f5ff] transition-colors"
           >
             <FaShoppingBag className="text-[14px]" /> Continue Shopping

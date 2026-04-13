@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import SEO from '../../components/SEO';
-import { Link, useSearchParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { IoGrid, IoMenu } from 'react-icons/io5';
 import { IoClose } from 'react-icons/io5';
 import { FaStar, FaBox } from 'react-icons/fa';
@@ -171,7 +172,9 @@ const FilterPanel = ({
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
 const ProductListing = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const { addToCart } = useCart();
 
@@ -230,7 +233,7 @@ const ProductListing = () => {
     setSelectedCatId(''); setMinPrice(''); setMaxPrice('');
     setAppliedMin(''); setAppliedMax(''); setSelectedRating(null);
     setInStockOnly(false); setSortBy('newest'); setPage(1);
-    setSearchParams({});
+    router.push(pathname);
   };
 
   const handleCatChange = (catId) => {
@@ -275,7 +278,7 @@ const ProductListing = () => {
     (appliedMin || appliedMax) && { key: 'price', label: `Price: ₹${appliedMin || '0'} – ₹${appliedMax || '∞'}`, clear: () => { setMinPrice(''); setMaxPrice(''); setAppliedMin(''); setAppliedMax(''); setPage(1); } },
     selectedRating && { key: 'rating', label: `${selectedRating}★ & up`, clear: () => setSelectedRating(null) },
     inStockOnly && { key: 'stock', label: 'In Stock Only', clear: () => setInStockOnly(false) },
-    searchQuery && { key: 'search', label: `Search: "${searchQuery}"`, clear: () => { const p = new URLSearchParams(searchParams); p.delete('search'); setSearchParams(p); } },
+    searchQuery && { key: 'search', label: `Search: "${searchQuery}"`, clear: () => { const p = new URLSearchParams(searchParams.toString()); p.delete('search'); router.push(p.toString() ? `${pathname}?${p.toString()}` : pathname); } },
   ].filter(Boolean);
 
   const filterProps = {
@@ -297,7 +300,7 @@ const ProductListing = () => {
       <div className='container'>
         {/* Breadcrumb */}
         <nav className='text-[12px] text-gray-400 mb-4 flex gap-1.5 items-center flex-wrap'>
-          <Link to='/' className='hover:text-[#1565C0] transition-colors'>Home</Link>
+          <Link href='/' className='hover:text-[#1565C0] transition-colors'>Home</Link>
           <span>/</span>
           <span className='text-gray-600'>Products</span>
           {activeCatName && (<><span>/</span><span className='text-gray-800 font-[500]'>{activeCatName}</span></>)}
@@ -423,7 +426,7 @@ const ProductListing = () => {
               <div className='flex flex-col gap-3'>
                 {products.map(p => (
                   <div key={p.id} className='bg-white rounded-xl border border-gray-100 p-3 flex gap-4 items-start shadow-sm hover:shadow-md hover:border-[#1565C0]/20 transition-all'>
-                    <Link to={`/product/${p.id}`} className='flex-shrink-0'>
+                    <Link href={`/product/${p.id}`} className='flex-shrink-0'>
                       <div className='w-[110px] h-[110px] bg-[#F8FAFF] rounded-xl overflow-hidden flex items-center justify-center'>
                         <img
                           src={imgUrl(p.images?.[0])}
@@ -434,7 +437,7 @@ const ProductListing = () => {
                     </Link>
                     <div className='flex-1 min-w-0 flex flex-col gap-1'>
                       {p.brand && <p className='text-[10px] font-[700] uppercase text-[#1565C0] tracking-wide'>{p.brand}</p>}
-                      <Link to={`/product/${p.id}`} className='font-[600] text-[14px] text-gray-800 hover:text-[#1565C0] transition-colors line-clamp-2 leading-snug'>
+                      <Link href={`/product/${p.id}`} className='font-[600] text-[14px] text-gray-800 hover:text-[#1565C0] transition-colors line-clamp-2 leading-snug'>
                         {p.name}
                       </Link>
                       <Rating value={Number(p.rating) || 0} size='small' readOnly precision={0.5} />

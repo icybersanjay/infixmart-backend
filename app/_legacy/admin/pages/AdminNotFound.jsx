@@ -1,10 +1,12 @@
+"use client";
+
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 export default function AdminNotFound() {
-  const navigate = useNavigate();
+  const router = useRouter();
   useEffect(() => {
-    navigate('/admin/dashboard', { replace: true });
-  }, [navigate]);
+    router.replace('/admin/dashboard');
+  }, [router]);
   return null;
 }

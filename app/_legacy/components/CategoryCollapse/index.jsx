@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link';
 import Button from '@mui/material/Button'
 import { FaRegMinusSquare } from "react-icons/fa"
 import { FaRegPlusSquare } from "react-icons/fa";
@@ -33,7 +33,7 @@ const CategoryCollapse = () => {
         <div className='scroll'>
             <ul className='w-full'>
                 <li className='relative flex flex-col items-center list-none'>
-                    <Link to='/' className='w-full'>
+                    <Link href='/' className='w-full'>
                         <Button className='w-full !text-left !justify-start !px-3 !text-[rgb(0,0,0,0.8)]'>
                             Fashion
                         </Button>
@@ -53,7 +53,7 @@ const CategoryCollapse = () => {
                         submenuIndex === 0 && (
                         <ul className='w-full pl-3 submenu'>
                             <li className='relative list-none'>
-                                <Link to='/' className='w-full'>
+                                <Link href='/' className='w-full'>
                                     <Button className='w-full !text-left !justify-start !px-3 !text-[rgb(0,0,0,0.8)]'>
                                         Apparel
                                     </Button>
@@ -73,22 +73,22 @@ const CategoryCollapse = () => {
                                     innerSubmenuIndex === 0 && (
                                         <ul className='w-full pl-3 inner_submenu'>
                                         <li className='relative mb-1 list-none'>
-                                            <Link to='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
+                                            <Link href='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
                                                 Smart Tablet
                                             </Link>                                
                                         </li>
                                         <li className='relative mb-1 list-none'>
-                                            <Link to='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
+                                            <Link href='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
                                                 Crepe T-shirt
                                             </Link>                                
                                         </li>
                                         <li className='relative mb-1 list-none'>
-                                            <Link to='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
+                                            <Link href='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
                                                 Leather Watch
                                             </Link>                                
                                         </li>
                                         <li className='relative mb-1 list-none'>
-                                            <Link to='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
+                                            <Link href='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
                                                 Rolling Diamond
                                             </Link>                                
                                         </li>
@@ -105,7 +105,7 @@ const CategoryCollapse = () => {
                 </li>
 
                 <li className='relative flex flex-col items-center list-none'>
-                    <Link to='/' className='w-full'>
+                    <Link href='/' className='w-full'>
                         <Button className='w-full !text-left !justify-start !px-3 !text-[rgb(0,0,0,0.8)]'>
                             Outwear
                         </Button>
@@ -125,7 +125,7 @@ const CategoryCollapse = () => {
                         submenuIndex === 1 && (
                         <ul className='w-full pl-3 submenu'>
                             <li className='relative list-none'>
-                                <Link to='/' className='w-full'>
+                                <Link href='/' className='w-full'>
                                     <Button className='w-full !text-left !justify-start !px-3 !text-[rgb(0,0,0,0.8)]'>
                                         Apparel
                                     </Button>
@@ -145,22 +145,22 @@ const CategoryCollapse = () => {
                                     innerSubmenuIndex === 1 && (
                                         <ul className='w-full pl-3 inner_submenu'>
                                         <li className='relative mb-1 list-none'>
-                                            <Link to='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
+                                            <Link href='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
                                                 Smart Tablet
                                             </Link>                                
                                         </li>
                                         <li className='relative mb-1 list-none'>
-                                            <Link to='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
+                                            <Link href='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
                                                 Crepe T-shirt
                                             </Link>                                
                                         </li>
                                         <li className='relative mb-1 list-none'>
-                                            <Link to='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
+                                            <Link href='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
                                                 Leather Watch
                                             </Link>                                
                                         </li>
                                         <li className='relative mb-1 list-none'>
-                                            <Link to='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
+                                            <Link href='/' className='link w-full !text-left !justify-start !px-3 transition text-[14px]'>
                                                 Rolling Diamond
                                             </Link>                                
                                         </li>

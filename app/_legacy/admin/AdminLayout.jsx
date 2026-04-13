@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import {
   MdDashboard,
   MdCategory,
@@ -53,8 +56,8 @@ const ROUTE_TITLES = {
 const SIDEBAR_W = 240;
 
 export default function AdminLayout({ children }) {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
   const [adminUser, setAdminUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -90,7 +93,7 @@ export default function AdminLayout({ children }) {
     try {
       await adminAxios.post("/api/user/logout", {});
     } catch {}
-    navigate("/admin/login");
+    router.push("/admin/login");
   };
 
   return (
@@ -194,28 +197,31 @@ export default function AdminLayout({ children }) {
 
           {/* Nav */}
           <nav style={{ flex: 1, padding: "0.75rem 0", overflowY: "auto" }}>
-            {NAV_ITEMS.map(({ path, label, icon }) => (
-              <NavLink
-                key={path}
-                to={path}
-                style={({ isActive }) => ({
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  padding: "0.7rem 1.5rem",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.65)",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  fontWeight: isActive ? 600 : 400,
-                  background: isActive ? "rgba(21,101,192,0.35)" : "transparent",
-                  borderLeft: isActive ? "4px solid #1565C0" : "4px solid transparent",
-                  transition: "all 0.15s",
-                })}
-              >
-                <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>{icon}</span>
-                {label}
-              </NavLink>
-            ))}
+            {NAV_ITEMS.map(({ path, label, icon }) => {
+              const isActive = pathname === path || pathname.startsWith(path + "/");
+              return (
+                <Link
+                  key={path}
+                  href={path}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    padding: "0.7rem 1.5rem",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.65)",
+                    textDecoration: "none",
+                    fontSize: "0.9rem",
+                    fontWeight: isActive ? 600 : 400,
+                    background: isActive ? "rgba(21,101,192,0.35)" : "transparent",
+                    borderLeft: isActive ? "4px solid #1565C0" : "4px solid transparent",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>{icon}</span>
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Logout */}

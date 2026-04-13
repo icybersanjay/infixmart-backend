@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { IoTrashOutline } from 'react-icons/io5';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 import { MdOutlineShoppingCart } from 'react-icons/md';
@@ -39,7 +40,7 @@ const CartItemRow = ({ item }) => {
   return (
     <div className='flex items-start gap-4 p-4 border-b border-[rgba(0,0,0,0.08)] last:border-b-0'>
       {/* Image */}
-      <Link to={`/product/${product?.id}`} className='flex-shrink-0'>
+      <Link href={`/product/${product?.id}`} className='flex-shrink-0'>
         <img
           src={image || 'https://via.placeholder.com/80'}
           alt={product?.name}
@@ -52,7 +53,7 @@ const CartItemRow = ({ item }) => {
         {product?.brand && (
           <p className='text-[12px] text-gray-400 mb-0 mt-0 leading-4'>{product.brand}</p>
         )}
-        <Link to={`/product/${product?.id}`} className='font-[500] text-[14px] hover:text-[#1565C0] transition-colors line-clamp-2 block'>
+        <Link href={`/product/${product?.id}`} className='font-[500] text-[14px] hover:text-[#1565C0] transition-colors line-clamp-2 block'>
           {product?.name}
         </Link>
 
@@ -103,7 +104,7 @@ const CartItemRow = ({ item }) => {
 
 const CartPage = () => {
   const { cartItems } = useCart();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { minOrderValue, cartMilestones } = useStoreSettings();
 
   const subtotal = cartItems.reduce((sum, item) => {
@@ -127,7 +128,7 @@ const CartPage = () => {
           title="Your cart is empty"
           subtitle="Looks like you haven't added anything yet."
           actionLabel="Shop Now"
-          onAction={() => navigate('/productListing')}
+          onAction={() => router.push('/productListing')}
         />
       </section>
     );
@@ -154,7 +155,7 @@ const CartPage = () => {
             </div>
 
             <Link
-              to='/productListing'
+              href='/productListing'
               className='inline-block mt-4 text-[#1565C0] text-[13px] hover:underline'
             >
               ← Continue Shopping
@@ -199,7 +200,7 @@ const CartPage = () => {
               )}
 
               <button
-                onClick={() => navigate('/checkout')}
+                onClick={() => router.push('/checkout')}
                 disabled={belowMinOrder}
                 className='w-full mt-5 bg-[#1565C0] text-white py-3 rounded-lg font-[600] text-[15px] hover:bg-[#0D47A1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
               >

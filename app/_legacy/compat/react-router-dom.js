@@ -73,7 +73,7 @@ function NavLink({ to, end, className, style, children, ...props }) {
   const resolvedStyle = typeof style === "function" ? style({ isActive }) : style;
 
   return (
-    <Link to={to} className={resolvedClassName} style={resolvedStyle} {...props}>
+    <Link href={to} className={resolvedClassName} style={resolvedStyle} {...props}>
       {typeof children === "function" ? children({ isActive }) : children}
     </Link>
   );
@@ -139,7 +139,7 @@ function useParams() {
 }
 
 function Navigate({ to, replace }) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     navigate(to, { replace });

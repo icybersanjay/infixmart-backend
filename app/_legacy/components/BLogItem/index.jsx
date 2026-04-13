@@ -1,7 +1,7 @@
 import React from 'react';
 import { IoMdTime } from 'react-icons/io';
 import { IoIosArrowForward } from 'react-icons/io';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { imgUrl } from '../../utils/imageUrl';
 
 const FALLBACK_IMG = 'https://serviceapi.spicezgold.com/download/1741759053899_5-2.jpg';
@@ -31,7 +31,7 @@ const BlogItem = ({ blog }) => {
 
       <div className='py-4 info'>
         <h2 className='text-[15px] font-[700] text-gray-800 mb-2 line-clamp-2 leading-snug'>
-          <Link to={link} className='hover:text-[#1565C0] transition-colors'>
+          <Link href={link} className='hover:text-[#1565C0] transition-colors'>
             {title}
           </Link>
         </h2>
@@ -39,7 +39,7 @@ const BlogItem = ({ blog }) => {
           {excerpt}
         </p>
         <Link
-          to={link}
+          href={link}
           className='flex items-center gap-1 font-[600] text-[13px] text-[#1565C0] hover:underline'
         >
           Read More <IoIosArrowForward />

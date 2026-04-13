@@ -3,7 +3,8 @@ import TextField from "@mui/material/TextField";
 import { Button, CircularProgress } from "@mui/material";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
-import { Link, useNavigate } from "react-router-dom";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useGoogleLogin } from "@react-oauth/google";
 import { MyContext } from "../../LegacyProviders";
 import { postData } from "../../utils/api";
@@ -16,7 +17,7 @@ const Login = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
 
   const context = useContext(MyContext);
-  const history = useNavigate();
+  const router = useRouter();
 
   const { values: formFields, errors, handleChange, handleBlur, validate, hasErrors } = useForm(
     { email: "", password: "" },
@@ -37,7 +38,7 @@ const Login = () => {
         context.openAlertBox("success", res?.message);
         context.setUserData(res?.data?.user);
         context.setIsLogin(true);
-        history("/");
+        router.push("/");
       } else {
         context.openAlertBox("error", res?.message);
       }
@@ -53,7 +54,7 @@ const Login = () => {
     postData("/api/user/forgot-password", { email: formFields.email }).then((res) => {
       if (res?.error === false) {
         context.openAlertBox("success", res?.message || "OTP sent");
-        history(`/verify?email=${encodeURIComponent(formFields.email)}&actionType=forgot-password`);
+        router.push(`/verify?email=${encodeURIComponent(formFields.email)}&actionType=forgot-password`);
       } else {
         context.openAlertBox("error", res?.message || "Something went wrong");
       }
@@ -71,7 +72,7 @@ const Login = () => {
           context.openAlertBox("success", res?.message);
           context.setUserData(res?.data?.user);
           context.setIsLogin(true);
-          history("/");
+          router.push("/");
         } else {
           context.openAlertBox("error", res?.message);
         }
@@ -160,7 +161,7 @@ const Login = () => {
 
             <p className="mb-3 text-center">
               Not Registered?{" "}
-              <Link className="link text-[14px] font-[600] text-primary" to="/register">
+              <Link className="link text-[14px] font-[600] text-primary" href="/register">
                 Sign Up
               </Link>
             </p>

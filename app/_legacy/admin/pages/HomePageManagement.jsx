@@ -21,7 +21,6 @@ import {
 import adminAxios from "../utils/adminAxios";
 import toast, { Toaster } from "react-hot-toast";
 
-const BASE = import.meta.env.VITE_API_URL || "";
 
 /* ── shared styles ─────────────────────────────────────────────────────────── */
 const btn = (bg, color = "#fff", border) => ({
@@ -41,7 +40,7 @@ const formGroup   = { marginBottom: "1rem" };
 const imgSrc = (p) => {
   if (!p) return null;
   if (p.startsWith("http")) return p;
-  return `${BASE}${p}`;
+  return p;
 };
 
 /* ── Tabs ──────────────────────────────────────────────────────────────────── */

@@ -3,7 +3,8 @@ import TextField from "@mui/material/TextField";
 import { Button, CircularProgress } from "@mui/material";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
-import { Link, useNavigate } from "react-router-dom";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useGoogleLogin } from "@react-oauth/google";
 import { postData } from "../../utils/api";
 import { MyContext } from "../../LegacyProviders";
@@ -17,7 +18,7 @@ const Register = () => {
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
 
   const context = useContext(MyContext);
-  const history = useNavigate();
+  const router = useRouter();
 
   const { values: formFields, errors, handleChange, handleBlur, validate, hasErrors } = useForm(
     { name: "", email: "", password: "", confirmPassword: "" },
@@ -48,7 +49,7 @@ const Register = () => {
       setIsLoading(false);
       if (res?.error !== true) {
         context.openAlertBox("success", res?.message);
-        history(`/verify?email=${encodeURIComponent(formFields.email)}`);
+        router.push(`/verify?email=${encodeURIComponent(formFields.email)}`);
       } else {
         context.openAlertBox("error", res?.message);
       }
@@ -66,7 +67,7 @@ const Register = () => {
           context.openAlertBox("success", res?.message);
           context.setUserData(res?.data?.user);
           context.setIsLogin(true);
-          history("/");
+          router.push("/");
         } else {
           context.openAlertBox("error", res?.message);
         }
@@ -207,7 +208,7 @@ const Register = () => {
 
             <p className="mb-3 text-center">
               Already have an account?{" "}
-              <Link className="link text-[14px] font-[600] text-primary" to="/login">
+              <Link className="link text-[14px] font-[600] text-primary" href="/login">
                 Login
               </Link>
             </p>
