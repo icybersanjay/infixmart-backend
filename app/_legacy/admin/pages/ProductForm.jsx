@@ -124,6 +124,11 @@ export default function ProductForm() {
     const catId = e.target.value;
     const cat = categories.find((c) => String(c.id) === catId);
     setForm((f) => ({ ...f, catId, catName: cat?.name || "" }));
+
+    if (formSubmitted && VALIDATION_RULES.catId) {
+      const err = runValidators(VALIDATION_RULES.catId, catId);
+      setFieldErrors((prev) => ({ ...prev, catId: err }));
+    }
   };
 
   // Upload images (one by one when each file is selected)
@@ -158,7 +163,10 @@ export default function ProductForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormSubmitted(true);
-    if (!validateAll()) return;
+    if (!validateAll()) {
+      toast.error("Please fill all required fields before saving.");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -199,6 +207,9 @@ export default function ProductForm() {
       </div>
     );
   }
+
+  const hasBlockingErrors = formSubmitted && Object.values(fieldErrors).some(Boolean);
+  const submitDisabled = saving || hasBlockingErrors;
 
   return (
     <div style={{ maxWidth: 840, margin: "0 auto" }}>
@@ -345,8 +356,8 @@ export default function ProductForm() {
           </button>
           <button
             type="submit"
-            disabled={saving || (formSubmitted && Object.values(fieldErrors).some(Boolean))}
-            style={{ padding: "0.65rem 1.5rem", background: saving ? "#90CAF9" : "#1565C0", color: "#fff", border: "none", borderRadius: 6, cursor: saving ? "not-allowed" : "pointer", fontWeight: 600, fontSize: "0.9rem", opacity: (formSubmitted && Object.values(fieldErrors).some(Boolean)) ? 0.6 : 1 }}
+            disabled={submitDisabled}
+            style={{ padding: "0.65rem 1.5rem", background: saving ? "#90CAF9" : "#1565C0", color: "#fff", border: "none", borderRadius: 6, cursor: submitDisabled ? "not-allowed" : "pointer", fontWeight: 600, fontSize: "0.9rem", opacity: hasBlockingErrors ? 0.6 : 1 }}
           >
             {saving ? "Saving…" : (isEdit ? "Update Product" : "Save Product")}
           </button>
