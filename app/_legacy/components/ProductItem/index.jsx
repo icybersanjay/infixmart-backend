@@ -86,7 +86,7 @@ const ProductItem = ({ item }) => {
         <div className='absolute bottom-0 left-0 right-0 z-10 translate-y-full group-hover:translate-y-0 transition-transform duration-300'>
           <Tooltip title='Quick View' placement='top'>
             <button
-              onClick={() => context.setOpenProductDetailsModal(true)}
+              onClick={() => context.openProductDetailsModalFor(item)}
               className='w-full bg-[#1565C0]/90 hover:bg-[#1565C0] text-white text-[11px] font-[700] py-2 flex items-center justify-center gap-1.5 backdrop-blur-sm transition-colors'
             >
               <MdZoomOutMap className='text-[14px]' /> Quick View

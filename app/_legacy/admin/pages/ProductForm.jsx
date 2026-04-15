@@ -26,6 +26,35 @@ const runValidators = (validators, value) => {
   return '';
 };
 
+const parseNumberInput = (value) => {
+  if (value === "" || value === null || value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const formatNumberInput = (value, digits = 2) => {
+  if (!Number.isFinite(value)) return "";
+  return String(Number(value.toFixed(digits)));
+};
+
+const computeDiscountPercent = (mrp, salePrice) => {
+  if (!Number.isFinite(mrp) || mrp <= 0 || !Number.isFinite(salePrice)) {
+    return "";
+  }
+
+  const normalizedSalePrice = Math.min(Math.max(salePrice, 0), mrp);
+  return formatNumberInput(((mrp - normalizedSalePrice) / mrp) * 100);
+};
+
+const computeSalePrice = (mrp, discountPercent) => {
+  if (!Number.isFinite(mrp) || mrp <= 0 || !Number.isFinite(discountPercent)) {
+    return "";
+  }
+
+  const normalizedDiscount = Math.min(Math.max(discountPercent, 0), 100);
+  return formatNumberInput(mrp - (mrp * normalizedDiscount) / 100);
+};
+
 export default function ProductForm() {
   const params = useParams();
   const id = params?.id;
@@ -39,6 +68,7 @@ export default function ProductForm() {
   const [imgUploading, setImgUploading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [lastPricingInput, setLastPricingInput] = useState("price");
 
   const [form, setForm] = useState({
     name: "",
@@ -119,6 +149,39 @@ export default function ProductForm() {
     }
   };
   const setCheck = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.checked }));
+
+  const handlePricingChange = (field) => (e) => {
+    const value = e.target.value;
+
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      const mrp = parseNumberInput(field === "oldprice" ? value : prev.oldprice);
+
+      if (field === "price") {
+        next.discount = computeDiscountPercent(mrp, parseNumberInput(value));
+        setLastPricingInput("price");
+      } else if (field === "discount") {
+        next.price = computeSalePrice(mrp, parseNumberInput(value));
+        setLastPricingInput("discount");
+      } else if (field === "oldprice") {
+        if (!Number.isFinite(mrp) || mrp <= 0) {
+          next.price = "";
+          next.discount = "";
+        } else if (lastPricingInput === "discount" && prev.discount !== "") {
+          next.price = computeSalePrice(mrp, parseNumberInput(prev.discount));
+        } else if (prev.price !== "") {
+          next.discount = computeDiscountPercent(mrp, parseNumberInput(prev.price));
+        }
+      }
+
+      return next;
+    });
+
+    if (formSubmitted && VALIDATION_RULES[field]) {
+      const err = runValidators(VALIDATION_RULES[field], value);
+      setFieldErrors((prev) => ({ ...prev, [field]: err }));
+    }
+  };
 
   const handleCatChange = (e) => {
     const catId = e.target.value;
@@ -252,19 +315,22 @@ export default function ProductForm() {
         {/* ── Pricing & Stock ── */}
         <div style={{ background: "#fff", borderRadius: 8, border: "1px solid #E0E0E0", padding: "1.5rem", marginBottom: "1rem" }}>
           <p style={sectionTitle}>Pricing & Stock</p>
+          <p style={{ fontSize: "0.8rem", color: "#777", marginTop: 0, marginBottom: "1rem" }}>
+            Enter either <strong>MRP + Discount Price</strong> or <strong>MRP + % Off</strong>. The third value is calculated automatically.
+          </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", marginBottom: "1rem" }}>
             <div>
               <label style={labelStyle}>Price (₹) <span style={{ color: "#E53935" }}>*</span></label>
-              <input style={{ ...inputStyle, borderColor: fieldErrors.price ? "#E53935" : "#ddd" }} type="number" min="0" value={form.price} onChange={set("price")} placeholder="0" />
+              <input style={{ ...inputStyle, borderColor: fieldErrors.price ? "#E53935" : "#ddd" }} type="number" min="0" value={form.price} onChange={handlePricingChange("price")} placeholder="0" />
               {fieldErrors.price && <p style={{ color: "#E53935", fontSize: "0.78rem", marginTop: 4 }}>{fieldErrors.price}</p>}
             </div>
             <div>
               <label style={labelStyle}>Original Price (₹) <span style={{ color: "#999", fontSize: "0.78rem" }}>strikethrough</span></label>
-              <input style={inputStyle} type="number" min="0" value={form.oldprice} onChange={set("oldprice")} placeholder="0" />
+              <input style={inputStyle} type="number" min="0" value={form.oldprice} onChange={handlePricingChange("oldprice")} placeholder="0" />
             </div>
             <div>
               <label style={labelStyle}>Discount (%)</label>
-              <input style={inputStyle} type="number" min="0" max="100" value={form.discount} onChange={set("discount")} placeholder="0" />
+              <input style={inputStyle} type="number" min="0" max="100" value={form.discount} onChange={handlePricingChange("discount")} placeholder="0" />
             </div>
             <div>
               <label style={labelStyle}>Count In Stock <span style={{ color: "#E53935" }}>*</span></label>

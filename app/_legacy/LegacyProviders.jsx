@@ -18,6 +18,7 @@ const MyContext = createContext();
 
 function LegacyProviders({ children }) {
   const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
+  const [selectedQuickViewProduct, setSelectedQuickViewProduct] = useState(null);
   const [maxWidth] = useState("lg");
   const [fullWidth] = useState(true);
   const [isLogin, setIsLogin] = useState(false);
@@ -45,6 +46,12 @@ function LegacyProviders({ children }) {
 
   const handleCloseProductDetailsModal = () => {
     setOpenProductDetailsModal(false);
+    setSelectedQuickViewProduct(null);
+  };
+
+  const openProductDetailsModalFor = (product) => {
+    setSelectedQuickViewProduct(product || null);
+    setOpenProductDetailsModal(true);
   };
 
   const toggleCartPanel = (newOpen) => () => {
@@ -58,6 +65,9 @@ function LegacyProviders({ children }) {
 
   const values = {
     setOpenProductDetailsModal,
+    openProductDetailsModalFor,
+    selectedQuickViewProduct,
+    setSelectedQuickViewProduct,
     setOpenCartPanel,
     toggleCartPanel,
     openCartPanel,
@@ -101,10 +111,10 @@ function LegacyProviders({ children }) {
               <IoClose className="text-[20px]" />
             </Button>
             <div className="col1 w-[40%] px-3">
-              <ProductZoom />
+              <ProductZoom images={selectedQuickViewProduct?.images || []} />
             </div>
             <div className="col2 w-[60%] px-8 pr-16 py-8 productContent">
-              <ProductDetailsComponent />
+              <ProductDetailsComponent product={selectedQuickViewProduct} />
             </div>
           </div>
         </DialogContent>

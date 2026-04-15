@@ -40,7 +40,7 @@ const ProductItemListView = () => {
              <div className='absolute actions top-[-200px] right-[5px] z-50 flex items-center gap-2 flex-col w-[50px] transition-all duration-300 group-hover:top-[15px] opacity-0 group-hover:opacity-100'>
                 <Tooltip title="View product details" placement="left-start">
                     <Button className='!w-[35px] !h-[35px] !min-w-[35px] !rounded-full !bg-white text-black hover:!bg-primary hover:text-white'
-                    onClick={()=>context.setOpenProductDetailsModal(true)}>
+                    onClick={()=>context.openProductDetailsModalFor(null)}>
                         <MdZoomOutMap className='text-[18px] !text-black group-hover:text-white hover:!text-white'/>
                     </Button>
                 </Tooltip>
