@@ -621,7 +621,7 @@ const ProductDetails = () => {
   const [relatedProducts, setRelatedProducts] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [qty, setQty] = useState(1);
-  const [selectedRam, setSelectedRam] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedWeight, setSelectedWeight] = useState('');
   const [reviewCount, setReviewCount] = useState(0);
@@ -646,10 +646,10 @@ const ProductDetails = () => {
         if (res && !res.error && res.product) {
           const p = res.product;
           setProduct(p);
-          const ram = Array.isArray(p.productRam) ? p.productRam : (p.productRam ? JSON.parse(p.productRam) : []);
+          const colors = Array.isArray(p.productRam) ? p.productRam : (p.productRam ? JSON.parse(p.productRam) : []);
           const sz  = Array.isArray(p.size) ? p.size : (p.size ? JSON.parse(p.size) : []);
           const wt  = Array.isArray(p.productWeight) ? p.productWeight : (p.productWeight ? JSON.parse(p.productWeight) : []);
-          if (ram.length) setSelectedRam(ram[0]);
+          if (colors.length) setSelectedColor(colors[0]);
           if (sz.length)  setSelectedSize(sz[0]);
           if (wt.length)  setSelectedWeight(wt[0]);
           if (p.catId) {
@@ -717,7 +717,7 @@ const ProductDetails = () => {
   }
 
   const images = Array.isArray(product.images) ? product.images : [];
-  const ramOptions = Array.isArray(product.productRam) ? product.productRam : [];
+  const colorOptions = Array.isArray(product.productRam) ? product.productRam : [];
   const sizeOptions = Array.isArray(product.size) ? product.size : [];
   const weightOptions = Array.isArray(product.productWeight) ? product.productWeight : [];
   const wishlisted = isWishlisted(product.id);
@@ -966,14 +966,14 @@ const ProductDetails = () => {
             </div>
 
             {/* ── Variant selectors ───────────────────────────────────── */}
-            {ramOptions.length > 0 && (
+            {colorOptions.length > 0 && (
               <div className='mb-4'>
                 <p className='text-[13px] font-[700] text-gray-700 mb-2'>
-                  RAM: <span className='text-[#1565C0]'>{selectedRam}</span>
+                  Color: <span className='text-[#1565C0]'>{selectedColor}</span>
                 </p>
                 <div className='flex flex-wrap'>
-                  {ramOptions.map(r => (
-                    <VariantPill key={r} label={r} selected={selectedRam === r} onClick={() => setSelectedRam(r)} />
+                  {colorOptions.map(color => (
+                    <VariantPill key={color} label={color} selected={selectedColor === color} onClick={() => setSelectedColor(color)} />
                   ))}
                 </div>
               </div>
@@ -1135,7 +1135,7 @@ const ProductDetails = () => {
                       ['Brand', product.brand],
                       ['Category', product.catName],
                       ['Sub-category', product.subCat],
-                      ['RAM Options', ramOptions.length > 0 ? ramOptions.join(', ') : null],
+                      ['Color Options', colorOptions.length > 0 ? colorOptions.join(', ') : null],
                       ['Size Options', sizeOptions.length > 0 ? sizeOptions.join(', ') : null],
                       ['Weight Options', weightOptions.length > 0 ? weightOptions.join(', ') : null],
                       ['Average Rating', product.rating ? `${product.rating} / 5` : null],

@@ -17,12 +17,15 @@ Push to GitHub → Connect to Hostinger → Add env vars → Done.
 
 ```bash
 # On your local machine:
+npm run check:production
+npm run build
 git add .
 git commit -m "chore: prepare for production"
 git push origin main
 ```
 
 Make sure `.env.local` is **NOT** committed (it's in `.gitignore`).
+The production env preflight above should pass before you push.
 
 ---
 
@@ -190,6 +193,7 @@ They persist between deploys as long as you don't delete the app.
 ## Security Checklist
 
 - [ ] `.env.local` is NOT in git history
+- [ ] `npm run check:production` passes with your real production env values
 - [ ] JWT and payment secrets are all unique random 64-byte hex strings  
 - [ ] DB password is strong (16+ chars, mixed case, numbers, symbols)
 - [ ] Admin password is changed from default

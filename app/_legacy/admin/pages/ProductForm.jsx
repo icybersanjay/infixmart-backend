@@ -52,7 +52,7 @@ export default function ProductForm() {
     isFeatured: false,
     discount: "",
     images: [],
-    // Variants stored as comma-separated strings for the UI
+    // Legacy field name kept for DB compatibility; used as color options in the UI
     productRam: "",
     size: "",
     productWeight: "",
@@ -324,8 +324,8 @@ export default function ProductForm() {
           <p style={sectionTitle}>Variants <span style={{ fontSize: "0.8rem", color: "#999", fontWeight: 400 }}>comma-separated values</span></p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
             <div>
-              <label style={labelStyle}>RAM Options</label>
-              <input style={inputStyle} value={form.productRam} onChange={set("productRam")} placeholder="e.g. 4GB, 8GB, 16GB" />
+              <label style={labelStyle}>Color Options</label>
+              <input style={inputStyle} value={form.productRam} onChange={set("productRam")} placeholder="e.g. Black, Blue, Silver" />
             </div>
             <div>
               <label style={labelStyle}>Size Options</label>

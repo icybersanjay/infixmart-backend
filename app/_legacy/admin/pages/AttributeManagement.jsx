@@ -222,7 +222,7 @@ export default function AttributeManagement() {
                 Select an attribute type on the left to see and manage its values.
               </p>
               <p style={{ color: "#bbb", fontSize: "0.8rem", marginTop: "0.5rem" }}>
-                Examples: RAM → 4GB, 8GB, 16GB · Size → S, M, L, XL · Weight → 500g, 1kg
+                Examples: Color → Black, Blue, Silver · Size → S, M, L, XL · Weight → 500g, 1kg
               </p>
             </div>
           ) : (

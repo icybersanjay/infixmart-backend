@@ -20,6 +20,7 @@ import {
   getProductByThirdSubCategoryId,
   getProductByThirdSubCategoryName,
   updateProductRecord,
+  updateProductQuickAction,
 } from "../../../../lib/server/services/products.js";
 import {
   deleteImageByQuery,
@@ -162,7 +163,7 @@ async function dispatchNativeRoute(request, segments) {
     const adminId = await requireAdminRequest(request);
     const body = await parseJson(request);
     const result = await createProductRecord(body);
-    await writeAuditLog({ adminId, action: "CREATE", entity: "product", entityId: result?.data?.id, detail: `Product created: ${body?.name || ""}`, ip: getIp(request) });
+    await writeAuditLog({ adminId, action: "CREATE", entity: "product", entityId: result?.product?.id, detail: `Product created: ${body?.name || ""}`, ip: getIp(request) });
     return ok(result, 201);
   }
 
@@ -176,6 +177,21 @@ async function dispatchNativeRoute(request, segments) {
     const body = await parseJson(request);
     const result = await updateProductRecord(second, body);
     await writeAuditLog({ adminId, action: "UPDATE", entity: "product", entityId: second, detail: `Product updated: ${body?.name || ""}`, ip: getIp(request) });
+    return ok(result);
+  }
+
+  if (request.method === "PATCH" && first === "quick-action" && second) {
+    const adminId = await requireAdminRequest(request);
+    const body = await parseJson(request);
+    const result = await updateProductQuickAction(second, body);
+    await writeAuditLog({
+      adminId,
+      action: "UPDATE",
+      entity: "product",
+      entityId: second,
+      detail: `Quick action: ${body?.action || "unknown"} on ${result?.product?.name || ""}`,
+      ip: getIp(request),
+    });
     return ok(result);
   }
 

@@ -10,7 +10,9 @@
     "build": "next build",
     "start": "next start",
     "create-admin": "node scripts/create-admin.js",
-    "clean": "rm -rf .next"
+    "check:production": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-production-env.ps1",
+    "release:check": "npm run check:production && npm run build",
+    "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true}); require('fs').rmSync('.next-dev',{recursive:true,force:true});\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
