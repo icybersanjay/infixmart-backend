@@ -167,7 +167,15 @@ export default function ProductManagement() {
                       {/* Image */}
                       <td style={{ padding: "0.65rem 1rem" }}>
                         {product.images?.[0] ? (
-                          <img src={imgUrl(product.images[0])} alt={product.name} style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 6, border: "1px solid #E0E0E0" }} />
+                          <img
+                            src={imgUrl(product.images[0])}
+                            alt={product.name}
+                            style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 6, border: "1px solid #E0E0E0" }}
+                            onError={(e) => {
+                              const fb = imgUrl(product.images[1]);
+                              if (fb && e.target.src !== fb) { e.target.src = fb; } else { e.target.style.display = "none"; }
+                            }}
+                          />
                         ) : (
                           <div style={{ width: 50, height: 50, background: "#E8EAF6", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "#9FA8DA", fontSize: "0.75rem", textAlign: "center" }}>No img</div>
                         )}

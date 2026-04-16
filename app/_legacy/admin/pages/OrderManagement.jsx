@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MdSearch, MdExpandMore, MdExpandLess } from "react-icons/md";
+import { MdSearch, MdExpandMore, MdExpandLess, MdLocalShipping, MdCheckCircle, MdInventory, MdCancel, MdShoppingBag } from "react-icons/md";
+import { FaCheck } from "react-icons/fa";
 import adminAxios from "../utils/adminAxios";
 import toast, { Toaster } from "react-hot-toast";
 import TableRowSkeleton from "../../components/skeletons/TableRowSkeleton";
 import EmptyState from "../../components/EmptyState";
-import { MdShoppingBag } from "react-icons/md";
 
 
 const imgUrl = (p) => (p ? p : "");
@@ -52,6 +52,60 @@ function Pagination({ page, totalPages, onChange }) {
   );
 }
 
+// ── Order timeline ────────────────────────────────────────────────────────────
+const TIMELINE_STEPS = [
+  { key: "pending",    label: "Ordered",    Icon: MdInventory },
+  { key: "processing", label: "Processing", Icon: MdInventory },
+  { key: "shipped",    label: "Shipped",    Icon: MdLocalShipping },
+  { key: "delivered",  label: "Delivered",  Icon: MdCheckCircle },
+];
+const stepIndex = { pending: 0, processing: 1, shipped: 2, delivered: 3 };
+
+function AdminOrderTimeline({ status }) {
+  if (status === "cancelled") {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.6rem 0.875rem", background: "#FFF5F5", border: "1px solid #FED7D7", borderRadius: 10, marginBottom: "1rem" }}>
+        <MdCancel style={{ color: "#C62828", fontSize: 18, flexShrink: 0 }} />
+        <span style={{ fontSize: "0.825rem", fontWeight: 600, color: "#C62828" }}>Order Cancelled</span>
+      </div>
+    );
+  }
+
+  const current = stepIndex[status] ?? 0;
+  const pct = (current / (TIMELINE_STEPS.length - 1)) * 100;
+
+  return (
+    <div style={{ background: "#F0F6FF", borderRadius: 10, padding: "0.875rem 1rem", marginBottom: "1rem", border: "1px solid #DBEAFE" }}>
+      <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "#1565C0", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: "0.6rem" }}>Order Progress</p>
+      <div style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        {/* Track */}
+        <div style={{ position: "absolute", top: 16, left: "12.5%", right: "12.5%", height: 2, background: "#CBD5E1", zIndex: 0 }} />
+        <div style={{ position: "absolute", top: 16, left: "12.5%", height: 2, background: "#1565C0", zIndex: 0, width: `${pct * 0.75}%`, transition: "width 0.4s" }} />
+
+        {TIMELINE_STEPS.map(({ key, label, Icon }, idx) => {
+          const done = idx < current;
+          const active = idx === current;
+          return (
+            <div key={key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative", zIndex: 1 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                border: `2px solid ${done || active ? "#1565C0" : "#CBD5E1"}`,
+                background: done ? "#1565C0" : active ? "#fff" : "#fff",
+              }}>
+                {done
+                  ? <FaCheck style={{ color: "#fff", fontSize: 11 }} />
+                  : <Icon style={{ fontSize: 15, color: active ? "#1565C0" : "#CBD5E1" }} />
+                }
+              </div>
+              <span style={{ fontSize: "0.7rem", fontWeight: 600, marginTop: 4, color: done || active ? "#1565C0" : "#94A3B8", textAlign: "center" }}>{label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Expanded accordion row ────────────────────────────────────────────────────
 function OrderDetail({ order, onStatusUpdated }) {
   const [newStatus, setNewStatus] = useState(order.status);
@@ -77,7 +131,10 @@ function OrderDetail({ order, onStatusUpdated }) {
   return (
     <tr>
       <td colSpan={8} style={{ padding: 0, background: "#F9FAFB", borderBottom: "2px solid #E0E0E0" }}>
-        <div style={{ padding: "1.25rem 1.5rem", display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: "1.5rem", alignItems: "start" }}>
+        <div style={{ padding: "1.25rem 1.5rem" }}>
+          <AdminOrderTimeline status={order.status} />
+        </div>
+        <div style={{ padding: "0 1.5rem 1.25rem", display: "grid", gridTemplateColumns: "1fr 2fr auto", gap: "1.5rem", alignItems: "start" }}>
           {/* Address */}
           <div>
             <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "#1A237E", marginBottom: "0.4rem", textTransform: "uppercase", letterSpacing: 0.5 }}>Shipping Address</p>

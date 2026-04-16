@@ -4,8 +4,9 @@ import React, { useEffect, useState } from 'react';
 import AccountSidebar from '../../components/AccountSidebar';
 import { LuClipboardCheck } from 'react-icons/lu';
 import EmptyState from '../../components/EmptyState';
-import { FaAngleDown, FaAngleUp, FaUndo } from 'react-icons/fa';
+import { FaAngleDown, FaAngleUp, FaUndo, FaCheck } from 'react-icons/fa';
 import { MdReceiptLong } from 'react-icons/md';
+import { MdLocalShipping, MdCheckCircle, MdInventory, MdCancel } from 'react-icons/md';
 import { getData, postData } from '../../utils/api';
 import { imgUrl } from '../../utils/imageUrl';
 import OrderCardSkeleton from '../../components/skeletons/OrderCardSkeleton';
@@ -26,6 +27,81 @@ const StatusBadge = ({ status }) => {
     <span className={`text-[11px] font-[600] px-3 py-1 rounded-full capitalize inline-block ${cfg.cls}`}>
       {cfg.label}
     </span>
+  );
+};
+
+const TIMELINE_STEPS = [
+  { key: 'pending',    label: 'Ordered',    icon: MdInventory },
+  { key: 'processing', label: 'Processing', icon: MdInventory },
+  { key: 'shipped',    label: 'Shipped',    icon: MdLocalShipping },
+  { key: 'delivered',  label: 'Delivered',  icon: MdCheckCircle },
+];
+
+const stepIndex = { pending: 0, processing: 1, shipped: 2, delivered: 3 };
+
+const OrderTimeline = ({ status, createdAt }) => {
+  if (status === 'cancelled') {
+    return (
+      <div className="flex items-center gap-2 py-3 px-4 bg-red-50 border border-red-100 rounded-xl mb-4">
+        <MdCancel className="text-red-500 text-[20px] flex-shrink-0" />
+        <div>
+          <p className="text-[13px] font-[700] text-red-600">Order Cancelled</p>
+          <p className="text-[11px] text-red-400 mt-0.5">This order has been cancelled.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const current = stepIndex[status] ?? 0;
+
+  return (
+    <div className="mb-4 bg-[#F0F6FF] rounded-xl px-4 py-4 border border-[#DBEAFE]">
+      <p className="text-[11px] font-[700] text-[#1565C0] uppercase tracking-wider mb-3">Order Progress</p>
+      <div className="relative flex items-start justify-between">
+        {/* Connecting line behind the circles */}
+        <div className="absolute top-[18px] left-0 right-0 h-[2px] bg-gray-200 z-0 mx-[calc(12.5%)] hidden sm:block" />
+        <div
+          className="absolute top-[18px] left-0 h-[2px] bg-[#1565C0] z-0 mx-[calc(12.5%)] hidden sm:block transition-all duration-500"
+          style={{ right: `calc(${(3 - current) * 25}% + 12.5%)` }}
+        />
+
+        {TIMELINE_STEPS.map((step, idx) => {
+          const done = idx < current;
+          const active = idx === current;
+          const Icon = step.icon;
+
+          return (
+            <div key={step.key} className="relative flex flex-col items-center flex-1 z-10">
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all duration-300
+                  ${done
+                    ? 'bg-[#1565C0] border-[#1565C0]'
+                    : active
+                    ? 'bg-white border-[#1565C0] shadow-md shadow-blue-100'
+                    : 'bg-white border-gray-300'
+                  }`}
+              >
+                {done ? (
+                  <FaCheck className="text-white text-[12px]" />
+                ) : (
+                  <Icon className={`text-[17px] ${active ? 'text-[#1565C0]' : 'text-gray-400'}`} />
+                )}
+              </div>
+              <p className={`text-[11px] font-[600] mt-1.5 text-center leading-tight
+                ${done || active ? 'text-[#1565C0]' : 'text-gray-400'}`}
+              >
+                {step.label}
+              </p>
+              {idx === 0 && createdAt && (
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  {new Date(createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
@@ -200,7 +276,12 @@ const Orders = () => {
 
                       {/* Expanded items */}
                       {isOpen && (
-                        <div className="mt-4 rounded-md border border-gray-100 overflow-hidden overflow-x-auto">
+                        <div className="mt-4">
+                          <OrderTimeline status={order.status} createdAt={order.createdAt} />
+                        </div>
+                      )}
+                      {isOpen && (
+                        <div className="rounded-md border border-gray-100 overflow-hidden overflow-x-auto">
                           <table className="w-full min-w-[480px] text-[12px] text-left text-gray-600">
                             <thead className="bg-gray-50 text-[11px] uppercase text-gray-500">
                               <tr>

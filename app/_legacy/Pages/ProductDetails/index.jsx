@@ -22,6 +22,7 @@ import { imgUrl } from '../../utils/imageUrl';
 import { sanitizeHtml, stripHtml } from '../../utils/html';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { useRecentlyViewed } from '../../context/RecentlyViewedContext';
 import { MyContext } from '../../LegacyProviders';
 
 const fmt = (n) => Number(n || 0).toLocaleString('en-IN');
@@ -221,7 +222,15 @@ const FrequentlyBoughtTogether = ({ currentProduct, related, onAddToCart }) => {
               }`}
             >
               {p.images?.[0]
-                ? <img src={imgUrl(p.images[0])} alt={p.name} className='w-full h-full object-cover' />
+                ? <img
+                    src={imgUrl(p.images[0])}
+                    alt={p.name}
+                    className='w-full h-full object-cover'
+                    onError={(e) => {
+                      const fb = imgUrl(p.images?.[1]);
+                      if (fb && e.target.src !== fb) { e.target.src = fb; } else { e.target.style.display = 'none'; }
+                    }}
+                  />
                 : <div className='w-full h-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs'>?</div>
               }
               {i === 0 && (
@@ -630,6 +639,7 @@ const ProductDetails = () => {
 
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const { items: recentlyViewed, track } = useRecentlyViewed();
   const { isLogin, openAlertBox } = useContext(MyContext);
 
   useEffect(() => {
@@ -652,6 +662,7 @@ const ProductDetails = () => {
           if (colors.length) setSelectedColor(colors[0]);
           if (sz.length)  setSelectedSize(sz[0]);
           if (wt.length)  setSelectedWeight(wt[0]);
+          track({ id: p.id, name: p.name, price: p.price, images: p.images, slug: p.slug });
           if (p.catId) {
             getData(`/api/product/getproductby-catid/${p.catId}?perPage=8`)
               .then(r => { if (r && !r.error) setRelatedProducts((r.products || []).filter(x => x.id !== p.id)); });
@@ -1177,8 +1188,32 @@ const ProductDetails = () => {
         </div>
       )}
 
-      {/* ── Recently Viewed (placeholder) ────────────────────────────────── */}
-      {/* Could be implemented with localStorage tracking */}
+      {/* ── Recently Viewed ───────────────────────────────────────────────── */}
+      {recentlyViewed.filter(p => p.id !== product?.id).length > 0 && (
+        <div className='container mb-8'>
+          <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-6'>
+            <h2 className='text-[18px] font-[800] text-gray-800 mb-4'>Recently Viewed</h2>
+            <div className='flex gap-3 overflow-x-auto pb-2'>
+              {recentlyViewed.filter(p => p.id !== product?.id).map(p => (
+                <a
+                  key={p.id}
+                  href={`/product/${p.slug || p.id}`}
+                  className='flex-shrink-0 w-[130px] group'
+                >
+                  <div className='w-[130px] h-[130px] rounded-xl overflow-hidden border border-gray-100 bg-[#F8FAFF] mb-2 group-hover:border-[#1565C0]/30 transition-colors'>
+                    {p.images?.[0]
+                      ? <img src={p.images[0]} alt={p.name} className='w-full h-full object-contain p-2' />
+                      : <div className='w-full h-full flex items-center justify-center text-gray-200 text-2xl'>📦</div>
+                    }
+                  </div>
+                  <p className='text-[12px] font-[600] text-gray-700 line-clamp-2 leading-snug group-hover:text-[#1565C0] transition-colors'>{p.name}</p>
+                  <p className='text-[13px] font-[800] text-[#1565C0] mt-0.5'>₹{Number(p.price || 0).toLocaleString('en-IN')}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Fixed bottom CTA — mobile only ───────────────────────────────── */}
       <div className='fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-30 md:hidden'>

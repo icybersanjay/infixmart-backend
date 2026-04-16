@@ -13,6 +13,7 @@ import { getData } from "./utils/api";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { SettingsProvider } from "./context/SettingsContext";
+import { RecentlyViewedProvider } from "./context/RecentlyViewedContext";
 
 const MyContext = createContext();
 
@@ -85,7 +86,9 @@ function LegacyProviders({ children }) {
         <MyContext.Provider value={values}>
           <SettingsProvider>
             <CartProvider enabled={isLogin}>
-              <WishlistProvider enabled={isLogin}>{children}</WishlistProvider>
+              <WishlistProvider enabled={isLogin}>
+                <RecentlyViewedProvider>{children}</RecentlyViewedProvider>
+              </WishlistProvider>
             </CartProvider>
           </SettingsProvider>
         </MyContext.Provider>

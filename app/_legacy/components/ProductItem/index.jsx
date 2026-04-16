@@ -71,6 +71,13 @@ const ProductItem = ({ item }) => {
               src={primaryImg}
               alt={item.name}
               className='w-full h-full object-contain p-3 transition-all duration-500 group-hover:scale-105'
+              onError={(e) => {
+                if (hoverImg && e.target.src !== hoverImg) {
+                  e.target.src = hoverImg;
+                } else {
+                  e.target.style.display = 'none';
+                }
+              }}
             />
           )}
           {hoverImg && hoverImg !== primaryImg && (
