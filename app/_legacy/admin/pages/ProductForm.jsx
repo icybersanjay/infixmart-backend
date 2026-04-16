@@ -43,7 +43,7 @@ const computeDiscountPercent = (mrp, salePrice) => {
   }
 
   const normalizedSalePrice = Math.min(Math.max(salePrice, 0), mrp);
-  return formatNumberInput(((mrp - normalizedSalePrice) / mrp) * 100);
+  return formatNumberInput(((mrp - normalizedSalePrice) / mrp) * 100, 0);
 };
 
 const computeSalePrice = (mrp, discountPercent) => {
@@ -52,7 +52,7 @@ const computeSalePrice = (mrp, discountPercent) => {
   }
 
   const normalizedDiscount = Math.min(Math.max(discountPercent, 0), 100);
-  return formatNumberInput(mrp - (mrp * normalizedDiscount) / 100);
+  return formatNumberInput(mrp - (mrp * normalizedDiscount) / 100, 0);
 };
 
 export default function ProductForm() {

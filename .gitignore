@@ -21,6 +21,7 @@ out/
 # All actual uploaded files are excluded:
 uploads/*
 !uploads/.gitkeep
+uploads
 
 # ── Logs ──────────────────────────────────────────────────────────────────────
 logs/

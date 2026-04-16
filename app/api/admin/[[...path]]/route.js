@@ -1,4 +1,6 @@
+import fs from "fs/promises";
 import { fail, handleRouteError, ok } from "../../../../lib/server/api/http.js";
+import { uploadsDir } from "../../../../lib/server/files/uploads.js";
 import { setAuthCookies } from "../../../../lib/server/auth/cookies.js";
 import { requireAccessUserId } from "../../../../lib/server/auth/session.js";
 import { writeAuditLog } from "../../../../lib/server/repositories/audit.js";
@@ -129,6 +131,18 @@ async function dispatchNativeRoute(request, segments) {
   if (request.method === "GET" && first === "homepage" && !second) {
     await requireAdminRequest(request);
     return ok(await getAllSectionsAdmin());
+  }
+
+  if (request.method === "GET" && first === "uploads-debug") {
+    await requireAdminRequest(request);
+    let files = [];
+    let error = null;
+    try {
+      files = await fs.readdir(uploadsDir);
+    } catch (e) {
+      error = e.message;
+    }
+    return ok({ uploadsDir, fileCount: files.length, files: files.slice(0, 20), error });
   }
 
   if (request.method === "POST" && first === "homepage" && second === "upload") {
