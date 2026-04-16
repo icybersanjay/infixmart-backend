@@ -194,26 +194,54 @@ export default function ProductForm() {
     }
   };
 
-  // Upload images (one by one when each file is selected)
-  const handleImageFiles = async (e) => {
-    const files = Array.from(e.target.files);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Core upload handler — accepts a FileList or File[]
+  const uploadFiles = async (files) => {
     if (!files.length) return;
+    setForm((f) => {
+      const slots = 5 - f.images.length;
+      if (slots <= 0) { toast.error("Maximum 5 images allowed"); return f; }
+      return f;
+    });
     setImgUploading(true);
     try {
       const uploaded = [];
       for (const file of files) {
+        if (!file.type.startsWith("image/")) { toast.error(`${file.name} is not an image`); continue; }
         const fd = new FormData();
         fd.append("images", file);
         const res = await adminAxios.post("/api/product/upload-images", fd);
         uploaded.push(res.data.images[0]);
       }
-      setForm((f) => ({ ...f, images: [...f.images, ...uploaded].slice(0, 5) }));
+      if (uploaded.length) {
+        setForm((f) => {
+          const next = [...f.images, ...uploaded].slice(0, 5);
+          if (next.length === 5 && f.images.length < 5) toast.success("Images uploaded!");
+          return { ...f, images: next };
+        });
+      }
     } catch (err) {
       toast.error("Image upload failed");
     } finally {
       setImgUploading(false);
-      e.target.value = "";
+      if (fileRef.current) fileRef.current.value = "";
     }
+  };
+
+  const handleImageFiles = (e) => uploadFiles(Array.from(e.target.files));
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    uploadFiles(files);
+  };
+
+  const handlePaste = (e) => {
+    const items = Array.from(e.clipboardData?.items || []);
+    const files = items.filter(i => i.kind === "file" && i.type.startsWith("image/")).map(i => i.getAsFile());
+    if (files.length) uploadFiles(files);
   };
 
   const removeImage = (idx) => {
@@ -363,9 +391,55 @@ export default function ProductForm() {
         {/* ── Images ── */}
         <div style={{ background: "#fff", borderRadius: 8, border: "1px solid #E0E0E0", padding: "1.5rem", marginBottom: "1rem" }}>
           <p style={sectionTitle}>Product Images <span style={{ fontSize: "0.8rem", color: "#999", fontWeight: 400 }}>max 5</span></p>
+          <p style={{ fontSize: "0.78rem", color: "#888", marginBottom: "0.75rem", marginTop: 0 }}>
+            📐 <strong>800 × 800 px</strong> square recommended. First image = main display. JPG or WebP.
+          </p>
+
+          {/* Drop + paste zone */}
+          <div
+            onDrop={handleDrop}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onPaste={handlePaste}
+            onClick={() => !imgUploading && form.images.length < 5 && fileRef.current.click()}
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && fileRef.current.click()}
+            style={{
+              border: `2px dashed ${isDragging ? "#1565C0" : "#BDBDBD"}`,
+              borderRadius: 8,
+              padding: "1.5rem 1rem",
+              textAlign: "center",
+              cursor: form.images.length >= 5 || imgUploading ? "not-allowed" : "pointer",
+              background: isDragging ? "#EEF4FF" : "#FAFAFA",
+              color: isDragging ? "#1565C0" : "#888",
+              fontSize: "0.875rem",
+              transition: "all 0.2s",
+              outline: "none",
+              userSelect: "none",
+            }}
+          >
+            {imgUploading ? (
+              <span>⏳ Uploading…</span>
+            ) : form.images.length >= 5 ? (
+              <span style={{ color: "#999" }}>✅ Maximum 5 images reached</span>
+            ) : isDragging ? (
+              <span style={{ fontWeight: 600 }}>Drop images here</span>
+            ) : (
+              <>
+                <div style={{ fontSize: "2rem", marginBottom: "0.4rem" }}>🖼️</div>
+                <div><strong>Click</strong>, <strong>Drag & Drop</strong>, or <strong>Paste</strong> images here</div>
+                <div style={{ fontSize: "0.75rem", marginTop: "0.3rem", opacity: 0.7 }}>
+                  {form.images.length}/5 uploaded · Ctrl+V to paste from clipboard
+                </div>
+              </>
+            )}
+          </div>
+
+          <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleImageFiles} />
+
           {/* Previews */}
           {form.images.length > 0 && (
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1rem" }}>
               {form.images.map((img, idx) => (
                 <div key={idx} style={{ position: "relative" }}>
                   <img src={imgUrl(img)} alt={`img-${idx}`} style={{ width: 90, height: 90, objectFit: "cover", borderRadius: 8, border: "1px solid #E0E0E0" }} />
@@ -376,23 +450,14 @@ export default function ProductForm() {
                   >
                     <MdClose style={{ fontSize: "0.7rem" }} />
                   </button>
+                  {idx === 0 && (
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(21,101,192,0.8)", color: "#fff", fontSize: "0.6rem", textAlign: "center", borderRadius: "0 0 8px 8px", padding: "2px 0" }}>
+                      MAIN
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-          )}
-          {form.images.length < 5 && (
-            <>
-              <p style={{ fontSize: "0.78rem", color: "#888", marginBottom: "0.4rem", marginTop: 0 }}>
-                📐 <strong>800 × 800 px</strong> square images recommended. First image = main display image. JPG or WebP. Max 5 images.
-              </p>
-              <div
-                onClick={() => fileRef.current.click()}
-                style={{ border: "2px dashed #BDBDBD", borderRadius: 8, padding: "1.25rem", textAlign: "center", cursor: "pointer", background: "#FAFAFA", color: "#888", fontSize: "0.875rem" }}
-              >
-                {imgUploading ? "Uploading…" : `Click to upload images (${form.images.length}/5)`}
-              </div>
-              <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleImageFiles} />
-            </>
           )}
         </div>
 

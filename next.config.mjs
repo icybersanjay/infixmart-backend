@@ -36,7 +36,7 @@ const baseSecurityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "off" },
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
-  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Resource-Policy", value: "same-site" },
   { key: "Origin-Agent-Cluster", value: "?1" },
   ...(isProduction
     ? [
@@ -91,7 +91,7 @@ const nextConfig = {
         source: "/uploads/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=604800, immutable" },
-          { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
+          { key: "Cross-Origin-Resource-Policy", value: "same-site" },
         ],
       },
       {
