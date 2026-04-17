@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 
 // Legacy directory used before the storage fix — files uploaded before the fix still live here
 const LEGACY_DIRS = [
+  path.resolve(process.cwd(), "..", "uploads"),  // Hostinger: /home/uXXX/uploads
   "/home/u633621486/uploads",
   "/home/u633621486/uploads_persistent",
-  "/home/u633621486/domains/infixmart.com/public_html/uploads",
 ];
 
 function getContentType(filePath) {
