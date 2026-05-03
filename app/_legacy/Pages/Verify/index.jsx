@@ -2,7 +2,7 @@
 
 import React, { useContext, useState, useEffect, useRef } from "react";
 import OtpBox from "../../components/OtpBox";
-import { Button, CircularProgress } from "@mui/material";
+import Spinner from "../../components/ui/Spinner";
 import { postData } from "../../utils/api";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -126,13 +126,13 @@ const Verify = () => {
             <OtpBox length={6} onChange={setOtp} />
 
             <div className="flex items-center justify-center px-3 mt-5">
-              <Button
+              <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full btn-org btn-lg"
+                className="w-full btn-org btn-lg flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Verify OTP"}
-              </Button>
+                {isSubmitting ? <Spinner size={20} className="text-white" /> : "Verify OTP"}
+              </button>
             </div>
           </form>
 

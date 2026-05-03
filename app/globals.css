@@ -7,60 +7,6 @@ body {
   margin: 0;
 }
 
-/* ── Dark mode base ───────────────────────────────────────── */
-.dark body {
-  background-color: #0f172a;
-  color: #e2e8f0;
-}
-
-.dark header {
-  background-color: #1e293b !important;
-  border-color: #334155 !important;
-}
-
-.dark footer {
-  background-color: #1e293b !important;
-  border-color: #334155 !important;
-}
-
-.dark .bg-white {
-  background-color: #1e293b !important;
-}
-
-.dark .bg-\[\#F5F7FF\] {
-  background-color: #0f172a !important;
-}
-
-.dark .border-gray-100,
-.dark .border-gray-200 {
-  border-color: #334155 !important;
-}
-
-.dark .text-gray-800,
-.dark .text-gray-900 {
-  color: #e2e8f0 !important;
-}
-
-.dark .text-gray-500,
-.dark .text-gray-600,
-.dark .text-gray-700 {
-  color: #94a3b8 !important;
-}
-
-.dark input,
-.dark textarea,
-.dark select {
-  background-color: #1e293b;
-  color: #e2e8f0;
-  border-color: #334155;
-}
-
-.dark .shadow-sm,
-.dark .shadow-md,
-.dark .shadow-xl {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
-}
-
 /*
   Tailwind preflight resets <button> to have no cursor.
   MUI relies on pointer being set, so restore it here globally.
@@ -86,4 +32,270 @@ a {
 img {
   display: inline-block;
   max-width: 100%;
+}
+
+/* ── Design tokens (single light theme — no dark mode) ───────────────── */
+:root {
+  /* Brand */
+  --infix-primary: #1565C0;
+  --infix-primary-dark: #0D47A1;
+  --infix-primary-50: #EEF4FF;
+
+  /* Shadow scale — soft, layered (Material 3 / Tailwind-ish) */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 40px rgba(15, 23, 42, 0.12), 0 8px 16px rgba(15, 23, 42, 0.05);
+
+  /* Radius scale */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
+/* ── Mobile UI animations (bottom-sheet, modals) ─────────────────────── */
+@keyframes infix-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes infix-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-slideUp {
+  animation: infix-slide-up 220ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+.animate-fadeIn {
+  animation: infix-fade-in 180ms ease-out;
+}
+
+/* ── Subtle press feedback on buttons ───────────────────────────────── */
+/* High-specificity press scale via `:not()` chain so Tailwind utility
+   classes that share the same `:active` pseudo (e.g. `active:scale-95`) win
+   on the elements they're applied to. Add a short transform transition so
+   the spring-back-to-rest looks smooth. Opt out per-button with
+   `data-no-press`. */
+button {
+  transition: transform 100ms ease;
+}
+button:not(:disabled):not([data-no-press]):active {
+  transform: scale(0.97);
+}
+
+/* ── Staggered fade-in for grid children ────────────────────────────── */
+/* Apply `infix-stagger` to a grid container — children fade up in 40ms steps.
+   Capped at 24 children to keep the SSR'd HTML small; beyond that, items
+   appear instantly (which is fine because they're below the fold anyway). */
+@keyframes infix-stagger-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.infix-stagger > * {
+  animation: infix-stagger-in 360ms ease-out both;
+}
+.infix-stagger > *:nth-child(1)  { animation-delay: 0ms;  }
+.infix-stagger > *:nth-child(2)  { animation-delay: 40ms; }
+.infix-stagger > *:nth-child(3)  { animation-delay: 80ms; }
+.infix-stagger > *:nth-child(4)  { animation-delay: 120ms; }
+.infix-stagger > *:nth-child(5)  { animation-delay: 160ms; }
+.infix-stagger > *:nth-child(6)  { animation-delay: 200ms; }
+.infix-stagger > *:nth-child(7)  { animation-delay: 240ms; }
+.infix-stagger > *:nth-child(8)  { animation-delay: 280ms; }
+.infix-stagger > *:nth-child(9)  { animation-delay: 320ms; }
+.infix-stagger > *:nth-child(10) { animation-delay: 360ms; }
+.infix-stagger > *:nth-child(11) { animation-delay: 400ms; }
+.infix-stagger > *:nth-child(12) { animation-delay: 440ms; }
+.infix-stagger > *:nth-child(13) { animation-delay: 480ms; }
+.infix-stagger > *:nth-child(14) { animation-delay: 520ms; }
+.infix-stagger > *:nth-child(15) { animation-delay: 560ms; }
+.infix-stagger > *:nth-child(16) { animation-delay: 600ms; }
+.infix-stagger > *:nth-child(17) { animation-delay: 640ms; }
+.infix-stagger > *:nth-child(18) { animation-delay: 680ms; }
+.infix-stagger > *:nth-child(19) { animation-delay: 720ms; }
+.infix-stagger > *:nth-child(20) { animation-delay: 760ms; }
+.infix-stagger > *:nth-child(21) { animation-delay: 800ms; }
+.infix-stagger > *:nth-child(22) { animation-delay: 840ms; }
+.infix-stagger > *:nth-child(23) { animation-delay: 880ms; }
+.infix-stagger > *:nth-child(24) { animation-delay: 920ms; }
+
+/* ── Cart icon bounce + badge ping (fires on add-to-cart) ───────────── */
+@keyframes infix-bounce-cart {
+  0%   { transform: translateY(0)    scale(1); }
+  35%  { transform: translateY(-6px) scale(1.18); }
+  70%  { transform: translateY(0)    scale(0.95); }
+  100% { transform: translateY(0)    scale(1); }
+}
+@keyframes infix-badge-ping {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 0   rgba(229, 57, 53, 0.6); }
+  60%  { transform: scale(1.25); box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(229, 57, 53, 0); }
+}
+.infix-bounce-cart {
+  animation: infix-bounce-cart 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+.infix-badge-ping .MuiBadge-badge {
+  animation: infix-badge-ping 700ms ease-out;
+  transform-origin: center;
+}
+
+/* ── Live stock urgency dot (pulse) ─────────────────────────────────── */
+@keyframes infix-stock-pulse {
+  0%   { transform: scale(1);   box-shadow: 0 0 0 0   rgba(229, 57, 53, 0.55); }
+  70%  { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(229, 57, 53, 0); }
+  100% { transform: scale(1);   box-shadow: 0 0 0 0   rgba(229, 57, 53, 0); }
+}
+.infix-stock-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #E53935;
+  animation: infix-stock-pulse 1.6s ease-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── Wishlist heart burst (fires on add-to-wishlist) ────────────────── */
+@keyframes infix-heart-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+@keyframes infix-heart-particle {
+  0%   { transform: translate(0, 0) scale(0.6); opacity: 0.95; }
+  100% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.2); opacity: 0; }
+}
+.infix-heart-pop {
+  animation: infix-heart-pop 480ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+.infix-heart-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.infix-heart-burst > span {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  color: #E53935;
+  font-size: 10px;
+  line-height: 1;
+  animation: infix-heart-particle 600ms ease-out forwards;
+}
+
+/* ── Skeleton shimmer (replaces flat-grey placeholder) ──────────────── */
+@keyframes infix-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    #ECEFF3 0%,
+    #F5F7FA 50%,
+    #ECEFF3 100%
+  );
+  background-size: 200% 100%;
+  animation: infix-shimmer 1.4s linear infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Reusable shadow + radius utilities ─────────────────────────────── */
+.infix-card        { box-shadow: var(--shadow-sm); border-radius: var(--radius-md); }
+.infix-card-hover  { transition: box-shadow 200ms ease, transform 200ms ease; }
+.infix-card-hover:hover { box-shadow: var(--shadow-lg); }
+.infix-modal       { box-shadow: var(--shadow-xl); border-radius: var(--radius-lg); }
+
+/* ── Sticky header backdrop blur (when scrolled) ────────────────────── */
+.infix-header {
+  background-color: #ffffff;
+  box-shadow: var(--shadow-xs);
+  transition: background-color 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.infix-header.is-scrolled {
+  background-color: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  backdrop-filter: saturate(180%) blur(12px);
+  box-shadow: var(--shadow-md);
+}
+/* Safari < 15 fallback: keep solid white if backdrop-filter unsupported. */
+@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+  .infix-header.is-scrolled {
+    background-color: #ffffff;
+  }
+}
+
+/* ── Top-of-page route progress bar ─────────────────────────────────── */
+.infix-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  z-index: 9999;
+  pointer-events: none;
+  background: transparent;
+  overflow: hidden;
+}
+.infix-progress__bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--infix-primary) 0%, #4FC3F7 50%, var(--infix-primary) 100%);
+  background-size: 200% 100%;
+  box-shadow: 0 0 8px rgba(21, 101, 192, 0.55);
+  transition: width 280ms ease, opacity 220ms ease 80ms;
+  animation: infix-progress-glide 1.4s linear infinite;
+}
+@keyframes infix-progress-glide {
+  0%   { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+.infix-progress[data-state="loading"] .infix-progress__bar { opacity: 1; }
+.infix-progress[data-state="done"]    .infix-progress__bar { opacity: 0; width: 100%; }
+
+/* ── Branded :focus-visible rings (accessibility + polish) ──────────── */
+/* `!important` is intentional: Tailwind's `focus:outline-none` utility uses
+   class+:focus specificity which would otherwise win over `:focus-visible`.
+   Keyboard users must always see a focus ring. */
+*:focus-visible {
+  outline: 2px solid var(--infix-primary) !important;
+  outline-offset: 2px !important;
+  border-radius: 4px;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline-offset: 1px !important;
+}
+/* Mouse clicks should not show the ring (keeps the design clean). */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slideUp,
+  .animate-fadeIn,
+  .skeleton-pulse,
+  .infix-progress__bar,
+  .infix-bounce-cart,
+  .infix-badge-ping .MuiBadge-badge,
+  .infix-heart-pop,
+  .infix-heart-burst > span,
+  .infix-stagger > *,
+  .infix-stock-dot {
+    animation: none;
+  }
+  .infix-header,
+  .infix-card-hover,
+  button {
+    transition: none;
+  }
 }

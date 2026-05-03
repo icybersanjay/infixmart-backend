@@ -1,6 +1,6 @@
 "use client";
 
-import CheckoutPage from "../../../_legacy/Pages/Checkout/index.jsx";
+import CheckoutPage from "./CheckoutPage.jsx";
 
 export default function Page() {
   return <CheckoutPage />;

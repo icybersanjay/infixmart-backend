@@ -1,6 +1,6 @@
 "use client";
 
-import UserManagementPage from "../../../_legacy/admin/pages/UserManagement.jsx";
+import UserManagementPage from "./UsersPage.jsx";
 
 export default function Page() {
   return <UserManagementPage />;

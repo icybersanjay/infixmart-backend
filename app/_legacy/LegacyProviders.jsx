@@ -3,9 +3,7 @@
 import { createContext, useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import toast, { Toaster } from "react-hot-toast";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
+import Modal from "./components/ui/Modal";
 import { IoClose } from "react-icons/io5";
 import ProductZoom from "./components/ProductZoom";
 import ProductDetailsComponent from "./components/ProductDetails";
@@ -16,7 +14,6 @@ import { WishlistProvider } from "./context/WishlistContext";
 import { SettingsProvider } from "./context/SettingsContext";
 import { RecentlyViewedProvider } from "./context/RecentlyViewedContext";
 import { CompareProvider } from "./context/CompareContext";
-import { ThemeProvider } from "./context/ThemeContext";
 
 const MyContext = createContext();
 
@@ -104,29 +101,28 @@ function LegacyProviders({ children }) {
     <>
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
         <MyContext.Provider value={values}>
-          <ThemeProvider>
           <SettingsProvider>
             <CompareProvider>
             <CartProvider enabled={isLogin}>
               <WishlistProvider enabled={isLogin}>
                 <RecentlyViewedProvider>{children}</RecentlyViewedProvider>
-                <Dialog
+                <Modal
                   open={openProductDetailsModal}
-                  fullWidth={fullWidth}
-                  maxWidth={maxWidth}
                   onClose={handleCloseProductDetailsModal}
-                  aria-labelledby="alert-dialog-title"
-                  aria-describedby="alert-dialog-description"
-                  className="productDetailModal"
+                  maxWidth="4xl"
+                  ariaLabel="Product details"
+                  contentClassName="productDetailModal"
                 >
-                  <DialogContent>
+                  <div className="p-4">
                     <div className="relative flex items-center w-full productDetailModalContainer">
-                      <Button
-                        className="!w-[40px] !min-w-[40px] !h-[40px] !rounded-full !text-[#000] !font-bold !absolute top-[15px] right-[15px] !bg-[#f1f1f1]"
+                      <button
+                        type="button"
+                        className="w-[40px] h-[40px] inline-flex items-center justify-center rounded-full text-black font-bold absolute top-[15px] right-[15px] bg-[#f1f1f1] hover:bg-gray-200 transition-colors z-10"
                         onClick={handleCloseProductDetailsModal}
+                        aria-label="Close"
                       >
                         <IoClose className="text-[20px]" />
-                      </Button>
+                      </button>
                       <div className="col1 w-[40%] px-3">
                         <ProductZoom images={selectedQuickViewProduct?.images || []} />
                       </div>
@@ -134,13 +130,12 @@ function LegacyProviders({ children }) {
                         <ProductDetailsComponent product={selectedQuickViewProduct} />
                       </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
+                  </div>
+                </Modal>
               </WishlistProvider>
             </CartProvider>
             </CompareProvider>
           </SettingsProvider>
-          </ThemeProvider>
         </MyContext.Provider>
       </GoogleOAuthProvider>
 
@@ -151,7 +146,47 @@ function LegacyProviders({ children }) {
         userName={userData?.name}
         onSuccess={refreshUserData}
       />
-      <Toaster />
+      <Toaster
+        position="top-center"
+        gutter={10}
+        toastOptions={{
+          duration: 3000,
+          className: 'infix-toast',
+          style: {
+            background: '#ffffff',
+            color: '#0f172a',
+            fontSize: '13px',
+            fontWeight: 600,
+            padding: '12px 16px',
+            borderRadius: '12px',
+            boxShadow: '0 10px 24px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.04)',
+            border: '1px solid rgba(15, 23, 42, 0.06)',
+            maxWidth: '420px',
+          },
+          success: {
+            iconTheme: { primary: '#00A651', secondary: '#ffffff' },
+            style: {
+              borderLeft: '4px solid #00A651',
+              paddingLeft: '12px',
+            },
+          },
+          error: {
+            iconTheme: { primary: '#E53935', secondary: '#ffffff' },
+            style: {
+              borderLeft: '4px solid #E53935',
+              paddingLeft: '12px',
+            },
+            duration: 4000,
+          },
+          loading: {
+            iconTheme: { primary: '#1565C0', secondary: '#ffffff' },
+            style: {
+              borderLeft: '4px solid #1565C0',
+              paddingLeft: '12px',
+            },
+          },
+        }}
+      />
     </>
   );
 }

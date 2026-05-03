@@ -104,7 +104,7 @@ const Invoice = ({ order, onClose }) => {
                 <p className='text-[9px] font-[800] tracking-[4px] text-[#1565C0] uppercase'>Wholesale</p>
                 <div className='text-[11px] text-gray-500 mt-2 leading-relaxed'>
                   <p>support@infixmart.com</p>
-                  <p>+91 88714 88214</p>
+                  <p>+91 88490 47148</p>
                   <p>GSTIN: 22AAAAA0000A1Z5</p>
                 </div>
               </div>
@@ -137,19 +137,26 @@ const Invoice = ({ order, onClose }) => {
             <hr className='border-[#1565C0] border-t-2 mb-6' />
 
             {/* Billing address */}
-            {addr.fullName && (
-              <div className='mb-6'>
-                <p className='text-[11px] font-[700] uppercase text-[#1565C0] tracking-widest mb-2'>Ship To</p>
-                <p className='text-[13px] font-[600] text-gray-800'>{addr.fullName}</p>
-                <p className='text-[13px] text-gray-600 leading-relaxed'>
-                  {addr.address}{addr.address && ', '}
-                  {addr.city}{addr.city && ', '}
-                  {addr.state}{addr.state && ' - '}
-                  {addr.postalCode}
-                </p>
-                {addr.mobile && <p className='text-[13px] text-gray-600'>Ph: {addr.mobile}</p>}
-              </div>
-            )}
+            {(() => {
+              const name = addr.name || addr.fullName;
+              const mobile = addr.mobile || addr.phone;
+              const line1 = [addr.flatHouse, addr.areaStreet].filter(Boolean).join(', ') || addr.address;
+              const cityLine = [addr.townCity || addr.city, addr.state].filter(Boolean).join(', ');
+              const pincode = addr.pincode || addr.postalCode;
+              if (!name) return null;
+              return (
+                <div className='mb-6'>
+                  <p className='text-[11px] font-[700] uppercase text-[#1565C0] tracking-widest mb-2'>Ship To</p>
+                  <p className='text-[13px] font-[600] text-gray-800'>{name}</p>
+                  <p className='text-[13px] text-gray-600 leading-relaxed'>
+                    {line1}{line1 && cityLine ? ', ' : ''}
+                    {cityLine}{pincode ? ` - ${pincode}` : ''}
+                  </p>
+                  {addr.landmark && <p className='text-[12px] text-gray-500'>Landmark: {addr.landmark}</p>}
+                  {mobile && <p className='text-[13px] text-gray-600'>Ph: {mobile}</p>}
+                </div>
+              );
+            })()}
 
             {/* Items table */}
             <div className='overflow-x-auto mb-6'>
@@ -169,6 +176,14 @@ const Invoice = ({ order, onClose }) => {
                       <td className='px-3 py-2 text-gray-400'>{idx + 1}</td>
                       <td className='px-3 py-2 text-gray-700 font-[500]'>
                         {item.name}
+                        {item.variantName && (
+                          <span className='block text-[#1565C0] text-[11px] font-[600] mt-0.5'>
+                            {item.variantName}
+                            {item.variantSku && (
+                              <span className='text-gray-400 font-[400]'> · {item.variantSku}</span>
+                            )}
+                          </span>
+                        )}
                         {item.ram    && <span className='text-gray-400 text-[11px] ml-1'>({item.ram})</span>}
                         {item.size   && <span className='text-gray-400 text-[11px] ml-1'>({item.size})</span>}
                         {item.weight && <span className='text-gray-400 text-[11px] ml-1'>({item.weight})</span>}
@@ -211,7 +226,7 @@ const Invoice = ({ order, onClose }) => {
             {/* Footer */}
             <div className='mt-10 pt-5 border-t border-gray-100 text-center text-[11px] text-gray-400'>
               <p>Thank you for shopping with InfixMart Wholesale!</p>
-              <p className='mt-1'>Questions? Contact us at support@infixmart.com or WhatsApp +91 88714 88214</p>
+              <p className='mt-1'>Questions? Contact us at support@infixmart.com or WhatsApp +91 88490 47148</p>
             </div>
 
           </div>

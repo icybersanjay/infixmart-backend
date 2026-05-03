@@ -2,15 +2,15 @@
 
 import React from 'react'
 import Link from 'next/link';
-import Rating from '@mui/material/Rating';
-import Button from '@mui/material/Button';
+import Stars from '../ui/Stars';
 import { FaRegHeart } from "react-icons/fa";
 import { IoGitCompareOutline } from "react-icons/io5";
 import { MdZoomOutMap } from "react-icons/md";
-import Tooltip from '@mui/material/Tooltip';
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { useContext } from 'react';
 import { MyContext } from '../../LegacyProviders';
+
+const iconBtn = '!w-[35px] !h-[35px] inline-flex items-center justify-center rounded-full bg-white text-black hover:bg-primary hover:text-white transition-colors shadow';
 
 
 
@@ -38,24 +38,16 @@ const ProductItemListView = () => {
              </span>
 
              <div className='absolute actions top-[-200px] right-[5px] z-50 flex items-center gap-2 flex-col w-[50px] transition-all duration-300 group-hover:top-[15px] opacity-0 group-hover:opacity-100'>
-                <Tooltip title="View product details" placement="left-start">
-                    <Button className='!w-[35px] !h-[35px] !min-w-[35px] !rounded-full !bg-white text-black hover:!bg-primary hover:text-white'
-                    onClick={()=>context.openProductDetailsModalFor(null)}>
-                        <MdZoomOutMap className='text-[18px] !text-black group-hover:text-white hover:!text-white'/>
-                    </Button>
-                </Tooltip>
-                <Tooltip title="Compare product" placement="left-start">
-                    <Button className='!w-[35px] !h-[35px] !min-w-[35px] !rounded-full !bg-white text-black hover:!bg-primary hover:text-white'
-                    >
-                        <IoGitCompareOutline className='text-[18px] !text-black group-hover:text-white hover:!text-white'/>
-                    </Button>
-                </Tooltip>
-                <Tooltip title="Add to wishlist" placement="left-start">
-                    <Button className='!w-[35px] !h-[35px] !min-w-[35px] !rounded-full !bg-white text-black hover:!bg-primary hover:text-white'
-                    >
-                        <FaRegHeart className='text-[18px] !text-black group-hover:text-white hover:!text-white'/>
-                    </Button>
-                </Tooltip>
+                <button type="button" title="View product details" className={iconBtn}
+                  onClick={()=>context.openProductDetailsModalFor(null)}>
+                    <MdZoomOutMap className='text-[18px]'/>
+                </button>
+                <button type="button" title="Compare product" className={iconBtn}>
+                    <IoGitCompareOutline className='text-[18px]'/>
+                </button>
+                <button type="button" title="Add to wishlist" className={iconBtn}>
+                    <FaRegHeart className='text-[18px]'/>
+                </button>
              </div>
         </div>
 
@@ -69,17 +61,17 @@ const ProductItemListView = () => {
             <p className='text-[14px] mb-3'>
                 Lorem ipsum dolor sit, amet consectetur adipisicing elit. Asperiores dignissimos obcaecati rerum corporis beatae quasi unde provident expedita qui ducimus totam doloribus quis voluptatum dolorem, libero accusamus ex culpa atque!
             </p>
-            <Rating name="size-small" defaultValue={4} size="small" readOnly/>
+            <Stars defaultValue={4} size="small" readOnly/>
             <div className='flex items-center gap-4'>
                 <span className='text-gray-500 font-[500] line-through oldPrice text-[15px]'>580</span>
                 <span className='font-[600] newPrice text-primary text-[15px]'>580</span>
             </div>
 
             <div className='mt-3'>
-                <Button className='flex gap-2 btn-org'>
+                <button type="button" className='flex gap-2 btn-org'>
                     <MdOutlineShoppingCart className='text-[20px]'/>
                     Add to Cart
-                </Button>
+                </button>
             </div>
         </div>
     </div>

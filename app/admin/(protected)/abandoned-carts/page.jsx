@@ -1,6 +1,6 @@
 "use client";
 
-import AbandonedCartManagement from "../../../_legacy/admin/pages/AbandonedCartManagement.jsx";
+import AbandonedCartManagement from "./AbandonedCartsPage.jsx";
 
 export default function Page() {
   return <AbandonedCartManagement />;

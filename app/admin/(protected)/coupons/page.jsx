@@ -1,6 +1,6 @@
 "use client";
 
-import CouponManagementPage from "../../../_legacy/admin/pages/CouponManagement.jsx";
+import CouponManagementPage from "./CouponsPage.jsx";
 
 export default function Page() {
   return <CouponManagementPage />;

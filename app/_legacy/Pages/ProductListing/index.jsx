@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import SEO from '../../components/SEO';
 import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -13,7 +13,7 @@ import ProductItem from '../../components/ProductItem';
 import ProductCardSkeleton from '../../components/skeletons/ProductCardSkeleton';
 import { imgUrl } from '../../utils/imageUrl';
 import { useCart } from '../../context/CartContext';
-import Rating from '@mui/material/Rating';
+import Stars from '../../components/ui/Stars';
 import { stripHtml } from '../../utils/html';
 
 const fmt = (n) => Number(n || 0).toLocaleString('en-IN');
@@ -171,7 +171,7 @@ const FilterPanel = ({
               selectedRating === r ? 'bg-[#1565C0] text-white' : 'hover:bg-gray-50 text-gray-700'
             }`}
           >
-            <Rating value={r} size='small' readOnly />
+            <Stars value={r} size='small' readOnly />
             <span className='text-[12px] font-[500]'>& up</span>
           </button>
         ))}
@@ -191,7 +191,14 @@ const FilterPanel = ({
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-const ProductListing = () => {
+const ProductListing = ({
+  initialProducts = null,
+  initialTotalPages = 1,
+  initialTotalCount = 0,
+  initialCategories = [],
+  initialBrands = [],
+  initialFilters = null,
+} = {}) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -203,29 +210,39 @@ const ProductListing = () => {
   const [maxPrice, setMaxPrice]             = useState(searchParams.get('maxPrice') || '');
   const [appliedMin, setAppliedMin]         = useState(searchParams.get('minPrice') || '');
   const [appliedMax, setAppliedMax]         = useState(searchParams.get('maxPrice') || '');
-  const [selectedRating, setSelectedRating] = useState(null);
-  const [inStockOnly, setInStockOnly]       = useState(false);
-  const [selectedBrand, setSelectedBrand]   = useState('');
-  const [sortBy, setSortBy]                 = useState('newest');
+  const [selectedRating, setSelectedRating] = useState(searchParams.get('minRating') ? Number(searchParams.get('minRating')) : null);
+  const [inStockOnly, setInStockOnly]       = useState(searchParams.get('inStockOnly') === 'true');
+  const [selectedBrand, setSelectedBrand]   = useState(searchParams.get('brand') || '');
+  const [sortBy, setSortBy]                 = useState(searchParams.get('sort') || 'newest');
   const [viewMode, setViewMode]             = useState('grid');
   const [page, setPage]                     = useState(1);
   const [loadingMore, setLoadingMore]       = useState(false);
 
-  const [products, setProducts]         = useState(null);
-  const [totalPages, setTotalPages]     = useState(1);
-  const [totalCount, setTotalCount]     = useState(0);
-  const [categories, setCategories]     = useState([]);
-  const [brands, setBrands]             = useState([]);
+  const [products, setProducts]         = useState(initialProducts);
+  const [totalPages, setTotalPages]     = useState(initialTotalPages);
+  const [totalCount, setTotalCount]     = useState(initialTotalCount);
+  const [categories, setCategories]     = useState(initialCategories);
+  const [brands, setBrands]             = useState(initialBrands);
+
+  // The very first render already has products from the server — skip the
+  // client-side initial fetch. After any filter change, refetch normally.
+  const skipInitialFetchRef = useRef(initialProducts !== null);
 
   const PER_PAGE = 20;
 
   useEffect(() => {
-    getData('/api/category').then(res => {
-      if (res && !res.error) setCategories(res.categories || []);
-    });
-    getData('/api/product/brands').then(res => {
-      if (res && !res.error) setBrands(res.brands || []);
-    });
+    // Skip the network round-trip when the server already seeded these.
+    if (!initialCategories || initialCategories.length === 0) {
+      getData('/api/category').then(res => {
+        if (res && !res.error) setCategories(res.categories || []);
+      });
+    }
+    if (!initialBrands || initialBrands.length === 0) {
+      getData('/api/product/brands').then(res => {
+        if (res && !res.error) setBrands(res.brands || []);
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const buildParams = useCallback((p = 1) => {
@@ -272,7 +289,15 @@ const ProductListing = () => {
     });
   }, [page, buildParams]);
 
-  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+  useEffect(() => {
+    // First render is hydrated from the server-rendered list; only fetch on
+    // subsequent filter/sort changes.
+    if (skipInitialFetchRef.current) {
+      skipInitialFetchRef.current = false;
+      return;
+    }
+    fetchProducts();
+  }, [fetchProducts]);
 
   const clearFilters = () => {
     setSelectedCatId(''); setMinPrice(''); setMaxPrice('');
@@ -296,6 +321,24 @@ const ProductListing = () => {
   const activeCatName = selectedCatId ? categories.find(c => c.id == selectedCatId)?.name : null;
   const seoTitle = activeCatName || 'All Products';
   const searchQuery = searchParams.get('search');
+
+  // Fire `search` analytics + log query server-side once results are in.
+  // Keyed on (query + zero-result flag) so we don't double-fire on filter
+  // tweaks within the same search.
+  const lastTrackedSearchRef = useRef('');
+  useEffect(() => {
+    if (!searchQuery || isLoading) return;
+    const key = `${searchQuery}::${products.length}`;
+    if (lastTrackedSearchRef.current === key) return;
+    lastTrackedSearchRef.current = key;
+    import('../../utils/analytics').then(({ trackSearch }) => trackSearch(searchQuery, products.length)).catch(() => {});
+    // Server-side log (no-auth, fire-and-forget) for admin search analytics.
+    fetch('/api/search-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: searchQuery, resultCount: products.length }),
+    }).catch(() => {});
+  }, [searchQuery, products, isLoading]);
   const listingQuery = searchParams.toString();
   const listingDescription = activeCatName
     ? `Shop ${activeCatName} at best wholesale prices on InfixMart.`
@@ -371,18 +414,38 @@ const ProductListing = () => {
           </span>
         </div>
 
-        {/* ── Mobile drawer overlay ── */}
+        {/* ── Mobile bottom-sheet filters ── */}
         {filterDrawerOpen && (
           <>
-            <div className='fixed inset-0 bg-black/50 z-50 md:hidden' onClick={() => setFilterDrawerOpen(false)} />
-            <div className='fixed top-0 left-0 h-full w-[310px] bg-white z-50 shadow-2xl md:hidden overflow-y-auto'>
-              <div className='flex items-center justify-between px-4 py-3 border-b border-gray-100 sticky top-0 bg-white'>
-                <h3 className='font-[700] text-[15px]'>Filters</h3>
-                <button onClick={() => setFilterDrawerOpen(false)} className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors'>
+            <div
+              className='fixed inset-0 bg-black/50 z-50 md:hidden animate-fadeIn'
+              onClick={() => setFilterDrawerOpen(false)}
+              aria-hidden='true'
+            />
+            <div
+              className='fixed bottom-0 left-0 right-0 bg-white z-50 shadow-2xl md:hidden rounded-t-2xl flex flex-col max-h-[85vh] animate-slideUp'
+              role='dialog'
+              aria-modal='true'
+              aria-label='Filters'
+            >
+              {/* Drag handle */}
+              <div
+                className='flex justify-center pt-2.5 pb-1.5 cursor-grab'
+                onClick={() => setFilterDrawerOpen(false)}
+              >
+                <span className='w-12 h-1.5 bg-gray-300 rounded-full' />
+              </div>
+              <div className='flex items-center justify-between px-4 pb-3 border-b border-gray-100'>
+                <h3 className='font-[700] text-[16px]'>Filters</h3>
+                <button
+                  onClick={() => setFilterDrawerOpen(false)}
+                  aria-label='Close filters'
+                  className='w-9 h-9 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors'
+                >
                   <IoClose className='text-[20px]' />
                 </button>
               </div>
-              <div className='p-4'>
+              <div className='p-4 overflow-y-auto flex-1'>
                 <FilterPanel {...filterProps} onDone={() => setFilterDrawerOpen(false)} />
               </div>
             </div>
@@ -466,11 +529,11 @@ const ProductListing = () => {
                 </button>
               </div>
             ) : viewMode === 'grid' ? (
-              <div className='grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+              <div className='infix-stagger grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
                 {products.map(p => <ProductItem key={p.id} item={p} />)}
               </div>
             ) : (
-              <div className='flex flex-col gap-3'>
+              <div className='infix-stagger flex flex-col gap-3'>
                 {products.map(p => (
                   <div key={p.id} className='bg-white rounded-xl border border-gray-100 p-3 flex gap-4 items-start shadow-sm hover:shadow-md hover:border-[#1565C0]/20 transition-all'>
                     <Link href={`/product/${p.id}`} className='flex-shrink-0'>
@@ -487,7 +550,7 @@ const ProductListing = () => {
                       <Link href={`/product/${p.id}`} className='font-[600] text-[14px] text-gray-800 hover:text-[#1565C0] transition-colors line-clamp-2 leading-snug'>
                         {p.name}
                       </Link>
-                      <Rating value={Number(p.rating) || 0} size='small' readOnly precision={0.5} />
+                      <Stars value={Number(p.rating) || 0} size='small' readOnly precision={0.5} />
                       <div className='flex items-center gap-2 mt-0.5'>
                         <span className='font-[800] text-[#1565C0] text-[16px]'>₹{fmt(p.price)}</span>
                         {p.oldprice > 0 && <span className='text-gray-400 line-through text-[13px]'>₹{fmt(p.oldprice)}</span>}

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkDoubleSubmitCsrf } from "./lib/server/auth/csrf.js";
 import {
   getRateLimitConfig,
   isOriginAllowed,
@@ -11,6 +12,8 @@ const STATE_CHANGING_GET_PATHS = new Set([
   "/api/user/logout",
   "/api/admin/test-email",
 ]);
+// Server-to-server endpoints called by external providers (no browser origin).
+const PROVIDER_WEBHOOK_PATHS = new Set(["/api/payment/webhook"]);
 const rateLimitStore =
   globalThis.__infixmartRateLimitStore ||
   (globalThis.__infixmartRateLimitStore = new Map());
@@ -165,7 +168,7 @@ function checkRateLimit(key, policy) {
   };
 }
 
-function withHeaders(response, headers, pathname, rateLimitMeta = null) {
+function withHeaders(response, headers, pathname, rateLimitMeta = null, requestId = null) {
   headers.forEach((value, key) => response.headers.set(key, value));
 
   if (isSensitiveApiPath(pathname)) {
@@ -182,7 +185,25 @@ function withHeaders(response, headers, pathname, rateLimitMeta = null) {
     );
   }
 
+  if (requestId) {
+    response.headers.set("X-Request-Id", requestId);
+  }
+
   return response;
+}
+
+function getOrCreateRequestId(request) {
+  const incoming = request.headers.get("x-request-id");
+  if (incoming && /^[\w-]{6,128}$/.test(incoming)) return incoming;
+  // Edge runtime: crypto.randomUUID is available globally.
+  return crypto.randomUUID();
+}
+
+function nextWithRequestId(request, requestId) {
+  // Propagate the id to downstream route handlers via a mutated request header.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-request-id", requestId);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export function middleware(request) {
@@ -190,6 +211,12 @@ export function middleware(request) {
   const origin = normalizeOrigin(request.headers.get("origin"));
   const requestOrigin = getTrustedOrigin(request);
   const headers = getCorsHeaders(origin);
+  const requestId = getOrCreateRequestId(request);
+
+  // Provider-to-server webhooks: skip browser-CSRF protections and rate-limit.
+  if (PROVIDER_WEBHOOK_PATHS.has(pathname)) {
+    return withHeaders(nextWithRequestId(request, requestId), headers, pathname, null, requestId);
+  }
 
   if (request.method === "OPTIONS") {
     if (origin && !isOriginAllowed(origin)) {
@@ -199,11 +226,13 @@ export function middleware(request) {
           { status: 403 }
         ),
         headers,
-        pathname
+        pathname,
+        null,
+        requestId
       );
     }
 
-    return withHeaders(new NextResponse(null, { status: 204 }), headers, pathname);
+    return withHeaders(new NextResponse(null, { status: 204 }), headers, pathname, null, requestId);
   }
 
   if (requiresOriginValidation(pathname, request.method)) {
@@ -215,7 +244,9 @@ export function middleware(request) {
           { status: 403 }
         ),
         headers,
-        pathname
+        pathname,
+        null,
+        requestId
       );
     }
 
@@ -226,7 +257,26 @@ export function middleware(request) {
           { status: 403 }
         ),
         headers,
-        pathname
+        pathname,
+        null,
+        requestId
+      );
+    }
+
+    // Double-submit CSRF: opt-in defense-in-depth on top of the origin checks
+    // above. If the client sends an X-CSRF-Token header AND a csrf-token cookie,
+    // they must match. Requests that send neither are admitted (older clients).
+    const csrfStatus = checkDoubleSubmitCsrf(request);
+    if (csrfStatus === "fail") {
+      return withHeaders(
+        NextResponse.json(
+          { message: "CSRF token mismatch", error: true, success: false },
+          { status: 403 }
+        ),
+        headers,
+        pathname,
+        null,
+        requestId
       );
     }
   }
@@ -238,7 +288,9 @@ export function middleware(request) {
         { status: 403 }
       ),
       headers,
-      pathname
+      pathname,
+      null,
+      requestId
     );
   }
 
@@ -269,18 +321,19 @@ export function middleware(request) {
           limit: policy.max,
           remaining: 0,
           resetAt: rateResult.resetAt,
-        }
+        },
+        requestId
       );
     }
 
-    return withHeaders(NextResponse.next(), headers, pathname, {
+    return withHeaders(nextWithRequestId(request, requestId), headers, pathname, {
       limit: policy.max,
       remaining: rateResult.remaining,
       resetAt: rateResult.resetAt,
-    });
+    }, requestId);
   }
 
-  return withHeaders(NextResponse.next(), headers, pathname);
+  return withHeaders(nextWithRequestId(request, requestId), headers, pathname, null, requestId);
 }
 
 export const config = {

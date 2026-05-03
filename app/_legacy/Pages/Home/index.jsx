@@ -76,24 +76,26 @@ const CAT_PALETTES = [
 ];
 
 /* 1. Category Grid ─────────────────────────────────────────────────────────── */
-const CategoryGrid = () => {
-  const [cats, setCats] = useState([]);
-  const [loaded, setLoaded] = useState(false);
+const CategoryGrid = ({ initialCategories = null }) => {
+  const seeded = Array.isArray(initialCategories) && initialCategories.length > 0;
+  const [cats, setCats] = useState(seeded ? initialCategories.slice(0, 10) : []);
+  const [loaded, setLoaded] = useState(seeded);
   const router = useRouter();
 
   useEffect(() => {
+    if (seeded) return;
     getData('/api/category').then((res) => {
       if (res && !res.error) {
         const data = res.categories || res.data || [];
         setCats(Array.isArray(data) ? data.slice(0, 10) : []);
       }
     }).catch(() => { }).finally(() => setLoaded(true));
-  }, []);
+  }, [seeded]);
 
   const display = cats.length > 0 ? cats : Array(10).fill(null);
 
   return (
-    <section className='py-16 bg-white overflow-hidden'>
+    <section className='py-10 sm:py-16 bg-white overflow-hidden'>
       <div className='container'>
         <SectionHead tag='Browse' title='Shop by' accent='Category' viewAll='/productListing' />
         {loaded && cats.length === 0 ? (
@@ -123,16 +125,16 @@ const CategoryGrid = () => {
             );
           })}
         </div>
-        <div className='grid grid-cols-4 gap-3 sm:hidden'>
-          {display.slice(0, 8).map((cat, i) => {
+        <div className='grid grid-cols-3 gap-2.5 sm:hidden'>
+          {display.slice(0, 9).map((cat, i) => {
             const p = CAT_PALETTES[i % CAT_PALETTES.length];
             return cat ? (
               <button key={cat.id ?? cat._id ?? cat.slug ?? cat.name ?? `home-mobile-category-${i}`} onClick={() => router.push(`/productListing?category=${cat.id}`)}
                 className='flex flex-col items-center gap-2 p-3 rounded-2xl cursor-pointer active:scale-95 transition-transform'
                 style={{ background: p.bg }}
               >
-                <span className='text-[2.2rem] drop-shadow-sm'>{p.emoji}</span>
-                <p className='text-[10px] font-[700] text-center line-clamp-2 leading-tight' style={{ color: p.color }}>{cat.name}</p>
+                <span className='text-[2rem] drop-shadow-sm'>{p.emoji}</span>
+                <p className='text-[11px] font-[700] text-center line-clamp-2 leading-tight' style={{ color: p.color }}>{cat.name}</p>
               </button>
             ) : (
               <div key={i} className='flex flex-col items-center gap-2 p-3 rounded-2xl bg-slate-50 animate-pulse'>
@@ -154,7 +156,7 @@ const ShopByPrice = ({ items }) => {
   const router = useRouter();
   if (!items || items.length === 0) return null;
   return (
-    <section className='py-16 bg-slate-50'>
+    <section className='py-10 sm:py-16 bg-slate-50'>
       <div className='container'>
         <SectionHead tag='Best Value' title='Find Your Perfect' accent='Deal' sub='Shop smarter — filter exactly by your budget' />
         <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6'>
@@ -190,7 +192,7 @@ const ShopByPrice = ({ items }) => {
 
 /* 3. Today's Best Deals ─────────────────────────────────────────────────────── */
 const TodaysBestDeals = ({ products }) => (
-  <section className='py-16 bg-white'>
+  <section className='py-10 sm:py-16 bg-white'>
     <div className='container'>
       <SectionHead tag="Limited Offers" title="Today's" accent='Best Deals' sub='Heavily discounted picks — updated daily for you' viewAll='/productListing' />
       {products === null ? (
@@ -236,7 +238,7 @@ const FlashDealsGrid = ({ products, config }) => {
     : null;
 
   return (
-    <section className='py-16 bg-[#FFF4F4] relative overflow-hidden'>
+    <section className='py-10 sm:py-16 bg-[#FFF4F4] relative overflow-hidden'>
       {/* Decorative pulse */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-red-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
       <div className='container relative z-10'>
@@ -267,7 +269,7 @@ const FlashDealsGrid = ({ products, config }) => {
             subtitle='Flash deals will appear here once matching products are added.'
           />
         ) : (
-          <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6'>
+          <div className='infix-stagger grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6'>
             {filtered.map((p) => <ProductItem key={p.id} item={p} />)}
           </div>
         )}
@@ -279,7 +281,7 @@ const FlashDealsGrid = ({ products, config }) => {
 /* 5. Shop by Collection ─────────────────────────────────────────────────────── */
 const ShopByCollection = ({ items }) => {
   return (
-    <section className='py-16 bg-white'>
+    <section className='py-10 sm:py-16 bg-white'>
       <div className='container'>
         <SectionHead tag='Curated' title='Shop by' accent='Collection' />
         {!items || items.length === 0 ? (
@@ -318,7 +320,7 @@ const ShopByCollection = ({ items }) => {
 /* 6. Why Choose Us ─────────────────────────────────────────────────────────── */
 const WhyChooseUs = ({ items }) => {
   return (
-    <section className='py-20 bg-slate-50 relative overflow-hidden'>
+    <section className='py-12 sm:py-20 bg-slate-50 relative overflow-hidden'>
       {/* Decorative bg blobs */}
       <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
       <div className='container relative z-10'>
@@ -357,7 +359,7 @@ const WhyChooseUs = ({ items }) => {
 /* 7. Stats Bar ─────────────────────────────────────────────────────────────── */
 const StatsBar = ({ items }) => {
   return (
-    <section className='py-16' style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
+    <section className='py-10 sm:py-16' style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
       <div className='container'>
         {!items || items.length === 0 ? (
           <EmptyState
@@ -390,7 +392,7 @@ const StatsBar = ({ items }) => {
 /* 8. Blog Section ─────────────────────────────────────────────────────────── */
 const BlogSection = ({ blogs }) => {
   return (
-    <section className='py-20 bg-white'>
+    <section className='py-12 sm:py-20 bg-white'>
       <div className='container'>
         <SectionHead tag='Insights' title='From the' accent='Blog' sub='Expert tips, guides & product highlights directly from us' viewAll='/blog' />
         {!blogs || blogs.length === 0 ? (
@@ -420,7 +422,7 @@ const Newsletter = ({ config }) => {
   const [email, setEmail] = useState('');
   const cfg = config || {};
   return (
-    <section className='py-20 border-t border-slate-200' style={{ background: cfg.bgColor || '#F8FAFC' }}>
+    <section className='py-12 sm:py-20 border-t border-slate-200' style={{ background: cfg.bgColor || '#F8FAFC' }}>
       <div className='container'>
         <div className='max-w-3xl mx-auto text-center bg-white p-10 sm:p-14 rounded-[3rem] shadow-xl border border-slate-100 relative overflow-hidden'>
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
@@ -458,8 +460,8 @@ const Newsletter = ({ config }) => {
    MAIN HOME
 ═══════════════════════════════════════════════════════════════════════════ */
 const SECTION_COMPONENTS = {
-  hero: ({ products, blogs, sectionData }) => <div style={{ height: 480 }}><HeroSlider /></div>,
-  categories: ({ products, blogs, sectionData }) => <CategoryGrid />,
+  hero: ({ products, blogs, sectionData, initialSlides }) => <div style={{ height: 480 }}><HeroSlider initialSlides={initialSlides} /></div>,
+  categories: ({ products, blogs, sectionData, initialCategories }) => <CategoryGrid initialCategories={initialCategories} />,
   price_tiers: ({ products, blogs, sectionData }) => <ShopByPrice items={sectionData.price_tiers} />,
   todays_deals: ({ products, blogs, sectionData }) => <TodaysBestDeals products={products} />,
   flash_deals: ({ products, blogs, sectionData }) => <FlashDealsGrid products={products} config={sectionData.flash_deals?.[0]} />,
@@ -470,34 +472,54 @@ const SECTION_COMPONENTS = {
   newsletter: ({ products, blogs, sectionData }) => <Newsletter config={sectionData.newsletter?.[0]} />,
 };
 
-const Home = () => {
-  const [products, setProducts] = useState(null);
-  const [blogs, setBlogs] = useState([]);
-  const [sectionConfig, setSectionConfig] = useState([]);
-  const [sectionData, setSectionData] = useState({});
+const Home = ({
+  initialProducts = null,
+  initialBlogs = null,
+  initialCategories = null,
+  initialSlides = null,
+  initialSectionConfig = null,
+  initialSectionData = null,
+} = {}) => {
+  const seededProducts = Array.isArray(initialProducts);
+  const seededBlogs = Array.isArray(initialBlogs);
+  const seededConfig = Array.isArray(initialSectionConfig) && initialSectionConfig.length > 0;
+  const seededSectionData = initialSectionData && typeof initialSectionData === 'object';
+
+  const [products, setProducts] = useState(seededProducts ? initialProducts : null);
+  const [blogs, setBlogs] = useState(seededBlogs ? initialBlogs : []);
+  const [sectionConfig, setSectionConfig] = useState(seededConfig ? initialSectionConfig : []);
+  const [sectionData, setSectionData] = useState(seededSectionData ? initialSectionData : {});
 
   useEffect(() => {
-    // Load products
-    getData('/api/product?page=1&perPage=50')
-      .then((res) => { if (res && !res.error) setProducts(res.products || []); else setProducts([]); })
-      .catch(() => setProducts([]));
+    // Server-prefetched everything — stay quiet on first paint.
+    if (seededProducts && seededBlogs && seededConfig && seededSectionData) return;
 
-    // Load blogs
-    getData('/api/blog?perPage=6')
-      .then((res) => { if (res && !res.error) setBlogs(res.blogs || []); });
+    if (!seededProducts) {
+      getData('/api/product?page=1&perPage=50')
+        .then((res) => { if (res && !res.error) setProducts(res.products || []); else setProducts([]); })
+        .catch(() => setProducts([]));
+    }
 
-    // Load section config (which sections are visible + order)
-    getData('/api/homepage/section_config')
-      .then((res) => { if (res && !res.error) setSectionConfig(res.items || []); });
+    if (!seededBlogs) {
+      getData('/api/blog?perPage=6')
+        .then((res) => { if (res && !res.error) setBlogs(res.blogs || []); });
+    }
 
-    // Load all content sections in parallel
-    const contentSections = ['collection', 'price_tiers', 'why_choose_us', 'stats', 'newsletter', 'flash_deals'];
-    Promise.all(contentSections.map((s) => getData(`/api/homepage/${s}`).then((r) => ({ key: s, items: r?.items || [] }))))
-      .then((results) => {
-        const data = {};
-        results.forEach(({ key, items }) => { data[key] = items; });
-        setSectionData(data);
-      });
+    if (!seededConfig) {
+      getData('/api/homepage/section_config')
+        .then((res) => { if (res && !res.error) setSectionConfig(res.items || []); });
+    }
+
+    if (!seededSectionData) {
+      const contentSections = ['collection', 'price_tiers', 'why_choose_us', 'stats', 'newsletter', 'flash_deals'];
+      Promise.all(contentSections.map((s) => getData(`/api/homepage/${s}`).then((r) => ({ key: s, items: r?.items || [] }))))
+        .then((results) => {
+          const data = {};
+          results.forEach(({ key, items }) => { data[key] = items; });
+          setSectionData(data);
+        });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sort visible sections by admin-defined order
@@ -542,7 +564,7 @@ const Home = () => {
         if (!Component) return null;
         return (
           <React.Fragment key={section.key}>
-            {Component({ products, blogs, sectionData })}
+            {Component({ products, blogs, sectionData, initialSlides, initialCategories })}
           </React.Fragment>
         );
       })}

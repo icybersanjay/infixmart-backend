@@ -1,10 +1,19 @@
 "use client";
 
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import Link from 'next/link';
-import Rating from '@mui/material/Rating';
-import Tooltip from '@mui/material/Tooltip';
+import Stars from '../ui/Stars';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
+
+// Particle offsets for the wishlist heart burst — picked once so all hearts
+// don't fly to the same spot.
+const HEART_BURST_PARTICLES = [
+  { tx: '-14px', ty: '-18px' },
+  { tx: '14px',  ty: '-18px' },
+  { tx: '-20px', ty: '-2px'  },
+  { tx: '20px',  ty: '-2px'  },
+  { tx: '0px',   ty: '-22px' },
+];
 import { MdOutlineShoppingCart, MdZoomOutMap } from 'react-icons/md';
 import { MyContext } from '../../LegacyProviders';
 import { imgUrl } from '../../utils/imageUrl';
@@ -21,8 +30,20 @@ const ProductItem = ({ item }) => {
   const { isWishlisted, toggleWishlist } = useWishlist();
   const { addToCompare, removeFromCompare, isComparing, compareList, maxCompare } = useCompare();
   const saleCountdown = useCountdown(item.saleEndsAt);
+  const [heartBurst, setHeartBurst] = useState(false);
 
   if (!item) return null;
+
+  const handleWishlistClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const wasWishlisted = isWishlisted(item.id);
+    toggleWishlist(item);
+    if (!wasWishlisted) {
+      setHeartBurst(true);
+      setTimeout(() => setHeartBurst(false), 700);
+    }
+  };
 
   const primaryImg  = imgUrl(item.images?.[0]);
   const hoverImg    = imgUrl(item.images?.[1] || item.images?.[0]);
@@ -35,7 +56,7 @@ const ProductItem = ({ item }) => {
     : false;
 
   return (
-    <div className='group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#1565C0]/30 hover:shadow-xl transition-all duration-300 flex flex-col'>
+    <div className='group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#1565C0]/30 hover:shadow-xl hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 ease-out flex flex-col will-change-transform'>
 
       {/* ── Image area ── */}
       <div className='relative overflow-hidden bg-[#F8FAFF]' style={{ aspectRatio: '3/4' }}>
@@ -59,13 +80,24 @@ const ProductItem = ({ item }) => {
 
         {/* Wishlist — top right */}
         <button
-          onClick={() => toggleWishlist(item)}
+          onClick={handleWishlistClick}
+          aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-pressed={wishlisted}
           className='absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-[#1565C0] group/wl transition-all duration-200'
         >
-          {wishlisted
-            ? <FaHeart className='text-[13px] text-[#E53935]' />
-            : <FaRegHeart className='text-[13px] text-gray-400 group-hover/wl:text-white transition-colors' />
-          }
+          <span className={`relative inline-flex items-center justify-center ${heartBurst ? 'infix-heart-pop' : ''}`}>
+            {wishlisted
+              ? <FaHeart className='text-[13px] text-[#E53935]' />
+              : <FaRegHeart className='text-[13px] text-gray-400 group-hover/wl:text-white transition-colors' />
+            }
+          </span>
+          {heartBurst && (
+            <span className='infix-heart-burst' aria-hidden='true'>
+              {HEART_BURST_PARTICLES.map((p, i) => (
+                <span key={i} style={{ '--tx': p.tx, '--ty': p.ty }}>♥</span>
+              ))}
+            </span>
+          )}
         </button>
 
         {/* Product image */}
@@ -96,23 +128,21 @@ const ProductItem = ({ item }) => {
         {/* Quick view + ATC — slides up on hover (desktop) */}
         <div className='absolute bottom-0 left-0 right-0 z-10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 hidden sm:block'>
           <div className='flex'>
-            <Tooltip title='Quick View' placement='top'>
-              <button
-                onClick={() => context.openProductDetailsModalFor(item)}
-                className='flex-1 bg-[#1565C0]/90 hover:bg-[#1565C0] text-white text-[11px] font-[700] py-2 flex items-center justify-center gap-1.5 backdrop-blur-sm transition-colors border-r border-white/20'
-              >
-                <MdZoomOutMap className='text-[14px]' /> Quick View
-              </button>
-            </Tooltip>
+            <button
+              title='Quick View'
+              onClick={() => context.openProductDetailsModalFor(item)}
+              className='flex-1 bg-[#1565C0]/90 hover:bg-[#1565C0] text-white text-[11px] font-[700] py-2 flex items-center justify-center gap-1.5 backdrop-blur-sm transition-colors border-r border-white/20'
+            >
+              <MdZoomOutMap className='text-[14px]' /> Quick View
+            </button>
             {!outOfStock && (
-              <Tooltip title='Add to Cart' placement='top'>
-                <button
-                  onClick={(e) => { e.preventDefault(); addToCart(item.id); }}
-                  className='flex-1 bg-[#111827]/90 hover:bg-[#111827] text-white text-[11px] font-[700] py-2 flex items-center justify-center gap-1.5 backdrop-blur-sm transition-colors'
-                >
-                  <MdOutlineShoppingCart className='text-[14px]' /> Add to Cart
-                </button>
-              </Tooltip>
+              <button
+                title='Add to Cart'
+                onClick={(e) => { e.preventDefault(); addToCart(item.id); }}
+                className='flex-1 bg-[#111827]/90 hover:bg-[#111827] text-white text-[11px] font-[700] py-2 flex items-center justify-center gap-1.5 backdrop-blur-sm transition-colors'
+              >
+                <MdOutlineShoppingCart className='text-[14px]' /> Add to Cart
+              </button>
             )}
           </div>
         </div>
@@ -134,7 +164,7 @@ const ProductItem = ({ item }) => {
 
         {/* Rating */}
         <div className='mb-1.5'>
-          <Rating value={Number(item.rating) || 0} size='small' readOnly precision={0.5} />
+          <Stars value={Number(item.rating) || 0} size='small' readOnly precision={0.5} />
         </div>
 
         {/* Price row — prominent like 99wholesale */}
@@ -160,9 +190,16 @@ const ProductItem = ({ item }) => {
 
         {/* Low stock urgency label */}
         {!outOfStock && item.countInStock > 0 && item.countInStock <= 10 && (
-          <p className='text-[11px] text-amber-600 font-[600] mb-2 flex items-center gap-1 leading-none'>
-            ⚠️ Only {item.countInStock} left
-          </p>
+          item.countInStock <= 4 ? (
+            <p className='text-[11px] text-[#E53935] font-[700] mb-2 flex items-center gap-1.5 leading-none'>
+              <span className='infix-stock-dot' aria-hidden='true' />
+              Only {item.countInStock} left — selling fast
+            </p>
+          ) : (
+            <p className='text-[11px] text-amber-600 font-[600] mb-2 flex items-center gap-1 leading-none'>
+              ⚠️ Only {item.countInStock} left
+            </p>
+          )
         )}
 
         {/* Compare toggle */}

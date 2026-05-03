@@ -18,6 +18,11 @@ import ProductSlider from '../../components/ProductSlider';
 import { getData, postData } from '../../utils/api';
 import { imgUrl } from '../../utils/imageUrl';
 import { sanitizeHtml, stripHtml } from '../../utils/html';
+import {
+  normalizeTiers,
+  resolveTierPrice,
+  nextTierSavings,
+} from '../../../../lib/shared/price-tiers.js';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useRecentlyViewed } from '../../context/RecentlyViewedContext';
@@ -80,7 +85,7 @@ function getYoutubeEmbedUrl(url) {
 const Tab = ({ label, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`pb-3 px-1 text-[14px] font-[600] border-b-2 transition-colors mr-8 whitespace-nowrap ${
+    className={`pb-3 px-1 text-[13px] sm:text-[14px] font-[600] border-b-2 transition-colors mr-4 sm:mr-8 whitespace-nowrap ${
       active ? 'border-[#1565C0] text-[#1565C0]' : 'border-transparent text-gray-500 hover:text-gray-700'
     }`}
   >
@@ -103,7 +108,7 @@ const SizeGuideModal = ({ open, onClose }) => {
   return (
     <div className='fixed inset-0 z-[200] flex items-center justify-center p-4'>
       <div className='absolute inset-0 bg-black/50 backdrop-blur-sm' onClick={onClose} />
-      <div className='relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden'>
+      <div className='relative bg-white rounded-2xl shadow-2xl w-full max-w-[95vw] sm:max-w-lg overflow-hidden'>
         <div className='flex items-center justify-between px-5 py-4 border-b border-gray-100'>
           <h3 className='text-[16px] font-[800] text-gray-800'>📏 Size Guide</h3>
           <button onClick={onClose} className='w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors'>
@@ -152,7 +157,7 @@ const VariantPill = ({ label, selected, onClick, disabled }) => (
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`px-4 py-2 rounded-xl border-2 text-[13px] font-[600] mr-2 mb-2 transition-all ${
+    className={`px-3 sm:px-4 py-2 rounded-xl border-2 text-[12px] sm:text-[13px] font-[600] mr-1.5 sm:mr-2 mb-2 transition-all ${
       selected
         ? 'bg-[#1565C0] border-[#1565C0] text-white shadow-md shadow-blue-100'
         : disabled
@@ -247,7 +252,10 @@ const DeliveryChecker = () => {
       <div className='flex gap-2'>
         <input
           type='text'
+          inputMode='numeric'
+          autoComplete='postal-code'
           maxLength={6}
+          aria-label='Pincode'
           value={pincode}
           onChange={e => { setPincode(e.target.value.replace(/\D/g, '')); setResult(null); }}
           onKeyDown={e => e.key === 'Enter' && check()}
@@ -863,11 +871,18 @@ const ReviewsSection = ({ productId }) => {
 /* ══════════════════════════════════════════════════════════════════════════ */
 /* ── Main product page ────────────────────────────────────────────────────── */
 /* ══════════════════════════════════════════════════════════════════════════ */
-const ProductDetails = () => {
+const ProductDetails = ({ initialProduct = null, initialProductParam = null } = {}) => {
   const { productParam } = useParams();
   const router = useRouter();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Seed from server-fetched product when the URL param matches, so the first
+  // paint already has the full product body — no spinner, no extra request.
+  const initialMatches =
+    initialProduct &&
+    (String(initialProduct.id) === String(productParam) ||
+     initialProduct.slug === productParam ||
+     initialProductParam === productParam);
+  const [product, setProduct] = useState(initialMatches ? initialProduct : null);
+  const [loading, setLoading] = useState(!initialMatches);
   const [relatedProducts, setRelatedProducts] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [qty, setQty] = useState(1);
@@ -877,6 +892,11 @@ const ProductDetails = () => {
   const [selectedWeight, setSelectedWeight] = useState('');
   const [reviewCount, setReviewCount] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
+  const [wishBurst, setWishBurst] = useState(false);
+  // ProductVariants (first-class rows). When present, they take precedence
+  // over the legacy color/size/weight selectors below.
+  const [variants, setVariants] = useState([]);
+  const [selectedVariantId, setSelectedVariantId] = useState(null);
   const reviewsRef = useRef(null);
   const justAddedTimer = useRef(null);
 
@@ -890,10 +910,52 @@ const ProductDetails = () => {
   const peopleViewing = usePeopleViewing(product?.id ?? null);
 
   useEffect(() => {
+    // Apply variant defaults + below-fold fetches once the product is in hand.
+    // Used by both the SSR-hydrated path and the client-fetch path.
+    const applyProductSideEffects = (p) => {
+      const colors = tryParse(p.productRam);
+      const sz     = tryParse(p.size);
+      const wt     = tryParse(p.productWeight);
+      if (colors.length) setSelectedColor(colors[0]);
+      if (sz.length)  setSelectedSize(sz[0]);
+      if (wt.length)  setSelectedWeight(wt[0]);
+      track({ id: p.id, name: p.name, price: p.price, images: p.images, slug: p.slug });
+      // Consent-gated GA4 + Meta Pixel view_item / ViewContent
+      import('../../utils/analytics').then(({ trackViewItem }) => trackViewItem(p)).catch(() => {});
+      if (p.catId) {
+        getData(`/api/product/getproductby-catid/${p.catId}?perPage=8`)
+          .then(r => { if (r && !r.error) setRelatedProducts((r.products || []).filter(x => x.id !== p.id)); });
+      }
+      getData(`/api/reviews/product/${p.id}?page=1&perPage=1`)
+        .then(r => { if (r && !r.error) setReviewCount(r.data?.totalReviews || 0); });
+      // Fetch first-class variants for the picker. Errors are non-fatal — the
+      // product still renders with the legacy color/size/weight options below.
+      getData(`/api/product/${p.id}/variants`)
+        .then(r => {
+          const list = Array.isArray(r?.variants) ? r.variants : [];
+          setVariants(list);
+          // Default to the first in-stock variant if any, else the first variant.
+          const firstInStock = list.find(v => Number(v.stock) > 0);
+          setSelectedVariantId((firstInStock || list[0])?.id ?? null);
+        })
+        .catch(() => { setVariants([]); setSelectedVariantId(null); });
+    };
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Server already fetched and passed this product down — skip the network
+    // round-trip. First-paint LCP comes from the streamed HTML.
+    if (initialMatches) {
+      setProduct(initialProduct);
+      setRelatedProducts(null);
+      setLoading(false);
+      applyProductSideEffects(initialProduct);
+      return;
+    }
+
     setLoading(true);
     setProduct(null);
     setRelatedProducts(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     const productEndpoint = /^\d+$/.test(productParam)
       ? `/api/product/getproduct/${productParam}`
       : `/api/product/slug/${productParam}`;
@@ -903,28 +965,20 @@ const ProductDetails = () => {
         if (res && !res.error && res.product) {
           const p = res.product;
           setProduct(p);
-          const colors = tryParse(p.productRam);
-          const sz     = tryParse(p.size);
-          const wt     = tryParse(p.productWeight);
-          if (colors.length) setSelectedColor(colors[0]);
-          if (sz.length)  setSelectedSize(sz[0]);
-          if (wt.length)  setSelectedWeight(wt[0]);
-          track({ id: p.id, name: p.name, price: p.price, images: p.images, slug: p.slug });
-          if (p.catId) {
-            getData(`/api/product/getproductby-catid/${p.catId}?perPage=8`)
-              .then(r => { if (r && !r.error) setRelatedProducts((r.products || []).filter(x => x.id !== p.id)); });
-          }
-          getData(`/api/reviews/product/${p.id}?page=1&perPage=1`)
-            .then(r => { if (r && !r.error) setReviewCount(r.data?.totalReviews || 0); });
+          applyProductSideEffects(p);
         }
       })
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productParam]);
 
   useEffect(() => () => clearTimeout(justAddedTimer.current), []);
 
   const handleAddToCart = (productId) => {
-    addToCart(productId);
+    // Only forward variantId when adding the current product; related-product
+    // tiles call this with their own id and don't have a picker.
+    const variantId = productId === product?.id ? selectedVariantId : null;
+    addToCart(productId, variantId);
     if (productId === product?.id) {
       setJustAdded(true);
       clearTimeout(justAddedTimer.current);
@@ -934,7 +988,7 @@ const ProductDetails = () => {
 
   const handleBuyNow = () => {
     if (!isLogin) { router.push('/login'); return; }
-    addToCart(product.id);
+    addToCart(product.id, selectedVariantId);
     router.push('/checkout');
   };
 
@@ -982,10 +1036,34 @@ const ProductDetails = () => {
   const sizeOptions = Array.isArray(product.size) ? product.size : [];
   const weightOptions = Array.isArray(product.productWeight) ? product.productWeight : [];
   const wishlisted = isWishlisted(product.id);
+  const handleToggleWishlist = () => {
+    const wasWishlisted = wishlisted;
+    toggleWishlist(product);
+    if (!wasWishlisted) {
+      setWishBurst(true);
+      setTimeout(() => setWishBurst(false), 700);
+    }
+  };
   const inStock = product.countInStock > 0;
   const lowStock = inStock && product.countInStock <= 10;
   const stockPct = Math.min(100, Math.round((product.countInStock / 50) * 100));
   const savings = product.oldprice > product.price ? product.oldprice - product.price : 0;
+
+  // Bulk-pricing tiers (Section E). Tiers don't apply when a first-class
+  // variant is selected — variants have their own per-SKU price.
+  const tierList = useMemo(
+    () => normalizeTiers(product?.priceTiers),
+    [product?.priceTiers]
+  );
+  const tierBasePrice = Number(product.price || 0);
+  const tierApplies = tierList.length > 0 && !selectedVariantId;
+  const effectiveUnitPrice = tierApplies
+    ? resolveTierPrice(tierBasePrice, tierList, qty)
+    : tierBasePrice;
+  const tierLineSavings = tierApplies
+    ? Math.max(0, (tierBasePrice - effectiveUnitPrice) * qty)
+    : 0;
+  const tierUpsell = tierApplies ? nextTierSavings(tierBasePrice, tierList, qty) : null;
   const productPath = `/product/${product.slug || product.id}`;
   const productDescription = stripHtml(product.description || '').slice(0, 155);
   const safeDescriptionHtml = sanitizeHtml(product.description || '');
@@ -1215,6 +1293,56 @@ const ProductDetails = () => {
                 </div>
               )}
               <p className='text-[11px] text-gray-400 mt-1'>Inclusive of all taxes. Free delivery eligible.</p>
+
+              {/* Bulk-pricing tier table — only when the product has tiers */}
+              {tierList.length > 0 && (
+                <div className='mt-3 pt-3 border-t border-dashed border-gray-200'>
+                  <p className='text-[11px] font-[700] uppercase tracking-wide text-[#1565C0] mb-2'>
+                    🎁 Buy more, save more
+                  </p>
+                  <table className='w-full text-[12px]'>
+                    <thead>
+                      <tr className='text-[10px] uppercase text-gray-400 tracking-wide'>
+                        <th className='text-left font-[600] py-1'>Quantity</th>
+                        <th className='text-right font-[600] py-1'>Unit Price</th>
+                        <th className='text-right font-[600] py-1'>You Save / unit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className='border-t border-gray-100'>
+                        <td className='py-1.5 text-gray-700'>1 – {tierList[0].minQty - 1}</td>
+                        <td className='py-1.5 text-right font-[600] text-gray-800'>
+                          ₹{fmt(tierBasePrice)}
+                        </td>
+                        <td className='py-1.5 text-right text-gray-400'>—</td>
+                      </tr>
+                      {tierList.map((tier, i) => {
+                        const next = tierList[i + 1];
+                        const range = next ? `${tier.minQty} – ${next.minQty - 1}` : `${tier.minQty}+`;
+                        const perUnitSave = Math.max(0, tierBasePrice - tier.price);
+                        const isActive = tierApplies && qty >= tier.minQty && (!next || qty < next.minQty);
+                        return (
+                          <tr
+                            key={tier.minQty}
+                            className={`border-t border-gray-100 ${isActive ? 'bg-green-50' : ''}`}
+                          >
+                            <td className={`py-1.5 ${isActive ? 'font-[700] text-green-700' : 'text-gray-700'}`}>
+                              {range}
+                              {isActive && <span className='ml-1 text-[10px] uppercase'>← active</span>}
+                            </td>
+                            <td className={`py-1.5 text-right ${isActive ? 'font-[800] text-green-700' : 'font-[600] text-[#1565C0]'}`}>
+                              ₹{fmt(tier.price)}
+                            </td>
+                            <td className='py-1.5 text-right text-green-700 font-[600]'>
+                              {perUnitSave > 0 ? `₹${fmt(perUnitSave)}` : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             {/* ── Offers ──────────────────────────────────────────────── */}
@@ -1228,7 +1356,12 @@ const ProductDetails = () => {
               {inStock ? (
                 <div>
                   <div className='flex items-center justify-between mb-1.5'>
-                    {lowStock ? (
+                    {product.countInStock <= 4 ? (
+                      <span className='flex items-center gap-2 text-[13px] font-[700] text-[#E53935]'>
+                        <span className='infix-stock-dot' aria-hidden='true' />
+                        Only {product.countInStock} left — selling fast
+                      </span>
+                    ) : lowStock ? (
                       <span className='flex items-center gap-1.5 text-[13px] font-[700] text-amber-600'>
                         ⚠️ Only {product.countInStock} left in stock — order soon!
                       </span>
@@ -1241,7 +1374,7 @@ const ProductDetails = () => {
                   {product.countInStock <= 50 && (
                     <div className='w-full bg-gray-100 rounded-full h-1.5 overflow-hidden'>
                       <div
-                        className={`h-full rounded-full transition-all ${lowStock ? 'bg-amber-500' : 'bg-green-500'}`}
+                        className={`h-full rounded-full transition-all ${product.countInStock <= 4 ? 'bg-[#E53935]' : lowStock ? 'bg-amber-500' : 'bg-green-500'}`}
                         style={{ width: `${stockPct}%` }}
                       />
                     </div>
@@ -1255,6 +1388,49 @@ const ProductDetails = () => {
             </div>
 
             {/* ── Variant selectors ───────────────────────────────────── */}
+            {/* First-class ProductVariants picker. When present, it takes
+                precedence over the legacy color/size/weight selectors below
+                — the legacy selectors stay rendered for products that haven't
+                been migrated yet. */}
+            {variants.length > 0 && (
+              <div className='mb-4'>
+                <p className='text-[13px] font-[700] text-gray-700 mb-2'>
+                  Variant:{' '}
+                  <span className='text-[#1565C0]'>
+                    {variants.find(v => v.id === selectedVariantId)?.name || '—'}
+                  </span>
+                </p>
+                <div className='flex flex-wrap gap-2'>
+                  {variants.map(v => {
+                    const isSelected = selectedVariantId === v.id;
+                    const outOfStock = Number(v.stock) <= 0;
+                    return (
+                      <button
+                        key={v.id}
+                        type='button'
+                        disabled={outOfStock}
+                        onClick={() => setSelectedVariantId(v.id)}
+                        className={`px-3 py-1.5 rounded-md border text-[12px] font-[600] transition-colors ${
+                          isSelected
+                            ? 'border-[#1565C0] bg-[#E3F2FD] text-[#1565C0]'
+                            : outOfStock
+                            ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed line-through'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-[#1565C0]'
+                        }`}
+                        title={outOfStock ? 'Out of stock' : `₹${Number(v.price).toLocaleString('en-IN')} · ${v.stock} in stock`}
+                      >
+                        {v.name}
+                        {!outOfStock && Number(v.price) !== Number(product.price) && (
+                          <span className='ml-1.5 text-[10px] text-gray-500'>
+                            ₹{Number(v.price).toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             {colorOptions.length > 0 && (
               <div className='mb-4'>
                 <p className='text-[13px] font-[700] text-gray-700 mb-2'>
@@ -1306,7 +1482,7 @@ const ProductDetails = () => {
               <div className='flex items-center border-2 border-gray-200 rounded-xl overflow-hidden'>
                 <button
                   onClick={() => setQty(q => Math.max(1, q - 1))}
-                  className='w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-[#1565C0] hover:text-white transition-colors'
+                  className='w-11 h-11 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-50 hover:bg-[#1565C0] hover:text-white active:bg-[#0D47A1] transition-colors'
                   aria-label='Decrease quantity'
                 >
                   <FaMinus className='text-[11px]' />
@@ -1315,7 +1491,7 @@ const ProductDetails = () => {
                 <button
                   onClick={() => setQty(q => Math.min(q + 1, product.countInStock || 99))}
                   disabled={qty >= product.countInStock}
-                  className='w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-[#1565C0] hover:text-white transition-colors disabled:opacity-40'
+                  className='w-11 h-11 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-50 hover:bg-[#1565C0] hover:text-white active:bg-[#0D47A1] transition-colors disabled:opacity-40'
                   aria-label='Increase quantity'
                 >
                   <FaPlus className='text-[11px]' />
@@ -1325,6 +1501,40 @@ const ProductDetails = () => {
                 <span className='text-[11px] text-amber-600 font-[500]'>Max qty reached</span>
               )}
             </div>
+
+            {/* ── Live tier price hint — only when product has tiers ── */}
+            {tierApplies && (
+              <div className='mb-5 -mt-2 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-50 to-green-50 border border-blue-100 flex flex-wrap items-center justify-between gap-2'>
+                <div className='text-[12px] text-gray-700'>
+                  <span className='font-[700] text-gray-900'>You pay </span>
+                  <span className='text-[15px] font-[800] text-[#1565C0]'>
+                    ₹{fmt(effectiveUnitPrice)}
+                  </span>
+                  <span className='text-gray-500'> / unit × {qty} = </span>
+                  <span className='font-[800] text-[#0D47A1]'>
+                    ₹{fmt(effectiveUnitPrice * qty)}
+                  </span>
+                  {tierLineSavings > 0 && (
+                    <span className='ml-1.5 text-green-700 font-[700]'>
+                      (save ₹{fmt(tierLineSavings)})
+                    </span>
+                  )}
+                </div>
+                {tierUpsell && tierUpsell.unitsAway > 0 && (
+                  <button
+                    type='button'
+                    onClick={() =>
+                      setQty((q) =>
+                        Math.min(tierUpsell.nextMinQty, product.countInStock || tierUpsell.nextMinQty)
+                      )
+                    }
+                    className='text-[11px] font-[700] text-amber-700 hover:text-amber-900 underline decoration-dotted'
+                  >
+                    +{tierUpsell.unitsAway} more → ₹{fmt(tierUpsell.perUnitSavings)}/unit cheaper
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* ── CTA buttons — desktop ───────────────────────────────── */}
             <div className='hidden md:flex gap-3 mb-5'>
@@ -1349,15 +1559,27 @@ const ProductDetails = () => {
                 {justAdded ? '✓ Added!' : 'Add to Cart'}
               </button>
               <button
-                onClick={() => toggleWishlist(product)}
+                onClick={handleToggleWishlist}
                 aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                className={`w-[50px] h-[50px] rounded-2xl border-2 flex items-center justify-center flex-shrink-0 transition-all active:scale-95 ${
+                aria-pressed={wishlisted}
+                className={`relative w-[50px] h-[50px] rounded-2xl border-2 flex items-center justify-center flex-shrink-0 transition-all active:scale-95 ${
                   wishlisted
                     ? 'bg-red-50 border-red-300 text-red-500'
                     : 'border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-400 hover:bg-red-50'
                 }`}
               >
-                {wishlisted ? <FaHeart className='text-[18px]' /> : <FaRegHeart className='text-[18px]' />}
+                <span className={wishBurst ? 'infix-heart-pop' : ''}>
+                  {wishlisted ? <FaHeart className='text-[18px]' /> : <FaRegHeart className='text-[18px]' />}
+                </span>
+                {wishBurst && (
+                  <span className='infix-heart-burst' aria-hidden='true'>
+                    <span style={{ '--tx': '-18px', '--ty': '-22px' }}>♥</span>
+                    <span style={{ '--tx': '18px',  '--ty': '-22px' }}>♥</span>
+                    <span style={{ '--tx': '-26px', '--ty': '0px'  }}>♥</span>
+                    <span style={{ '--tx': '26px',  '--ty': '0px'  }}>♥</span>
+                    <span style={{ '--tx': '0px',   '--ty': '-28px' }}>♥</span>
+                  </span>
+                )}
               </button>
             </div>
 
@@ -1412,7 +1634,7 @@ const ProductDetails = () => {
       <div className='container mb-8' ref={reviewsRef}>
         <div className='bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden'>
           {/* Tab bar */}
-          <div className='border-b border-gray-100 px-6 pt-5 flex overflow-x-auto'>
+          <div className='border-b border-gray-100 px-3 sm:px-6 pt-5 flex overflow-x-auto scrollbar-hide'>
             <Tab label='Description' active={activeTab === 0} onClick={() => setActiveTab(0)} />
             <Tab label='Specifications' active={activeTab === 1} onClick={() => setActiveTab(1)} />
             <Tab label={`Reviews (${reviewCount})`} active={activeTab === 2} onClick={() => setActiveTab(2)} />
@@ -1421,7 +1643,7 @@ const ProductDetails = () => {
           </div>
 
           {/* Tab content */}
-          <div className='p-6'>
+          <div className='p-4 sm:p-6'>
             {activeTab === 0 && (
               product.description
                 ? <div
@@ -1554,13 +1776,24 @@ const ProductDetails = () => {
             {justAdded ? '✓ Added!' : 'Add to Cart'}
           </button>
           <button
-            onClick={() => toggleWishlist(product)}
-            aria-label='Wishlist'
-            className={`min-h-[46px] w-[46px] border-2 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+            onClick={handleToggleWishlist}
+            aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-pressed={wishlisted}
+            className={`relative min-h-[46px] w-[46px] border-2 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-95 ${
               wishlisted ? 'bg-red-50 border-red-300 text-red-500' : 'border-gray-200 text-gray-400'
             }`}
           >
-            {wishlisted ? <FaHeart className='text-[18px]' /> : <FaRegHeart className='text-[18px]' />}
+            <span className={wishBurst ? 'infix-heart-pop' : ''}>
+              {wishlisted ? <FaHeart className='text-[18px]' /> : <FaRegHeart className='text-[18px]' />}
+            </span>
+            {wishBurst && (
+              <span className='infix-heart-burst' aria-hidden='true'>
+                <span style={{ '--tx': '-16px', '--ty': '-20px' }}>♥</span>
+                <span style={{ '--tx': '16px',  '--ty': '-20px' }}>♥</span>
+                <span style={{ '--tx': '-22px', '--ty': '0px'  }}>♥</span>
+                <span style={{ '--tx': '22px',  '--ty': '0px'  }}>♥</span>
+              </span>
+            )}
           </button>
         </div>
         {/* Safe area for notch phones */}

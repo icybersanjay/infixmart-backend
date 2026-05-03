@@ -1,6 +1,6 @@
 "use client";
 
-import CategoryManagementPage from "../../../_legacy/admin/pages/CategoryManagement.jsx";
+import CategoryManagementPage from "./CategoriesPage.jsx";
 
 export default function Page() {
   return <CategoryManagementPage />;

@@ -132,7 +132,9 @@ export default async function Page({ params }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <ProductDetailsPage />
+      {/* initialProduct lets the client skip the network fetch on first paint —
+          big LCP + SEO win since the body is now part of the streamed HTML. */}
+      <ProductDetailsPage initialProduct={product} initialProductParam={productParam} />
     </>
   );
 }

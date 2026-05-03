@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import CircularProgress from "@mui/material/CircularProgress";
+import Modal from "../ui/Modal";
+import Spinner from "../ui/Spinner";
 import { IoClose } from "react-icons/io5";
 import { FaCheck, FaTruck, FaHeadset } from "react-icons/fa";
 import { MdWorkspacePremium } from "react-icons/md";
@@ -110,16 +109,8 @@ const MembershipModal = ({ open, onClose, onSuccess, userEmail, userName }) => {
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="xs"
-      fullWidth
-      PaperProps={{
-        sx: { borderRadius: "20px", overflow: "hidden", mx: 2 },
-      }}
-    >
-      <DialogContent sx={{ padding: 0 }}>
+    <Modal open={open} onClose={handleClose} maxWidth="xs" closeOnBackdrop={!loading} closeOnEscape={!loading}>
+      <div>
         {success ? (
           /* ── SUCCESS STATE ── */
           <div className="px-8 py-10 text-center">
@@ -239,7 +230,7 @@ const MembershipModal = ({ open, onClose, onSuccess, userEmail, userName }) => {
                 className="w-full bg-[#1565C0] hover:bg-[#0D47A1] active:bg-[#06266F] text-white py-4 rounded-xl font-[700] text-[15px] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-blue-200"
               >
                 {loading ? (
-                  <CircularProgress size={20} sx={{ color: "#fff" }} />
+                  <Spinner size={20} className="text-white" />
                 ) : (
                   <>
                     <span>Unlock InfixPass — ₹{price}</span>
@@ -257,8 +248,8 @@ const MembershipModal = ({ open, onClose, onSuccess, userEmail, userName }) => {
             </div>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+    </Modal>
   );
 };
 

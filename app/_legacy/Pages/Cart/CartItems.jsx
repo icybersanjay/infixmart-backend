@@ -1,48 +1,22 @@
 "use client";
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import Link from 'next/link';
 import { IoClose } from "react-icons/io5";
 import { FaAngleDown } from "react-icons/fa";
-import { FaAngleUp } from "react-icons/fa";
-
-
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import { Rating } from '@mui/material';
+import Stars from '../../components/ui/Stars';
+import DropdownMenu, { MenuItem } from '../../components/ui/DropdownMenu';
 
 const CartItems = (props) => {
-    // State for size selection
-    const [sizeAnchorEl, setSizeAnchorEl] = useState(null);
+    const sizeTriggerRef = useRef(null);
+    const qtyTriggerRef = useRef(null);
+    const [sizeOpen, setSizeOpen] = useState(false);
+    const [qtyOpen, setQtyOpen] = useState(false);
     const [selectedSize, setSelectedSize] = useState(props.size);
-    const openSize = Boolean(sizeAnchorEl);
-    
-    // State for quantity selection
-    const [qtyAnchorEl, setQtyAnchorEl] = useState(null);
     const [selectedQty, setSelectedQty] = useState(props.qty);
-    const openQty = Boolean(qtyAnchorEl);
-    
-    // Handlers for size selection
-    const handleClickSize = (event) => {
-        setSizeAnchorEl(event.currentTarget);
-    };
-    const handleCloseSize = (value) => {
-        setSizeAnchorEl(null);
-        if (value !== null) {
-            setSelectedSize(value)
-        }
-    }
 
-    // Handlers for quantity selection
-    const handleClickQty = (event) => {
-        setQtyAnchorEl(event.currentTarget);
-    };
-    const handleCloseQty = (value) => {
-        setQtyAnchorEl(null);
-        if (value !== null) {
-            setSelectedQty(value)
-        }
-    }
+    const pickSize = (value) => { setSelectedSize(value); setSizeOpen(false); };
+    const pickQty = (value) => { setSelectedQty(value); setQtyOpen(false); };
 
   return (
                     <div className='flex items-center w-full gap-4 p-3 pb-5 border-b border-[rgba(0,0,0,0.1)] cartItem'>
@@ -64,64 +38,38 @@ const CartItems = (props) => {
                                 </Link>
                             </h3>
 
-                            <Rating name="size-small" defaultValue={4} size="small" readOnly/>
+                            <Stars defaultValue={4} size="small" readOnly/>
 
                             <div className='flex items-center gap-4 mt-2'>
                                 <div className='relative'>
-                                    <span 
-                                    className='flex py-1 px-2 items-center justify-center bg-[#f1f1f1] text-[12px] font-[600] rounded-md cursor-pointer'
-                                    onClick={handleClickSize}
+                                    <button
+                                      ref={sizeTriggerRef}
+                                      type="button"
+                                      className='flex py-1 px-2 items-center justify-center bg-[#f1f1f1] text-[12px] font-[600] rounded-md cursor-pointer'
+                                      onClick={() => setSizeOpen((o) => !o)}
                                     >
                                         Size: {selectedSize} <FaAngleDown className='text-[14px] ml-1'/>
-                                    </span>
-
-                                    <Menu
-                                        id="size-menu"
-                                        anchorEl={sizeAnchorEl}
-                                        open={openSize}
-                                        onClose={()=>handleCloseSize(null)}
-                                        slotProps={{
-                                        list: {
-                                            'aria-labelledby': 'basic-button',
-                                        },
-                                        }}
-                                    >
-                                        <MenuItem onClick={()=>handleCloseSize('S')}>S</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseSize('M')}>M</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseSize('L')}>L</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseSize('XL')}>XL</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseSize('XXL')}>XXL</MenuItem>
-                                    </Menu>
+                                    </button>
+                                    <DropdownMenu open={sizeOpen} onClose={() => setSizeOpen(false)} anchorRef={sizeTriggerRef}>
+                                      {['S','M','L','XL','XXL'].map((s) => (
+                                        <MenuItem key={s} onClick={() => pickSize(s)}>{s}</MenuItem>
+                                      ))}
+                                    </DropdownMenu>
                                 </div>
-                                <div>
-                                    <span className='flex py-1 px-2 items-center justify-center bg-[#f1f1f1] text-[12px] font-[600] rounded-md cursor-pointer'
-                                    onClick={handleClickQty}
+                                <div className='relative'>
+                                    <button
+                                      ref={qtyTriggerRef}
+                                      type="button"
+                                      className='flex py-1 px-2 items-center justify-center bg-[#f1f1f1] text-[12px] font-[600] rounded-md cursor-pointer'
+                                      onClick={() => setQtyOpen((o) => !o)}
                                     >
                                         Qty: {selectedQty} <FaAngleDown className='text-[14px] ml-1'/>
-                                    </span>
-
-                                    <Menu
-                                        id="size-menu"
-                                        anchorEl={qtyAnchorEl}
-                                        open={openQty}
-                                        onClose={()=>handleCloseQty(null)}
-                                        slotProps={{
-                                        list: {
-                                            'aria-labelledby': 'basic-button',
-                                        },
-                                        }}
-                                    >
-                                        <MenuItem onClick={()=>handleCloseQty(1)}>1</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(2)}>2</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(3)}>3</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(4)}>4</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(5)}>5</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(6)}>6</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(7)}>7</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(8)}>8</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(9)}>9</MenuItem>
-                                        <MenuItem onClick={()=>handleCloseQty(10)}>10</MenuItem>
-                                    </Menu>
+                                    </button>
+                                    <DropdownMenu open={qtyOpen} onClose={() => setQtyOpen(false)} anchorRef={qtyTriggerRef}>
+                                      {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+                                        <MenuItem key={n} onClick={() => pickQty(n)}>{n}</MenuItem>
+                                      ))}
+                                    </DropdownMenu>
                                 </div>
                             </div>
                             

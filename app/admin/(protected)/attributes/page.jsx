@@ -1,6 +1,6 @@
 "use client";
 
-import AttributeManagementPage from "../../../_legacy/admin/pages/AttributeManagement.jsx";
+import AttributeManagementPage from "./AttributesPage.jsx";
 
 export default function Page() {
   return <AttributeManagementPage />;

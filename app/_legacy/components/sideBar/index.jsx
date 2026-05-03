@@ -1,14 +1,27 @@
 "use client";
 
 import React, { useState } from 'react'
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import {Collapse} from 'react-collapse';
 import { FaAngleDown } from "react-icons/fa6";
 import { FaAngleUp } from "react-icons/fa6";
-import Button from '@mui/material/Button';
 import RangeSlider from 'react-range-slider-input';
-import Rating from '@mui/material/Rating';
+import Stars from '../ui/Stars';
+
+// Tiny inline checkbox row matching the look of the previous MUI control.
+const CheckRow = ({ label }) => (
+  <label className='flex items-center gap-2 cursor-pointer text-[13px] text-gray-700 hover:text-[#1565C0] transition-colors w-full'>
+    <input type='checkbox' className='accent-[#1565C0] w-4 h-4' />
+    <span>{label}</span>
+  </label>
+);
+
+const TogglePill = ({ open, onClick }) => (
+  <button type='button'
+    className='!w-[30px] !h-[30px] inline-flex items-center justify-center rounded-full ml-auto text-black hover:bg-gray-100 transition-colors'
+    onClick={onClick}>
+    {open ? <FaAngleUp/> : <FaAngleDown/>}
+  </button>
+);
 
 
 
@@ -22,23 +35,12 @@ const SideBar = () => {
     <aside className='py-5 sideBar'>
         <div className='box'>
             <h3 className='w-full mb-3 text-[16px] font-[600] flex items-center pr-5'>
-                Shop by Category 
-                <Button className='!w-[30px] !h-[30px] !min-w-[30px] !rounded-full !ml-auto !text-black'
-                 onClick={()=>setisOpenCategoryFilter(!isOpenCategoryFilter)}>
-                    {
-                        isOpenCategoryFilter === true ? <FaAngleUp/> : <FaAngleDown/>
-                    }
-                </Button>
+                Shop by Category
+                <TogglePill open={isOpenCategoryFilter} onClick={()=>setisOpenCategoryFilter(!isOpenCategoryFilter)} />
             </h3>
             <Collapse isOpened={isOpenCategoryFilter}>
-                <div className='relative px-4 scroll -left-[13px]'>
-                    <FormControlLabel control={<Checkbox size='small' />} label="Fashion" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Fashion" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Fashion" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Fashion" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Fashion" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Fashion" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Fashion" className='w-full' />
+                <div className='relative px-4 scroll -left-[13px] space-y-1'>
+                    {Array.from({ length: 7 }, (_, i) => <CheckRow key={i} label="Fashion" />)}
                 </div>
             </Collapse>
         </div>
@@ -46,18 +48,13 @@ const SideBar = () => {
         <div className='box'>
             <h3 className='w-full mb-3 text-[16px] font-[600] flex items-center pr-5'>
                 Availability
-                <Button className='!w-[30px] !h-[30px] !min-w-[30px] !rounded-full !ml-auto !text-black'
-                 onClick={()=>setisOpenAvailabilityFilter(!isOpenAvailabilityFilter)}>
-                    {
-                        isOpenAvailabilityFilter === true ? <FaAngleUp/> : <FaAngleDown/>
-                    }
-                </Button>
+                <TogglePill open={isOpenAvailabilityFilter} onClick={()=>setisOpenAvailabilityFilter(!isOpenAvailabilityFilter)} />
             </h3>
             <Collapse isOpened={isOpenAvailabilityFilter}>
-                <div className='relative px-4 scroll -left-[13px]'>
-                    <FormControlLabel control={<Checkbox size='small' />} label="Available (17)" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="In Stock (10)" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Not Available (1)" className='w-full' />
+                <div className='relative px-4 scroll -left-[13px] space-y-1'>
+                    <CheckRow label="Available (17)" />
+                    <CheckRow label="In Stock (10)" />
+                    <CheckRow label="Not Available (1)" />
                 </div>
             </Collapse>
         </div>
@@ -65,20 +62,15 @@ const SideBar = () => {
         <div className='mt-3 box'>
             <h3 className='w-full mb-3 text-[16px] font-[600] flex items-center pr-5'>
                 Size
-                <Button className='!w-[30px] !h-[30px] !min-w-[30px] !rounded-full !ml-auto !text-black'
-                 onClick={()=>setisOpenSizeFilter(!isOpenSizeFilter)}>
-                    {
-                        isOpenSizeFilter === true ? <FaAngleUp/> : <FaAngleDown/>
-                    }
-                </Button>
+                <TogglePill open={isOpenSizeFilter} onClick={()=>setisOpenSizeFilter(!isOpenSizeFilter)} />
             </h3>
             <Collapse isOpened={isOpenSizeFilter}>
-                <div className='relative px-4 scroll -left-[13px]'>
-                    <FormControlLabel control={<Checkbox size='small' />} label="Small (17)" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Medium (10)" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="Large (1)" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="XL (1)" className='w-full' />
-                    <FormControlLabel control={<Checkbox size='small' />} label="XXL (1)" className='w-full' />
+                <div className='relative px-4 scroll -left-[13px] space-y-1'>
+                    <CheckRow label="Small (17)" />
+                    <CheckRow label="Medium (10)" />
+                    <CheckRow label="Large (1)" />
+                    <CheckRow label="XL (1)" />
+                    <CheckRow label="XXL (1)" />
                 </div>
             </Collapse>
         </div>
@@ -106,19 +98,19 @@ const SideBar = () => {
             
             <div>
                 <div className='w-full'>
-                    <Rating name="size-small" defaultValue={5} size="small" readOnly/>
+                    <Stars defaultValue={5} size="small" readOnly/>
                 </div>
                 <div className='w-full'>
-                    <Rating name="size-small" defaultValue={4} size="small" readOnly/>
+                    <Stars defaultValue={4} size="small" readOnly/>
                 </div>
                 <div className='w-full'>
-                    <Rating name="size-small" defaultValue={3} size="small" readOnly/>
+                    <Stars defaultValue={3} size="small" readOnly/>
                 </div>
                 <div className='w-full'>
-                    <Rating name="size-small" defaultValue={2} size="small" readOnly/>
+                    <Stars defaultValue={2} size="small" readOnly/>
                 </div>
                 <div className='w-full'>
-                    <Rating name="size-small" defaultValue={1} size="small" readOnly/>
+                    <Stars defaultValue={1} size="small" readOnly/>
                 </div>
             </div>
         </div>

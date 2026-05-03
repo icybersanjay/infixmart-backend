@@ -1,4 +1,4 @@
-import LegalPage from "../../_legacy/Pages/Legal/index.jsx";
+import LegalPage from "../_legal/LegalPage.jsx";
 
 export const metadata = {
   title: "Shipping Policy",
@@ -8,5 +8,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <LegalPage />;
+  return <LegalPage slug="shipping" path="/shipping-policy" />;
 }

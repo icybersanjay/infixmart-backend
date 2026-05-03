@@ -105,15 +105,15 @@ const Footer = () => {
     {/* Trust strip */}
     <div className='bg-[#F5F7FF] border-b border-gray-200'>
       <div className='container'>
-        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-0 divide-x divide-gray-200'>
+        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-3 gap-y-1 md:gap-0 md:divide-x md:divide-gray-200'>
           {TRUST.map((t, i) => (
-            <div key={i} className='flex items-center gap-3 py-5 px-4'>
-              <div className='w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0' style={{ background: t.bg, color: t.color }}>
+            <div key={i} className='flex items-center gap-2.5 sm:gap-3 py-4 sm:py-5 px-2 sm:px-4'>
+              <div className='w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0' style={{ background: t.bg, color: t.color }}>
                 {t.icon}
               </div>
-              <div>
-                <p className='text-[13px] font-[700] text-gray-800 leading-tight'>{t.title}</p>
-                <p className='text-[11px] text-gray-400 leading-tight mt-0.5'>{t.sub}</p>
+              <div className='min-w-0'>
+                <p className='text-[12px] sm:text-[13px] font-[700] text-gray-800 leading-tight truncate'>{t.title}</p>
+                <p className='text-[10px] sm:text-[11px] text-gray-400 leading-tight mt-0.5 truncate'>{t.sub}</p>
               </div>
             </div>
           ))}

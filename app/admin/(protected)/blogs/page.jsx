@@ -1,6 +1,6 @@
 "use client";
 
-import BlogManagementPage from "../../../_legacy/admin/pages/BlogManagement.jsx";
+import BlogManagementPage from "./BlogsPage.jsx";
 
 export default function Page() {
   return <BlogManagementPage />;

@@ -31,6 +31,10 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `referralCode`         VARCHAR(20)        NULL,
   `referredBy`           INT                NULL,
   `walletBalance`        DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
+  `failedLoginCount`     INT            NOT NULL DEFAULT 0,
+  `lockedUntil`          DATETIME           NULL,
+  `lastFailedLoginAt`    DATETIME           NULL,
+  `deletedAt`            DATETIME           NULL,
   `createdAt`            DATETIME       NOT NULL,
   `updatedAt`            DATETIME       NOT NULL,
   PRIMARY KEY (`id`),
@@ -44,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `Products` (
   `name`            VARCHAR(255)   NOT NULL,
   `slug`            VARCHAR(255)       NULL,
   `sku`             VARCHAR(100)       NULL,
+  `status`          ENUM('draft','active','archived') NOT NULL DEFAULT 'active',
   `description`     LONGTEXT           NULL,
   `images`          JSON               NULL,
   `brand`           VARCHAR(100)       NULL,
@@ -64,10 +69,40 @@ CREATE TABLE IF NOT EXISTS `Products` (
   `productWeight`   TEXT               NULL,
   `videoUrl`        VARCHAR(500)       NULL,
   `saleEndsAt`      DATETIME           NULL,
+  `viewCount`       INT            NOT NULL DEFAULT 0,
+  `purchaseCount`   INT            NOT NULL DEFAULT 0,
+  `reorderThreshold` INT           NOT NULL DEFAULT 5,
   `createdAt`       DATETIME       NOT NULL,
   `updatedAt`       DATETIME       NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_products_slug` (`slug`)
+  UNIQUE KEY `uq_products_slug` (`slug`),
+  UNIQUE KEY `uq_products_sku`  (`sku`),
+  KEY `idx_products_status`     (`status`),
+  KEY `idx_products_catId`      (`catId`),
+  KEY `idx_products_brand`      (`brand`),
+  FULLTEXT KEY `ft_products_search` (`name`, `brand`, `description`, `sku`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── ProductVariants ──────────────────────────────────────────
+--   Per-SKU variant rows (size/color/RAM combos). Replaces the legacy
+--   JSON-on-Products columns (`size`, `productRam`, `productWeight`) with
+--   first-class rows so each variant can carry its own price + stock.
+CREATE TABLE IF NOT EXISTS `ProductVariants` (
+  `id`         INT            NOT NULL AUTO_INCREMENT,
+  `productId`  INT            NOT NULL,
+  `sku`        VARCHAR(100)       NULL,
+  `name`       VARCHAR(255)   NOT NULL,
+  `attributes` JSON               NULL,
+  `price`      DECIMAL(10,2)  NOT NULL DEFAULT 0.00,
+  `stock`      INT            NOT NULL DEFAULT 0,
+  `isActive`   TINYINT(1)     NOT NULL DEFAULT 1,
+  `position`   INT            NOT NULL DEFAULT 0,
+  `createdAt`  DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt`  DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_variants_productId` (`productId`),
+  KEY `idx_variants_active`    (`isActive`),
+  UNIQUE KEY `uq_variants_sku` (`sku`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── Categories ───────────────────────────────────────────────
@@ -90,6 +125,8 @@ CREATE TABLE IF NOT EXISTS `Orders` (
   `shippingAddress` JSON          NOT NULL,
   `paymentMethod`   VARCHAR(50)   NOT NULL DEFAULT 'COD',
   `paymentResult`   JSON              NULL,
+  `idempotencyKey`  VARCHAR(100)      NULL,
+  `invoiceNumber`   VARCHAR(40)       NULL,
   `itemsPrice`      DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `shippingPrice`   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `gstAmount`       DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -99,11 +136,74 @@ CREATE TABLE IF NOT EXISTS `Orders` (
   `status`          VARCHAR(30)   NOT NULL DEFAULT 'pending',
   `trackingNumber`  VARCHAR(100)      NULL,
   `courierName`     VARCHAR(100)      NULL,
+  `trackingUrl`     VARCHAR(500)      NULL,
+  `cancelledAt`     DATETIME          NULL,
+  `cancelReason`    VARCHAR(500)      NULL,
+  `cancelledBy`     VARCHAR(20)       NULL,
   `createdAt`       DATETIME      NOT NULL,
   `updatedAt`       DATETIME      NOT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_orders_userId` (`userId`),
-  KEY `idx_orders_status` (`status`)
+  KEY `idx_orders_status` (`status`),
+  UNIQUE KEY `uq_orders_idempotencyKey` (`idempotencyKey`),
+  UNIQUE KEY `uq_orders_invoiceNumber`  (`invoiceNumber`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── OrderItems ───────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `OrderItems` (
+  `id`        INT           NOT NULL AUTO_INCREMENT,
+  `orderId`   INT           NOT NULL,
+  `productId` INT           NOT NULL,
+  `name`      VARCHAR(255)  NOT NULL,
+  `image`     VARCHAR(500)      NULL,
+  `price`     DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  `qty`       INT           NOT NULL DEFAULT 1,
+  `createdAt` DATETIME      NOT NULL,
+  `updatedAt` DATETIME      NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_items_orderId`   (`orderId`),
+  KEY `idx_order_items_productId` (`productId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── Refunds ──────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `Refunds` (
+  `id`                INT           NOT NULL AUTO_INCREMENT,
+  `orderId`           INT           NOT NULL,
+  `userId`            INT           NOT NULL,
+  `amount`            DECIMAL(10,2) NOT NULL,
+  `currency`          VARCHAR(10)   NOT NULL DEFAULT 'INR',
+  `razorpayPaymentId` VARCHAR(100)      NULL,
+  `razorpayRefundId`  VARCHAR(100)      NULL,
+  `status`            ENUM('pending','processing','completed','failed') NOT NULL DEFAULT 'pending',
+  `reason`            VARCHAR(500)      NULL,
+  `requestedBy`       VARCHAR(20)   NOT NULL DEFAULT 'admin',
+  `requestedById`     INT               NULL,
+  `note`              TEXT              NULL,
+  `failureReason`     TEXT              NULL,
+  `createdAt`         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `processedAt`       DATETIME          NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_refunds_orderId` (`orderId`),
+  KEY `idx_refunds_userId`  (`userId`),
+  KEY `idx_refunds_status`  (`status`),
+  UNIQUE KEY `uq_refunds_razorpayRefundId` (`razorpayRefundId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── WebhookEvents ────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `WebhookEvents` (
+  `id`           INT           NOT NULL AUTO_INCREMENT,
+  `provider`     VARCHAR(30)   NOT NULL DEFAULT 'razorpay',
+  `eventId`      VARCHAR(100)  NOT NULL,
+  `type`         VARCHAR(80)   NOT NULL,
+  `entityId`     VARCHAR(100)      NULL,
+  `payload`      JSON              NULL,
+  `status`       ENUM('received','processed','failed') NOT NULL DEFAULT 'received',
+  `error`        TEXT              NULL,
+  `receivedAt`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `processedAt`  DATETIME          NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_webhook_provider_eventId` (`provider`, `eventId`),
+  KEY `idx_webhook_type` (`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── Addresses ────────────────────────────────────────────────
@@ -329,14 +429,17 @@ CREATE TABLE IF NOT EXISTS `ReferralLogs` (
 
 -- ── AbandonedCartReminders (auto-created by app) ─────────────
 CREATE TABLE IF NOT EXISTS `AbandonedCartReminders` (
-  `id`         INT          NOT NULL AUTO_INCREMENT,
-  `userId`     INT          NOT NULL,
-  `email`      VARCHAR(255) NOT NULL,
-  `name`       VARCHAR(255)     NULL,
-  `cartValue`  DECIMAL(10,2)    NULL,
-  `sentAt`     DATETIME         NULL,
-  `status`     VARCHAR(20)  NOT NULL DEFAULT 'pending',
-  `createdAt`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `id`                  INT           NOT NULL AUTO_INCREMENT,
+  `userId`              INT           NOT NULL,
+  `cartSubtotal`        DECIMAL(10,2) NOT NULL DEFAULT 0,
+  `cartSnapshot`        JSON              NULL,
+  `status`              ENUM('active','recovered','dismissed') NOT NULL DEFAULT 'active',
+  `lastEmailSentAt`     DATETIME          NULL,
+  `lastWhatsappSentAt`  DATETIME          NULL,
+  `emailCount`          INT           NOT NULL DEFAULT 0,
+  `whatsappCount`       INT           NOT NULL DEFAULT 0,
+  `detectedAt`          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt`           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_abandoned_userId` (`userId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -375,6 +478,51 @@ CREATE TABLE IF NOT EXISTS `PushSubscriptions` (
   `auth`         TEXT             NULL,
   `createdAt`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── WalletTopups (auto-created by app) ───────────────────────
+CREATE TABLE IF NOT EXISTS `WalletTopups` (
+  `id`                INT           NOT NULL AUTO_INCREMENT,
+  `userId`            INT           NOT NULL,
+  `razorpayOrderId`   VARCHAR(100)  NOT NULL,
+  `razorpayPaymentId` VARCHAR(100)      NULL,
+  `amount`            DECIMAL(10,2) NOT NULL,
+  `status`            ENUM('pending','paid','failed') NOT NULL DEFAULT 'pending',
+  `createdAt`         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── NewsletterSubscribers (auto-created by app) ──────────────
+CREATE TABLE IF NOT EXISTS `NewsletterSubscribers` (
+  `id`        INT          NOT NULL AUTO_INCREMENT,
+  `email`     VARCHAR(255) NOT NULL UNIQUE,
+  `source`    VARCHAR(100)     NULL DEFAULT 'exit_popup',
+  `createdAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── CounterSequences (atomic per-key counters) ──────────────
+CREATE TABLE IF NOT EXISTS `CounterSequences` (
+  `name`      VARCHAR(64) NOT NULL,
+  `period`    VARCHAR(32) NOT NULL,
+  `value`     INT         NOT NULL DEFAULT 0,
+  `updatedAt` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`name`, `period`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── SearchLogs (search analytics) ────────────────────────────
+CREATE TABLE IF NOT EXISTS `SearchLogs` (
+  `id`           INT          NOT NULL AUTO_INCREMENT,
+  `query`        VARCHAR(255) NOT NULL,
+  `queryNorm`    VARCHAR(255) NOT NULL,
+  `resultCount`  INT          NOT NULL DEFAULT 0,
+  `userId`       INT              NULL,
+  `ip`           VARCHAR(64)      NULL,
+  `createdAt`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_search_queryNorm` (`queryNorm`),
+  KEY `idx_search_createdAt` (`createdAt`),
+  KEY `idx_search_zero`       (`resultCount`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

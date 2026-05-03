@@ -1,6 +1,6 @@
 "use client";
 
-import CartPage from "../../../_legacy/Pages/Cart/index.jsx";
+import CartPage from "./CartPage.jsx";
 
 export default function Page() {
   return <CartPage />;

@@ -1,4 +1,4 @@
-import LegalPage from "../../_legacy/Pages/Legal/index.jsx";
+import LegalPage from "../_legal/LegalPage.jsx";
 
 export const metadata = {
   title: "Terms & Conditions",
@@ -8,5 +8,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <LegalPage />;
+  return <LegalPage slug="terms" path="/terms" />;
 }

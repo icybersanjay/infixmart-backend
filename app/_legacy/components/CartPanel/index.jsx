@@ -1,7 +1,6 @@
 import React from 'react'
 import Link from 'next/link';
 import { MdDeleteOutline } from "react-icons/md";
-import { Button } from '@mui/material';
 
 
 const CartPanel = () => {
@@ -147,10 +146,10 @@ const CartPanel = () => {
 
             <div className='flex items-center justify-between w-full gap-5'>
                 <Link href='/cart' className='w-[50%] d-block'>
-                    <Button className='w-full btn-org btn-lg'>View Cart</Button>
+                    <button type="button" className='w-full btn-org btn-lg'>View Cart</button>
                 </Link>
                 <Link href='/checkout' className='w-[50%] d-block'>
-                    <Button className='w-full btn-org btn-border btn-lg'>Checkout</Button>
+                    <button type="button" className='w-full btn-org btn-border btn-lg'>Checkout</button>
                 </Link>
             </div>
         </div>

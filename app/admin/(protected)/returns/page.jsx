@@ -1,6 +1,6 @@
 "use client";
 
-import ReturnManagementPage from "../../../_legacy/admin/pages/ReturnManagement.jsx";
+import ReturnManagementPage from "./ReturnsPage.jsx";
 
 export default function Page() {
   return <ReturnManagementPage />;

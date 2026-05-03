@@ -2,7 +2,6 @@
 
 import React from 'react'
 import Link from 'next/link';
-import Button from '@mui/material/Button'
 import { FaRegMinusSquare } from "react-icons/fa"
 import { FaRegPlusSquare } from "react-icons/fa";
 import { useState } from 'react';
@@ -36,9 +35,9 @@ const CategoryCollapse = () => {
             <ul className='w-full'>
                 <li className='relative flex flex-col items-center list-none'>
                     <Link href='/' className='w-full'>
-                        <Button className='w-full !text-left !justify-start !px-3 !text-[rgb(0,0,0,0.8)]'>
+                        <button type="button" className='w-full text-left flex items-center justify-start px-3 py-2 text-[14px] font-[500] text-[rgba(0,0,0,0.8)] hover:bg-gray-50 rounded transition-colors'>
                             Fashion
-                        </Button>
+                        </button>
                     </Link>
                     {
                         submenuIndex === 0 ?
@@ -56,9 +55,9 @@ const CategoryCollapse = () => {
                         <ul className='w-full pl-3 submenu'>
                             <li className='relative list-none'>
                                 <Link href='/' className='w-full'>
-                                    <Button className='w-full !text-left !justify-start !px-3 !text-[rgb(0,0,0,0.8)]'>
+                                    <button type="button" className='w-full text-left flex items-center justify-start px-3 py-2 text-[14px] font-[500] text-[rgba(0,0,0,0.8)] hover:bg-gray-50 rounded transition-colors'>
                                         Apparel
-                                    </Button>
+                                    </button>
                                 </Link>
                                 {
                                     innerSubmenuIndex === 0 ?
@@ -108,9 +107,9 @@ const CategoryCollapse = () => {
 
                 <li className='relative flex flex-col items-center list-none'>
                     <Link href='/' className='w-full'>
-                        <Button className='w-full !text-left !justify-start !px-3 !text-[rgb(0,0,0,0.8)]'>
+                        <button type="button" className='w-full text-left flex items-center justify-start px-3 py-2 text-[14px] font-[500] text-[rgba(0,0,0,0.8)] hover:bg-gray-50 rounded transition-colors'>
                             Outwear
-                        </Button>
+                        </button>
                     </Link>
                     {
                         submenuIndex === 1 ?
@@ -128,9 +127,9 @@ const CategoryCollapse = () => {
                         <ul className='w-full pl-3 submenu'>
                             <li className='relative list-none'>
                                 <Link href='/' className='w-full'>
-                                    <Button className='w-full !text-left !justify-start !px-3 !text-[rgb(0,0,0,0.8)]'>
+                                    <button type="button" className='w-full text-left flex items-center justify-start px-3 py-2 text-[14px] font-[500] text-[rgba(0,0,0,0.8)] hover:bg-gray-50 rounded transition-colors'>
                                         Apparel
-                                    </Button>
+                                    </button>
                                 </Link>
                                 {
                                     innerSubmenuIndex === 1 ?

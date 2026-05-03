@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Rating from '@mui/material/Rating';
+import Stars from '../../components/ui/Stars';
 import { MdCompareArrows, MdOutlineShoppingCart } from 'react-icons/md';
 import { IoClose } from 'react-icons/io5';
 import { useCompare } from '../../context/CompareContext';
@@ -45,23 +45,23 @@ const ComparePage = () => {
     <section className='min-h-screen bg-[#F7F8FC] py-8'>
       <div className='container'>
         {/* Header */}
-        <div className='flex items-center justify-between mb-6'>
-          <div>
-            <h1 className='text-[22px] font-[800] text-gray-800 flex items-center gap-2'>
-              <MdCompareArrows className='text-[#1565C0]' /> Compare Products
+        <div className='flex items-center justify-between mb-6 gap-2'>
+          <div className='min-w-0'>
+            <h1 className='text-[18px] sm:text-[22px] font-[800] text-gray-800 flex items-center gap-2'>
+              <MdCompareArrows className='text-[#1565C0] flex-shrink-0' /> <span className='truncate'>Compare Products</span>
             </h1>
-            <p className='text-[13px] text-gray-400 mt-0.5'>Comparing {compareList.length} of {maxCompare} max products</p>
+            <p className='text-[12px] sm:text-[13px] text-gray-400 mt-0.5'>Comparing {compareList.length} of {maxCompare} max products</p>
           </div>
-          <button onClick={clearCompare} className='text-[13px] text-red-500 hover:underline font-[600]'>
+          <button onClick={clearCompare} className='text-[12px] sm:text-[13px] text-red-500 hover:underline font-[600] flex-shrink-0'>
             Clear All
           </button>
         </div>
 
         <div className='bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto'>
-          <table className='w-full border-collapse' style={{ minWidth: 500 }}>
+          <table className='w-full border-collapse min-w-[480px] sm:min-w-[640px]'>
             <thead>
               <tr>
-                <th className='w-[140px] p-4 border-b border-gray-100 text-left text-[11px] font-[700] uppercase text-gray-400 tracking-wide bg-gray-50'>
+                <th className='w-[100px] sm:w-[140px] p-3 sm:p-4 border-b border-gray-100 text-left text-[10px] sm:text-[11px] font-[700] uppercase text-gray-400 tracking-wide bg-gray-50 sticky left-0 z-10'>
                   Feature
                 </th>
                 {compareList.map(p => (
@@ -100,13 +100,13 @@ const ComparePage = () => {
             <tbody>
               {ROWS.map((row, i) => (
                 <tr key={row.label} className={i % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'}>
-                  <td className='py-3 px-4 text-[12px] font-[700] text-gray-500 border-b border-gray-50'>
+                  <td className={`py-3 px-3 sm:px-4 text-[11px] sm:text-[12px] font-[700] text-gray-500 border-b border-gray-50 sticky left-0 z-10 ${i % 2 === 0 ? 'bg-gray-50/95' : 'bg-white/95'} backdrop-blur-sm`}>
                     {row.label}
                   </td>
                   {compareList.map(p => (
-                    <td key={p.id} className='py-3 px-4 text-[13px] text-gray-700 text-center border-b border-gray-50'>
+                    <td key={p.id} className='py-3 px-3 sm:px-4 text-[12px] sm:text-[13px] text-gray-700 text-center border-b border-gray-50'>
                       {row.rating
-                        ? <div className='flex justify-center'><Rating value={Number(p.rating) || 0} size='small' readOnly precision={0.5} /></div>
+                        ? <div className='flex justify-center'><Stars value={Number(p.rating) || 0} size='small' readOnly precision={0.5} /></div>
                         : row.key(p)
                       }
                     </td>

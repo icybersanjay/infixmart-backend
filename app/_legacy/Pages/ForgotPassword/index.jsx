@@ -1,14 +1,30 @@
 "use client";
 
 import React, { useState, useContext } from "react";
-import TextField from "@mui/material/TextField";
-import { Button, CircularProgress } from "@mui/material";
+import Spinner from "../../components/ui/Spinner";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MyContext } from "../../LegacyProviders";
 import { postData } from "../../utils/api";
 import SEO from "../../components/SEO";
+
+function LabeledInput({ label, error, helperText, className = "", ...props }) {
+  const hasValue = props.value !== undefined && props.value !== "";
+  const inputCls = `peer w-full h-[44px] px-3 pt-3 text-[14px] bg-white border rounded-md outline-none transition-colors disabled:opacity-60 ${error ? "border-[#E53935] focus:border-[#E53935]" : "border-gray-300 focus:border-[#1565C0]"}`;
+  return (
+    <div className={`relative ${className}`}>
+      <input {...props} placeholder=" " className={inputCls} />
+      <label
+        htmlFor={props.id}
+        className={`absolute left-3 ${hasValue ? "top-[2px] text-[10px]" : "top-1/2 -translate-y-1/2 text-[14px]"} pointer-events-none transition-all ${error ? "text-[#E53935]" : "text-gray-500 peer-focus:text-[#1565C0]"} peer-focus:top-[2px] peer-focus:-translate-y-0 peer-focus:text-[10px]`}
+      >
+        {label}
+      </label>
+      <p className={`text-[11px] mt-1 ${error ? "text-[#E53935]" : "text-gray-400"}`}>{helperText || " "}</p>
+    </div>
+  );
+}
 
 const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -93,20 +109,15 @@ const ForgotPassword = () => {
           <form className="w-full" onSubmit={handleSubmit}>
             {/* New Password */}
             <div className="relative w-full mb-6 form-group">
-              <TextField
+              <LabeledInput
                 type={isShowPassword ? "text" : "password"}
-                id="newPassword"
-                label="New Password"
-                variant="outlined"
-                className="w-full"
-                name="newPassword"
-                value={formFields.newPassword}
-                disabled={isLoading}
+                id="newPassword" name="newPassword" autoComplete="new-password"
+                value={formFields.newPassword} disabled={isLoading} label="New Password"
                 onChange={onChangeInput}
               />
-              <Button
+              <button
                 type="button"
-                className="!absolute top-[10px] right-[10px] z-50 !w-[35px] !h-[35px] !min-w-[35px] !rounded-full !text-black"
+                className="absolute top-[6px] right-[10px] z-50 w-[35px] h-[35px] inline-flex items-center justify-center rounded-full text-black hover:bg-gray-100 transition-colors"
                 onClick={() => setIsShowPassword(!isShowPassword)}
                 aria-label={isShowPassword ? "Hide password" : "Show password"}
               >
@@ -115,31 +126,26 @@ const ForgotPassword = () => {
                 ) : (
                   <FaRegEyeSlash className="text-[20px] opacity-75" />
                 )}
-              </Button>
+              </button>
             </div>
 
             {/* Confirm Password */}
             <div className="relative w-full mb-6 form-group">
-              <TextField
+              <LabeledInput
                 type={isShowPassword2 ? "text" : "password"}
-                id="confirmPassword"
-                label="Confirm Password"
-                variant="outlined"
-                className="w-full"
-                name="confirmPassword"
-                value={formFields.confirmPassword}
-                disabled={isLoading}
+                id="confirmPassword" name="confirmPassword" autoComplete="new-password"
+                value={formFields.confirmPassword} disabled={isLoading} label="Confirm Password"
                 onChange={onChangeInput}
                 error={!!(formFields.confirmPassword && formFields.newPassword !== formFields.confirmPassword)}
                 helperText={
                   formFields.confirmPassword && formFields.newPassword !== formFields.confirmPassword
                     ? "Passwords do not match"
-                    : " "
+                    : ""
                 }
               />
-              <Button
+              <button
                 type="button"
-                className="!absolute top-[10px] right-[10px] z-50 !w-[35px] !h-[35px] !min-w-[35px] !rounded-full !text-black"
+                className="absolute top-[6px] right-[10px] z-50 w-[35px] h-[35px] inline-flex items-center justify-center rounded-full text-black hover:bg-gray-100 transition-colors"
                 onClick={() => setIsShowPassword2(!isShowPassword2)}
                 aria-label={isShowPassword2 ? "Hide confirm password" : "Show confirm password"}
               >
@@ -148,17 +154,17 @@ const ForgotPassword = () => {
                 ) : (
                   <FaRegEyeSlash className="text-[20px] opacity-75" />
                 )}
-              </Button>
+              </button>
             </div>
 
             <div className="flex items-center w-full mt-2 mb-2">
-              <Button
+              <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full btn-lg btn-org flex gap-3"
+                className="w-full btn-lg btn-org flex gap-3 items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isLoading ? <CircularProgress size={20} color="inherit" /> : "Change Password"}
-              </Button>
+                {isLoading ? <Spinner size={20} className="text-white" /> : "Change Password"}
+              </button>
             </div>
 
             <p className="text-center mt-2">

@@ -5,9 +5,7 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import logo from '../../assets/logo.webp';
 import Search from '../Search';
-import Badge from '@mui/material/Badge';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
+import DropdownMenu, { MenuItem } from '../ui/DropdownMenu';
 import { MdOutlineShoppingCart } from 'react-icons/md';
 import { FaHeart, FaRegHeart, FaRegUser, FaMapMarkerAlt, FaWhatsapp } from 'react-icons/fa';
 import { RiMenu3Line, RiLogoutBoxRLine } from 'react-icons/ri';
@@ -17,21 +15,25 @@ import Navigation from './Navigation';
 import { MyContext } from '../../LegacyProviders';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
-import { useTheme } from '../../context/ThemeContext';
-import { MdDarkMode, MdLightMode } from 'react-icons/md';
 import useLogout from '../../hooks/useLogout';
 
 const logoSrc = typeof logo === 'string' ? logo : logo?.src || '';
 
-const BADGE_SX = {
-  '& .MuiBadge-badge': {
-    right: -2, top: 0,
-    background: '#E53935', color: '#fff',
-    fontSize: '9px', minWidth: '17px', height: '17px',
-    padding: '0 4px', border: '2px solid #fff',
-    fontWeight: 800, borderRadius: '9999px',
-  },
-};
+// Tiny badge replacing MUI <Badge>. Wraps an icon and absolutely-positions
+// the count pill at the top-right.
+const Badge = ({ count, children }) => (
+  <span className="relative inline-flex">
+    {children}
+    {count > 0 && (
+      <span
+        className="absolute -right-1 top-0 min-w-[17px] h-[17px] px-1 rounded-full bg-[#E53935] text-white text-[9px] font-[800] flex items-center justify-center border-2 border-white"
+        aria-label={`${count} items`}
+      >
+        {count}
+      </span>
+    )}
+  </span>
+);
 
 const TICKER_MSGS = [
   '🏷️  Products starting @ just ₹29',
@@ -43,21 +45,20 @@ const TICKER_MSGS = [
 ];
 
 const Header = () => {
-  const [anchorEl, setAnchorEl]     = useState(null);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const open = Boolean(anchorEl);
+  const [scrolled, setScrolled]     = useState(false);
+  const accountTriggerRef = useRef(null);
   const drawerRef = useRef(null);
 
   const context          = useContext(MyContext);
-  const { cartCount }    = useCart();
+  const { cartCount, lastAddedAt }    = useCart();
   const { wishlistCount} = useWishlist();
-  const { dark, toggle } = useTheme();
   const logout           = useLogout();
+  const [cartPulse, setCartPulse]    = useState(false);
 
-  const handleUserClick = (e) => setAnchorEl(e.currentTarget);
-  const handleUserClose = () => setAnchorEl(null);
   const closeMobile     = () => setMobileOpen(false);
-  const handleLogout    = async () => { handleUserClose(); await logout(); };
+  const handleLogout    = async () => { setAccountOpen(false); await logout(); };
 
   // Close drawer on Escape key
   useEffect(() => {
@@ -72,6 +73,34 @@ const Header = () => {
     };
   }, [mobileOpen]);
 
+  // Cart icon bounce when an item is added (driven by CartContext.lastAddedAt).
+  useEffect(() => {
+    if (!lastAddedAt) return;
+    setCartPulse(true);
+    const t = setTimeout(() => setCartPulse(false), 750);
+    return () => clearTimeout(t);
+  }, [lastAddedAt]);
+
+  // Backdrop-blur on scroll: flips a class once the page has scrolled past the
+  // ticker. rAF-throttled so the listener stays cheap.
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      setScrolled(window.scrollY > 12);
+    };
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const tickerText = TICKER_MSGS.join('   •   ');
 
   return (
@@ -85,7 +114,7 @@ const Header = () => {
       </div>
 
       {/* ── 2. Main Header ── */}
-      <div className='bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)]'>
+      <div className={`infix-header ${scrolled ? 'is-scrolled' : ''}`}>
         <div className='container'>
 
           {/* Top utility row — contact + links (desktop only) */}
@@ -93,8 +122,8 @@ const Header = () => {
             <div className='flex items-center gap-1.5 flex-wrap'>
               <FaWhatsapp className='text-[#25D366] text-[13px]' />
               <span>Need help?&nbsp;</span>
-              <a href='https://wa.me/918871488214' className='font-[600] text-gray-700 hover:text-[#1565C0] transition-colors'>
-                WhatsApp: +91 88714 88214
+              <a href='https://wa.me/918849047148' className='font-[600] text-gray-700 hover:text-[#1565C0] transition-colors'>
+                WhatsApp: +91 88490 47148
               </a>
               <span className='mx-2 opacity-30'>|</span>
               <a href='mailto:support@infixmart.com' className='hover:text-[#1565C0] transition-colors'>
@@ -110,22 +139,15 @@ const Header = () => {
                 ? <Link href='/login' className='hover:text-[#1565C0] transition-colors font-[600]'>Login / Register</Link>
                 : <span className='text-gray-600 font-[600] capitalize'>{context?.userData?.name}</span>
               }
-              <button
-                onClick={toggle}
-                aria-label='Toggle dark mode'
-                className='w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-300'
-              >
-                {dark ? <MdLightMode className='text-[15px]' /> : <MdDarkMode className='text-[15px]' />}
-              </button>
             </div>
           </div>
 
           {/* Main row: logo + search + icons */}
-          <div className='flex items-center gap-3 sm:gap-4 h-[62px] sm:h-[68px]'>
+          <div className='flex items-center gap-2 sm:gap-4 h-[56px] sm:h-[68px]'>
 
             {/* Logo */}
             <Link href='/' className='flex-shrink-0 mr-1 sm:mr-2'>
-              <NextImage src={logoSrc} alt='InfixMart' width={140} height={36} className='h-8 sm:h-9 object-contain w-auto' />
+              <NextImage src={logoSrc} alt='InfixMart' width={140} height={36} className='h-7 sm:h-9 object-contain w-auto' />
             </Link>
 
             {/* Search — desktop */}
@@ -142,7 +164,7 @@ const Header = () => {
                 aria-label={`Wishlist (${wishlistCount} items)`}
                 className='flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl hover:bg-gray-50 transition-colors group'
               >
-                <Badge sx={BADGE_SX} badgeContent={wishlistCount}>
+                <Badge count={wishlistCount}>
                   {wishlistCount > 0
                     ? <FaHeart className='text-[16px] sm:text-[17px] text-[#E53935]' />
                     : <FaRegHeart className='text-[16px] sm:text-[17px] text-gray-500 group-hover:text-[#1565C0] transition-colors' />
@@ -157,10 +179,10 @@ const Header = () => {
               <Link
                 href='/cart'
                 aria-label={`Cart (${cartCount} items)`}
-                className='flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl hover:bg-gray-50 transition-colors group'
+                className={`flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl hover:bg-gray-50 transition-colors group ${cartPulse ? 'infix-badge-ping' : ''}`}
               >
-                <Badge sx={BADGE_SX} badgeContent={cartCount}>
-                  <MdOutlineShoppingCart className='text-[19px] sm:text-[20px] text-gray-500 group-hover:text-[#1565C0] transition-colors' />
+                <Badge count={cartCount}>
+                  <MdOutlineShoppingCart className={`text-[19px] sm:text-[20px] text-gray-500 group-hover:text-[#1565C0] transition-colors ${cartPulse ? 'infix-bounce-cart' : ''}`} />
                 </Badge>
                 <span className='text-[9px] text-gray-400 group-hover:text-[#1565C0] mt-0.5 hidden md:block transition-colors'>
                   Cart
@@ -186,9 +208,10 @@ const Header = () => {
               ) : (
                 <>
                   <button
-                    onClick={handleUserClick}
+                    ref={accountTriggerRef}
+                    onClick={() => setAccountOpen((o) => !o)}
                     aria-label='Account menu'
-                    aria-expanded={open}
+                    aria-expanded={accountOpen}
                     className='hidden md:flex flex-col items-center justify-center w-12 h-12 rounded-xl hover:bg-gray-50 transition-colors group ml-1'
                   >
                     <div className='w-[30px] h-[30px] rounded-full bg-[#EEF4FF] flex items-center justify-center border-2 border-[#1565C0]'>
@@ -197,37 +220,13 @@ const Header = () => {
                     <span className='text-[9px] text-gray-400 group-hover:text-[#1565C0] mt-0.5 transition-colors'>Account</span>
                   </button>
 
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleUserClose}
-                    onClick={handleUserClose}
-                    slotProps={{
-                      paper: {
-                        elevation: 0,
-                        sx: {
-                          overflow: 'visible',
-                          filter: 'drop-shadow(0px 6px 24px rgba(0,0,0,0.12))',
-                          mt: 1.5,
-                          minWidth: 220,
-                          borderRadius: '14px',
-                          border: '1px solid #e5e7eb',
-                          '&::before': {
-                            content: '""', display: 'block', position: 'absolute',
-                            top: 0, right: 18, width: 9, height: 9,
-                            bgcolor: '#F5F8FF',
-                            transform: 'translateY(-50%) rotate(45deg)',
-                            borderTop: '1px solid #e5e7eb',
-                            borderLeft: '1px solid #e5e7eb',
-                            zIndex: 0,
-                          },
-                        },
-                      },
-                    }}
-                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                  <DropdownMenu
+                    open={accountOpen}
+                    onClose={() => setAccountOpen(false)}
+                    anchorRef={accountTriggerRef}
+                    className='!min-w-[220px] !rounded-[14px] !py-0 overflow-hidden'
                   >
-                    <div className='px-4 py-3 bg-[#F5F8FF] rounded-t-[14px] border-b border-gray-100'>
+                    <div className='px-4 py-3 bg-[#F5F8FF] border-b border-gray-100'>
                       <div className='flex items-center gap-2.5'>
                         <div className='w-9 h-9 rounded-full bg-[#1565C0] flex items-center justify-center flex-shrink-0'>
                           <FaRegUser className='text-white text-[12px]' />
@@ -239,36 +238,25 @@ const Header = () => {
                       </div>
                     </div>
                     <div className='py-1'>
-                      <Link href='/my-account' className='block'>
-                        <MenuItem className='!py-2.5 !text-[13px] !text-gray-700 hover:!bg-[#EEF4FF] !gap-2.5 !mx-1 !rounded-lg'>
-                          <FaRegUser className='text-[#1565C0] text-[12px]' /> My Profile
-                        </MenuItem>
+                      <Link href='/my-account' onClick={() => setAccountOpen(false)} className='flex items-center gap-2.5 mx-1 px-3 py-2.5 rounded-lg text-[13px] text-gray-700 hover:bg-[#EEF4FF] transition-colors'>
+                        <FaRegUser className='text-[#1565C0] text-[12px]' /> My Profile
                       </Link>
-                      <Link href='/my-orders' className='block'>
-                        <MenuItem className='!py-2.5 !text-[13px] !text-gray-700 hover:!bg-[#EEF4FF] !gap-2.5 !mx-1 !rounded-lg'>
-                          <LuClipboardCheck className='text-[#1565C0] text-[13px]' /> My Orders
-                        </MenuItem>
+                      <Link href='/my-orders' onClick={() => setAccountOpen(false)} className='flex items-center gap-2.5 mx-1 px-3 py-2.5 rounded-lg text-[13px] text-gray-700 hover:bg-[#EEF4FF] transition-colors'>
+                        <LuClipboardCheck className='text-[#1565C0] text-[13px]' /> My Orders
                       </Link>
-                      <Link href='/my-list' className='block'>
-                        <MenuItem className='!py-2.5 !text-[13px] !text-gray-700 hover:!bg-[#EEF4FF] !gap-2.5 !mx-1 !rounded-lg'>
-                          <FaRegHeart className='text-[#1565C0] text-[12px]' /> Wishlist
-                        </MenuItem>
+                      <Link href='/my-list' onClick={() => setAccountOpen(false)} className='flex items-center gap-2.5 mx-1 px-3 py-2.5 rounded-lg text-[13px] text-gray-700 hover:bg-[#EEF4FF] transition-colors'>
+                        <FaRegHeart className='text-[#1565C0] text-[12px]' /> Wishlist
                       </Link>
-                      <Link href='/my-address' className='block'>
-                        <MenuItem className='!py-2.5 !text-[13px] !text-gray-700 hover:!bg-[#EEF4FF] !gap-2.5 !mx-1 !rounded-lg'>
-                          <FaMapMarkerAlt className='text-[#1565C0] text-[12px]' /> Addresses
-                        </MenuItem>
+                      <Link href='/my-address' onClick={() => setAccountOpen(false)} className='flex items-center gap-2.5 mx-1 px-3 py-2.5 rounded-lg text-[13px] text-gray-700 hover:bg-[#EEF4FF] transition-colors'>
+                        <FaMapMarkerAlt className='text-[#1565C0] text-[12px]' /> Addresses
                       </Link>
                     </div>
                     <div className='border-t border-gray-100 py-1'>
-                      <MenuItem
-                        onClick={handleLogout}
-                        className='!py-2.5 !text-[13px] !text-red-500 hover:!bg-red-50 !gap-2.5 !mx-1 !rounded-lg'
-                      >
+                      <button type='button' onClick={handleLogout} className='w-full flex items-center gap-2.5 mx-1 px-3 py-2.5 rounded-lg text-[13px] text-red-500 hover:bg-red-50 transition-colors text-left'>
                         <RiLogoutBoxRLine className='text-[13px]' /> Log out
-                      </MenuItem>
+                      </button>
                     </div>
-                  </Menu>
+                  </DropdownMenu>
                 </>
               )}
 
@@ -285,7 +273,7 @@ const Header = () => {
           </div>
 
           {/* Mobile search */}
-          <div className='md:hidden pb-2.5 pt-0.5'>
+          <div className='md:hidden pb-1.5 pt-0'>
             <Search />
           </div>
         </div>

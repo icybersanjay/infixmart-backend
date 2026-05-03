@@ -2,8 +2,7 @@
 
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link';
-import Rating from '@mui/material/Rating';
-import Button from '@mui/material/Button';
+import Stars from '../ui/Stars';
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { IoGitCompareOutline } from "react-icons/io5";
@@ -63,7 +62,7 @@ const ProductDetailsComponent = ({ product }) => {
                             Brands : <span className='font-[500] uppercase opacity-80 text-black'>{product.brand || 'N/A'}</span>
                         </span>
 
-                        <Rating name="size-small" value={Number(product.rating) || 0} size="small" readOnly/>
+                        <Stars value={Number(product.rating) || 0} size="small" readOnly/>
                         <span className='text-[13px] cursor-pointer'>Rating ({Number(product.rating || 0).toFixed(1)})</span>
                     </div>
 
@@ -87,13 +86,14 @@ const ProductDetailsComponent = ({ product }) => {
                         <span className='text-[16px]'>{primaryOptions.label}:</span>
                         <div className='flex items-center gap-1 actions'>
                             {primaryOptions.items.map((option, index) => (
-                              <Button
+                              <button
+                                type="button"
                                 key={`${primaryOptions.label}-${option}`}
-                                className={`${productActionIndex === index ? '!bg-primary !text-white' : ''}`}
+                                className={`px-3 py-1.5 text-[13px] font-[500] border border-gray-200 rounded transition-colors ${productActionIndex === index ? 'bg-primary text-white border-primary' : 'hover:border-primary hover:text-primary'}`}
                                 onClick={()=>setProductActionIndex(index)}
                               >
                                 {option}
-                              </Button>
+                              </button>
                             ))}
                         </div>
                     </div>
@@ -102,13 +102,13 @@ const ProductDetailsComponent = ({ product }) => {
                     <p className='text-[14px] opacity-80 mt-5 text-[#000] mb-2'>Free Shipping (Est. Delivery Time 2-3 Days)</p>
 
                     <div className='flex items-center gap-4 py-2'>
-                        <div className='qtyBoxWrapper w-[70px]'>
+                        <div className='qtyBoxWrapper w-[140px]'>
                         <QtyBox/>
                         </div>
                         
-                        <Button className='flex items-center gap-2 btn-org' disabled={outOfStock} onClick={() => addToCart(product.id)}>
+                        <button type="button" className='flex items-center gap-2 btn-org disabled:opacity-50 disabled:cursor-not-allowed' disabled={outOfStock} onClick={() => addToCart(product.id)}>
                         <MdOutlineShoppingCart className='text-[22px]'/> Add to Cart
-                        </Button>
+                        </button>
                         <Link href={`/product/${product.id}`} className='text-[14px] font-[600] text-primary hover:underline'>
                           View Full Details
                         </Link>

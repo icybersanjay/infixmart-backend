@@ -1,6 +1,6 @@
 "use client";
 
-import ProductManagementPage from "../../../_legacy/admin/pages/ProductManagement.jsx";
+import ProductManagementPage from "./ProductManagementPage.jsx";
 
 export default function Page() {
   return <ProductManagementPage />;

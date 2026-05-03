@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link';
 import { IoClose } from "react-icons/io5";
-import { Button, Rating } from '@mui/material';
+import Stars from '../../components/ui/Stars';
 
 const MyListItems = (props) => {
   return (
@@ -24,7 +24,7 @@ const MyListItems = (props) => {
                                 </Link>
                             </h3>
 
-                            <Rating name="size-small" defaultValue={4} size="small" readOnly/>
+                            <Stars defaultValue={4} size="small" readOnly/>
                             
                             <div className='flex items-center gap-4 mt-2 mb-2'>
                                 <span className='font-[600] newPrice text-[14px]'>580</span>
@@ -33,9 +33,9 @@ const MyListItems = (props) => {
                             </div>
                             
 
-                            <Button className='btn-org btn-sm'>
+                            <button type="button" className='btn-org btn-sm'>
                                 Add to Cart
-                            </Button>
+                            </button>
                         </div>
         </div>
   )

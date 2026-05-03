@@ -26,16 +26,19 @@ const FALLBACK = [
   'https://serviceapi.spicezgold.com/download/1741660862304_NewProject(8).jpg',
 ];
 
-const HeroSlider = () => {
-  const [apiSlides, setApiSlides] = useState(null);
+const HeroSlider = ({ initialSlides = null } = {}) => {
+  const seeded = Array.isArray(initialSlides);
+  const [apiSlides, setApiSlides] = useState(seeded ? initialSlides : null);
 
   useEffect(() => {
+    if (seeded) return;
     getData('/api/homeSlide')
       .then((res) => {
         const raw = res?.homeSlides || res?.slides || res?.data || [];
         setApiSlides(!res?.error && Array.isArray(raw) && raw.length > 0 ? raw : []);
       })
       .catch(() => setApiSlides([]));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const slides =

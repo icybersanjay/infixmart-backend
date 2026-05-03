@@ -46,7 +46,21 @@
       "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
       "Bash(awk -F: 'NR>30{print}')",
       "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('@mui/material:', pkg.dependencies['@mui/material'] || 'NOT INSTALLED'\\);\")",
-      "Bash(awk 'NR>=480 && NR<=840' \"app/_legacy/Pages/ProductDetails/index.jsx\")"
+      "Bash(awk 'NR>=480 && NR<=840' \"app/_legacy/Pages/ProductDetails/index.jsx\")",
+      "Bash(npx --no-install next lint)",
+      "Bash(node -e \"const f = ['app/_legacy/components/Header/index.jsx','app/_legacy/LegacyProviders.jsx','app/_legacy/Pages/Cart/index.jsx','app/_legacy/Pages/ProductDetails/index.jsx','app/_legacy/Pages/Compare/index.jsx','app/_legacy/Pages/Home/index.jsx','app/_legacy/components/Footer/index.jsx','app/_legacy/components/Search/index.jsx','app/_legacy/components/QtyBox/index.jsx','app/globals.css','tailwind.config.cjs']; const fs = require\\('fs'\\); const path = require\\('path'\\); const cwd = 'c:/Users/ashis/OneDrive/Desktop/NextJs InfixMart'; for \\(const file of f\\) { const p = path.join\\(cwd, file\\); try { const contents = fs.readFileSync\\(p, 'utf8'\\); console.log\\(file + ': ' + contents.length + ' bytes OK'\\); } catch \\(e\\) { console.log\\('FAIL: ' + file + ' - ' + e.message\\); } }\")",
+      "Bash(npx --no-install next build)",
+      "Bash(node --experimental-vm-modules -e ' *)",
+      "PowerShell(Test-NetConnection -ComputerName 127.0.0.1 -Port 3306 -InformationLevel Quiet -WarningAction SilentlyContinue)",
+      "Bash(dir \"C:\\\\Users\\\\ashis\\\\OneDrive\\\\Desktop\\\\NextJs InfixMart\" -Depth 1)",
+      "Bash(npm test *)",
+      "Bash(grep -E \"^├ [○ƒ] /$|^├ [○ƒ] / \")",
+      "Bash(grep -E \"/$|/_not-found\")",
+      "Bash(node -e \"import\\('./next.config.mjs'\\).then\\(m => console.log\\('config loads OK'\\)\\)\")",
+      "Bash(node -e \"import\\('./lib/server/logger.js'\\).then\\(m => { m.log.info\\({ requestId: 'abc-123', route: '/api/test', status: 200 }, 'request_succeeded'\\); m.log.error\\({ requestId: 'abc-123', err: { name: 'TestError', message: 'test' } }, 'request_crashed'\\); }\\)\")",
+      "Bash(npx vitest *)",
+      "Bash(grep -E \"node$|react$\")",
+      "Bash(node node_modules/typescript/bin/tsc --version)"
     ]
   }
 }

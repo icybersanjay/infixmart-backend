@@ -1,6 +1,6 @@
 "use client";
 
-import OrderManagementPage from "../../../_legacy/admin/pages/OrderManagement.jsx";
+import OrderManagementPage from "./OrdersPage.jsx";
 
 export default function Page() {
   return <OrderManagementPage />;

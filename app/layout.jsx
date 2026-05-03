@@ -30,6 +30,8 @@ import "swiper/css";
 import "swiper/css/navigation";
 
 import LegacyProviders from "./_legacy/LegacyProviders.jsx";
+import TopProgressBar from "./_legacy/components/TopProgressBar";
+import CookieConsent from "./_legacy/components/CookieConsent";
 
 const siteUrl =
   process.env.FRONTEND_URL ||
@@ -123,20 +125,43 @@ export default function RootLayout({ children }) {
         {/* Suppress PWA install prompt — keep push notifications only */}
         <script dangerouslySetInnerHTML={{ __html: `window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();});` }} />
 
-        {/* ── Google Analytics 4 ── */}
+        {/* ── Google Analytics 4 (Consent Mode v2 — defaults to 'denied') ── */}
         {GA4_ID && (
           <>
-            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`} strategy="afterInteractive" />
-            <Script id="ga4-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: `
+            <Script id="ga4-consent-default" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
+              // Re-apply persisted choice early so GA4 starts with the right state.
+              try {
+                var stored = window.localStorage.getItem('infix_cookie_consent');
+                var state = stored === 'granted' ? 'granted' : 'denied';
+                gtag('consent', 'default', {
+                  analytics_storage: state,
+                  ad_storage: state,
+                  ad_user_data: state,
+                  ad_personalization: state,
+                  wait_for_update: 500,
+                });
+              } catch (e) {
+                gtag('consent', 'default', {
+                  analytics_storage: 'denied',
+                  ad_storage: 'denied',
+                  ad_user_data: 'denied',
+                  ad_personalization: 'denied',
+                  wait_for_update: 500,
+                });
+              }
+            `}} />
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`} strategy="afterInteractive" />
+            <Script id="ga4-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: `
               gtag('js', new Date());
               gtag('config', '${GA4_ID}', { page_path: window.location.pathname });
             `}} />
           </>
         )}
 
-        {/* ── Meta Pixel ── */}
+        {/* ── Meta Pixel — defers PageView until consent ── */}
         {META_PIXEL_ID && (
           <Script id="meta-pixel" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: `
             !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -147,14 +172,24 @@ export default function RootLayout({ children }) {
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${META_PIXEL_ID}');
-            fbq('track', 'PageView');
+            try {
+              var stored = window.localStorage.getItem('infix_cookie_consent');
+              if (stored === 'granted') {
+                fbq('track', 'PageView');
+                window.__infixFbqPageViewed = true;
+              }
+            } catch(e) {}
           `}} />
         )}
+
+        <TopProgressBar />
 
         {/* #page-wrapper clips horizontal overflow WITHOUT breaking position:sticky */}
         <div id="page-wrapper">
           <LegacyProviders>{children}</LegacyProviders>
         </div>
+
+        <CookieConsent />
       </body>
     </html>
   );

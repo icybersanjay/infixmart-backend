@@ -64,28 +64,22 @@ const Search = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Debounced live suggestions
+  // Debounced live suggestions — single round-trip via /api/search/suggest.
+  // The suggest endpoint already inlines a "did you mean" fallback so we
+  // don't need a second request when the first returns 0 hits.
   const fetchSuggestions = useCallback((q) => {
     clearTimeout(debounceRef.current);
     if (!q.trim()) { setSuggestions([]); setActiveIndex(-1); return; }
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       setDidYouMean([]);
-      const res = await getData(`/api/product?search=${encodeURIComponent(q)}&perPage=6`);
-      const found = res && !res.error ? (res.products || res.data || []) : [];
-      setSuggestions(found);
-
-      if (found.length === 0) {
-        const words = q.trim().split(/\s+/);
-        const broaderQuery = words.length > 1 ? words[0] : q.slice(0, Math.max(2, q.length - 1));
-        const fallback = await getData(`/api/product?search=${encodeURIComponent(broaderQuery)}&perPage=4`);
-        const fallbackProducts = fallback && !fallback.error ? (fallback.products || fallback.data || []) : [];
-        setDidYouMean(fallbackProducts.map((p) => p.name).slice(0, 3));
-      }
-
+      const res = await getData(`/api/search/suggest?q=${encodeURIComponent(q)}&limit=6`);
+      const products = res && !res.error ? (res.products || []) : [];
+      setSuggestions(products);
+      setDidYouMean(Array.isArray(res?.didYouMean) ? res.didYouMean : []);
       setLoading(false);
       setActiveIndex(-1);
-    }, 350);
+    }, 250);
   }, []);
 
   const handleChange = (e) => {
@@ -173,11 +167,11 @@ const Search = () => {
     <div ref={wrapperRef} className="relative w-full">
       <form onSubmit={handleSubmit}>
         <div className={`flex items-center h-[46px] rounded-lg border-2 bg-white overflow-hidden transition-all ${open ? 'border-[#1565C0] shadow-[0_0_0_3px_rgba(21,101,192,0.15)]' : 'border-gray-200'}`}>
-          {/* Category select */}
+          {/* Category select — hidden on mobile to free up space for the input */}
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="h-full px-3 text-[12px] text-gray-600 bg-gray-50 border-r border-gray-200 focus:outline-none cursor-pointer min-w-[120px] max-w-[150px]"
+            className="hidden sm:block h-full px-3 text-[12px] text-gray-600 bg-gray-50 border-r border-gray-200 focus:outline-none cursor-pointer sm:min-w-[120px] sm:max-w-[150px]"
           >
             <option value="">All Categories</option>
             {categories.map((cat, index) => (
@@ -200,7 +194,7 @@ const Search = () => {
             onKeyDown={handleKeyDown}
             placeholder="Search for products..."
             autoComplete="off"
-            className="flex-1 h-full px-3 text-[14px] text-gray-700 bg-white focus:outline-none placeholder-gray-400"
+            className="flex-1 min-w-0 h-full px-3 text-[14px] text-gray-700 bg-white focus:outline-none placeholder-gray-400"
           />
 
           {/* Clear button */}
@@ -208,7 +202,8 @@ const Search = () => {
             <button
               type="button"
               onClick={clearQuery}
-              className="px-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Clear search"
+              className="px-2 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
             >
               <IoClose className="text-[16px]" />
             </button>
@@ -217,6 +212,7 @@ const Search = () => {
           {/* Search button */}
           <button
             type="submit"
+            aria-label="Search"
             className="h-full px-4 bg-[#1565C0] text-white flex items-center justify-center hover:bg-[#0D47A1] transition-colors flex-shrink-0"
           >
             <IoSearch className="text-[18px]" />
@@ -294,7 +290,12 @@ const Search = () => {
                     Suggestions
                   </p>
                   {suggestions.map((item, index) => {
-                    const images = Array.isArray(item.images) ? item.images : [];
+                    // suggest endpoint returns a single `image` (string|null);
+                    // legacy callers may still send `images: string[]`, so
+                    // tolerate both shapes.
+                    const primaryImage =
+                      item.image ||
+                      (Array.isArray(item.images) ? item.images[0] : null);
                     const isActive = index === activeIndex;
                     const hasDiscount = item.oldprice && Number(item.oldprice) > Number(item.price);
                     const discountPct = hasDiscount
@@ -310,15 +311,12 @@ const Search = () => {
                         className={`w-full flex items-center gap-3 px-4 py-2 transition-colors text-left ${isActive ? 'bg-[#f0f5ff]' : 'hover:bg-[#f0f5ff]'}`}
                       >
                         <div className="w-9 h-9 rounded-md overflow-hidden border border-gray-100 flex-shrink-0 bg-gray-50">
-                          {images[0] ? (
+                          {primaryImage ? (
                             <img
-                              src={imgUrl(images[0])}
+                              src={imgUrl(primaryImage)}
                               alt={item.name}
                               className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const fb = imgUrl(images[1]);
-                                if (fb && e.target.src !== fb) { e.target.src = fb; } else { e.target.style.display = 'none'; }
-                              }}
+                              onError={(e) => { e.target.style.display = 'none'; }}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-300 text-lg">📦</div>
