@@ -17,11 +17,11 @@ out/
 .env.production.local
 
 # ── Uploaded user files (large binaries, not part of source code) ─────────────
+# Only the ROOT /uploads directory holds user uploads; anchor with a leading
+# slash so we don't accidentally ignore code dirs like app/api/uploads/.
 # uploads/.gitkeep is committed so the empty folder is tracked.
-# All actual uploaded files are excluded:
-uploads/*
-!uploads/.gitkeep
-uploads
+/uploads/*
+!/uploads/.gitkeep
 
 # ── Logs ──────────────────────────────────────────────────────────────────────
 logs/
