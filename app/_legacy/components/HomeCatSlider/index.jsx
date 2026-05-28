@@ -60,7 +60,10 @@ const HomeCatSlider = () => {
           {(categories === null ? Array(8).fill(null) : categories).map((cat, i) => {
             if (!cat) return <SwiperSlide key={i}><CatSkeleton /></SwiperSlide>;
 
-            const catImage = imgUrl(cat.images?.[0]);
+            const raw = cat.images?.[0];
+            const isEmoji = raw && raw.startsWith('emoji:');
+            const catEmoji = isEmoji ? raw.slice(6) : null;
+            const catImage = !isEmoji ? imgUrl(raw) : null;
             return (
               <SwiperSlide key={cat.id}>
                 <div
@@ -69,28 +72,27 @@ const HomeCatSlider = () => {
                 >
                   {/* Hexagon container */}
                   <div className='relative mb-3 transition-transform duration-300 group-hover:scale-110'>
-                    {/* Outer hexagon border (slightly larger, creates a border effect) */}
                     <div
                       className='w-[88px] h-[88px] flex items-center justify-center'
                       style={{ clipPath: HEX_CLIP, background: '#BBDEFB' }}
                     >
-                      {/* Inner hexagon (the visible shape with bg) */}
                       <div
                         className='w-[80px] h-[80px] flex items-center justify-center transition-all duration-300'
-                        style={{
-                          clipPath: HEX_CLIP,
-                          background: 'white',
-                        }}
+                        style={{ clipPath: HEX_CLIP, background: 'white' }}
                       >
-                        <img
-                          src={catImage || 'https://via.placeholder.com/48'}
-                          alt={cat.name}
-                          className='w-[46px] h-[46px] object-contain'
-                        />
+                        {catEmoji ? (
+                          <span className='text-[2rem] leading-none'>{catEmoji}</span>
+                        ) : (
+                          <img
+                            src={catImage || 'https://via.placeholder.com/48'}
+                            alt={cat.name}
+                            className='w-[46px] h-[46px] object-contain'
+                          />
+                        )}
                       </div>
                     </div>
 
-                    {/* Hover: fill inner hex with blue */}
+                    {/* Hover overlay */}
                     <div
                       className='absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300'
                       style={{ clipPath: HEX_CLIP, background: '#EEF4FF' }}
@@ -99,16 +101,19 @@ const HomeCatSlider = () => {
                         className='w-[80px] h-[80px] flex items-center justify-center'
                         style={{ clipPath: HEX_CLIP, background: '#1565C0' }}
                       >
-                        <img
-                          src={catImage || 'https://via.placeholder.com/48'}
-                          alt={cat.name}
-                          className='w-[46px] h-[46px] object-contain brightness-0 invert'
-                        />
+                        {catEmoji ? (
+                          <span className='text-[2rem] leading-none brightness-0 invert'>{catEmoji}</span>
+                        ) : (
+                          <img
+                            src={catImage || 'https://via.placeholder.com/48'}
+                            alt={cat.name}
+                            className='w-[46px] h-[46px] object-contain brightness-0 invert'
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Category name */}
                   <h3 className='text-[11px] sm:text-[12px] font-[600] text-gray-700 text-center leading-tight group-hover:text-[#1565C0] transition-colors duration-200 px-1'>
                     {cat.name}
                   </h3>

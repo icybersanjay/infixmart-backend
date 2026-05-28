@@ -92,18 +92,19 @@ function useRevealGrid(deps = []) {
   return ref;
 }
 
-const CAT_PALETTES = [
-  { bg: '#EEF4FF', border: '#C5D9F5', color: '#1565C0', emoji: '📱' },
-  { bg: '#FFF3E0', border: '#FFD9AA', color: '#E65100', emoji: '🏠' },
-  { bg: '#E8F5E9', border: '#B2DFDB', color: '#2E7D32', emoji: '👕' },
-  { bg: '#F3E5F5', border: '#E1BEE7', color: '#6A1B9A', emoji: '💻' },
-  { bg: '#FCE4EC', border: '#F8BBD9', color: '#AD1457', emoji: '⚡' },
-  { bg: '#E0F2F1', border: '#B2EBF2', color: '#00695C', emoji: '🔧' },
-  { bg: '#F9FBE7', border: '#F0F4C3', color: '#827717', emoji: '🎮' },
-  { bg: '#E8EAF6', border: '#C5CAE9', color: '#283593', emoji: '🛒' },
-  { bg: '#FBE9E7', border: '#FFCCBC', color: '#BF360C', emoji: '🎁' },
-  { bg: '#E1F5FE', border: '#B3E5FC', color: '#01579B', emoji: '🏋️' },
+const CAT_BG = [
+  '#EEF4FF', '#FFF3E0', '#E8F5E9', '#F3E5F5',
+  '#FCE4EC', '#E0F2F1', '#F9FBE7', '#E8EAF6',
+  '#FBE9E7', '#E1F5FE',
 ];
+
+/* Resolve a category's icon — returns { type:'emoji'|'img'|'letter', value:string } */
+const resolveCatIcon = (cat) => {
+  const raw = cat?.images?.[0];
+  if (!raw) return { type: 'letter', value: (cat?.name || '?').charAt(0).toUpperCase() };
+  if (raw.startsWith('emoji:')) return { type: 'emoji', value: raw.slice(6) };
+  return { type: 'img', value: raw };
+};
 
 /* 1. Category Strip ─────────────────────────────────────────────────────────── */
 const CategoryGrid = ({ initialCategories = null }) => {
@@ -145,21 +146,35 @@ const CategoryGrid = ({ initialCategories = null }) => {
           }}
         >
           {tiles.map((cat, i) => {
-            const p = CAT_PALETTES[i % CAT_PALETTES.length];
+            const bg = CAT_BG[i % CAT_BG.length];
+            const icon = cat ? resolveCatIcon(cat) : null;
             return (
               <SwiperSlide key={cat?.id ?? `cat-${i}`}>
                 {cat ? (
                   <button
                     onClick={() => router.push(`/category/${toSlug(cat.name)}`)}
                     className='flex flex-col items-center justify-center gap-2 p-3 rounded-2xl w-full h-[88px] cursor-pointer active:scale-95 hover:-translate-y-1 hover:shadow-md transition-all duration-200'
-                    style={{ background: p.bg }}
+                    style={{ background: bg }}
                   >
-                    <span className='text-[1.8rem] leading-none flex-shrink-0'>{p.emoji}</span>
-                    <p className='text-[11px] font-[700] text-center line-clamp-2 leading-tight w-full' style={{ color: p.color }}>{cat.name}</p>
+                    {icon.type === 'img' ? (
+                      <img
+                        src={icon.value}
+                        alt={cat.name}
+                        className='w-9 h-9 object-contain flex-shrink-0'
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    ) : icon.type === 'emoji' ? (
+                      <span className='text-[1.9rem] leading-none flex-shrink-0'>{icon.value}</span>
+                    ) : (
+                      <span className='w-9 h-9 rounded-full bg-white/70 flex items-center justify-center text-[15px] font-[800] text-gray-600 flex-shrink-0'>
+                        {icon.value}
+                      </span>
+                    )}
+                    <p className='text-[11px] font-[700] text-center line-clamp-2 leading-tight w-full text-gray-700'>{cat.name}</p>
                   </button>
                 ) : (
                   <div className='flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 animate-pulse h-[88px]'>
-                    <div className='w-8 h-8 bg-slate-200 rounded-xl flex-shrink-0' />
+                    <div className='w-9 h-9 bg-slate-200 rounded-xl flex-shrink-0' />
                     <div className='w-14 h-2 bg-slate-200 rounded' />
                   </div>
                 )}
