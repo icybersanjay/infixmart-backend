@@ -1212,18 +1212,18 @@ const ProductDetails = ({ initialProduct = null, initialProductParam = null } = 
             {relatedProducts && relatedProducts.length > 0 && (
               <div className='mt-4'>
                 <p className='text-[11px] font-[700] uppercase tracking-wide text-gray-400 mb-2.5'>More from this category</p>
-                <div className='flex gap-2.5 overflow-x-auto pb-1' style={{ scrollbarWidth: 'none' }}>
-                  {relatedProducts.slice(0, 6).map(p => (
+                <div className='flex gap-3 overflow-x-auto pb-2' style={{ scrollbarWidth: 'none' }}>
+                  {relatedProducts.slice(0, 8).map(p => (
                     <Link
                       key={p.id}
                       href={`/product/${p.slug || p.id}`}
-                      className='flex-shrink-0 w-[70px] group'
+                      className='flex-shrink-0 w-[100px] group'
                     >
-                      <div className='w-[70px] h-[70px] bg-[#F8FAFF] rounded-xl overflow-hidden border border-gray-100 group-hover:border-[#1565C0]/40 transition-colors'>
-                        <img src={imgUrl(p.images?.[0])} alt={p.name} className='w-full h-full object-contain p-1.5' />
+                      <div className='w-[100px] h-[100px] bg-[#F8FAFF] rounded-xl overflow-hidden border border-gray-100 group-hover:border-[#1565C0]/40 group-hover:shadow-md transition-all'>
+                        <img src={imgUrl(p.images?.[0])} alt={p.name} className='w-full h-full object-contain p-2' />
                       </div>
-                      <p className='text-[10px] text-gray-600 mt-1 line-clamp-2 leading-tight text-center'>{p.name}</p>
-                      <p className='text-[11px] font-[700] text-[#1565C0] text-center'>₹{fmt(p.price)}</p>
+                      <p className='text-[11px] text-gray-700 mt-1.5 line-clamp-2 leading-tight text-center font-[500]'>{p.name}</p>
+                      <p className='text-[12px] font-[700] text-[#1565C0] text-center mt-0.5'>₹{fmt(p.price)}</p>
                     </Link>
                   ))}
                 </div>
@@ -1774,7 +1774,7 @@ const ProductDetails = ({ initialProduct = null, initialProductParam = null } = 
                 View all →
               </Link>
             </div>
-            <ProductSlider items={5} products={relatedProducts} />
+            <ProductSlider items={Math.min(5, relatedProducts.length)} products={relatedProducts} />
           </div>
         </div>
       )}

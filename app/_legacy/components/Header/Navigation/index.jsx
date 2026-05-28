@@ -75,7 +75,7 @@ const Navigation = () => {
   return (
     <nav
       ref={navRef}
-      className='hidden md:block bg-[#1565C0]'
+      className='hidden md:block bg-[#1565C0] shadow-[0_3px_8px_rgba(0,0,0,0.22)]'
       aria-label='Main navigation'
     >
       <div className='container'>

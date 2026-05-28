@@ -25,18 +25,20 @@ const ProductSlider = ({ items = 6, products }) => {
 
   if (!isLoading && displayItems.length === 0) return null;
 
+  const count = displayItems.length;
+
   return (
     <div className='py-3 productSlider'>
       <Swiper
-        slidesPerView={2}
+        slidesPerView={Math.min(2, count)}
         spaceBetween={8}
         modules={[Navigation]}
-        navigation={true}
+        navigation={count > 2}
         breakpoints={{
-          480:  { slidesPerView: 2, spaceBetween: 10 },
-          640:  { slidesPerView: 3, spaceBetween: 10 },
-          1024: { slidesPerView: Math.min(items, 5), spaceBetween: 10 },
-          1280: { slidesPerView: items, spaceBetween: 10 },
+          480:  { slidesPerView: Math.min(2, count), spaceBetween: 10 },
+          640:  { slidesPerView: Math.min(3, count), spaceBetween: 10 },
+          1024: { slidesPerView: Math.min(items, 5, count), spaceBetween: 10 },
+          1280: { slidesPerView: Math.min(items, count), spaceBetween: 10 },
         }}
         className="mySwiper"
       >

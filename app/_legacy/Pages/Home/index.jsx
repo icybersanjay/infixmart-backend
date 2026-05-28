@@ -151,15 +151,15 @@ const CategoryGrid = ({ initialCategories = null }) => {
                 {cat ? (
                   <button
                     onClick={() => router.push(`/category/${toSlug(cat.name)}`)}
-                    className='flex flex-col items-center gap-2 p-3 rounded-2xl w-full cursor-pointer active:scale-95 hover:-translate-y-1 hover:shadow-md transition-all duration-200'
+                    className='flex flex-col items-center justify-center gap-2 p-3 rounded-2xl w-full h-[88px] cursor-pointer active:scale-95 hover:-translate-y-1 hover:shadow-md transition-all duration-200'
                     style={{ background: p.bg }}
                   >
-                    <span className='text-[1.8rem] leading-none'>{p.emoji}</span>
-                    <p className='text-[11px] font-[700] text-center line-clamp-2 leading-tight' style={{ color: p.color }}>{cat.name}</p>
+                    <span className='text-[1.8rem] leading-none flex-shrink-0'>{p.emoji}</span>
+                    <p className='text-[11px] font-[700] text-center line-clamp-2 leading-tight w-full' style={{ color: p.color }}>{cat.name}</p>
                   </button>
                 ) : (
-                  <div className='flex flex-col items-center gap-2 p-3 rounded-2xl bg-slate-50 animate-pulse'>
-                    <div className='w-8 h-8 bg-slate-200 rounded-xl' />
+                  <div className='flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 animate-pulse h-[88px]'>
+                    <div className='w-8 h-8 bg-slate-200 rounded-xl flex-shrink-0' />
                     <div className='w-14 h-2 bg-slate-200 rounded' />
                   </div>
                 )}
