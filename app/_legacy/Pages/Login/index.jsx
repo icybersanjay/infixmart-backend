@@ -15,7 +15,7 @@ import SEO from "../../components/SEO";
 import Spinner from "../../components/ui/Spinner";
 
 /* ── Input field ─────────────────────────────────────────────────────────── */
-function Field({ label, icon: Icon, error, helperText, className = "", ...props }) {
+function Field({ label, icon: Icon, error, helperText, className = "", children, ...props }) {
   return (
     <div className={`w-full ${className}`}>
       <label className="block text-[12px] font-[700] text-gray-600 mb-1.5 uppercase tracking-wide">
@@ -33,7 +33,7 @@ function Field({ label, icon: Icon, error, helperText, className = "", ...props 
           {...props}
           className={`flex-1 h-[46px] px-3 text-[14px] bg-transparent outline-none disabled:opacity-50 ${props.type === 'password' ? 'pr-10' : ''}`}
         />
-        {props.children}
+        {children}
       </div>
       {(error || helperText) && (
         <p className={`text-[11px] mt-1 font-[500] ${error ? "text-red-500" : "text-gray-400"}`}>
