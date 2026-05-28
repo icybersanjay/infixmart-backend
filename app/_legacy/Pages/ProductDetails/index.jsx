@@ -32,6 +32,13 @@ import { MyContext } from '../../LegacyProviders';
 
 const fmt = (n) => Number(n || 0).toLocaleString('en-IN');
 
+const toSlug = (str) =>
+  String(str || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
 const tryParse = (val) => {
   if (Array.isArray(val)) return val;
   if (!val) return [];
@@ -191,10 +198,10 @@ const RatingBar = ({ star, count, total, active, onClick }) => {
 
 /* ── Offers section ───────────────────────────────────────────────────────── */
 const OFFERS = [
-  { icon: '🏦', title: 'Bank Offer', desc: '10% instant discount on HDFC Bank Credit Cards, min. purchase ₹1,500' },
-  { icon: '💳', title: 'No Cost EMI', desc: 'Starting from ₹249/month on purchases above ₹2,000 via Bajaj Finserv' },
-  { icon: '💰', title: '5% Cashback', desc: 'Earn 5% cashback using Amazon Pay ICICI Bank Credit Card' },
-  { icon: '📦', title: 'Free Delivery', desc: 'On orders above ₹999 — eligible for free shipping' },
+  { icon: '📦', title: 'Free Delivery', desc: 'On orders above ₹999 — fast & free shipping across India' },
+  { icon: '↩️', title: '7-Day Returns', desc: 'Easy returns within 7 days — no questions asked' },
+  { icon: '💳', title: 'No Cost EMI', desc: 'Easy monthly instalments available on select bank cards' },
+  { icon: '🔒', title: 'Secure Payment', desc: '100% safe & encrypted checkout — UPI, Cards, Net Banking' },
 ];
 
 const OffersSection = () => {
@@ -1111,7 +1118,7 @@ const ProductDetails = ({ initialProduct = null, initialProductParam = null } = 
             '@type': 'ListItem',
             position: 3,
             name: product.catName,
-            item: `/productListing?category=${product.catId}`,
+            item: `/category/${toSlug(product.catName || '')}`,
           }]
         : []),
       {
@@ -1144,7 +1151,7 @@ const ProductDetails = ({ initialProduct = null, initialProductParam = null } = 
             <span>/</span>
             {product.catName && (
               <>
-                <Link href={`/productListing?category=${product.catId}`} className='hover:text-[#1565C0] transition-colors'>
+                <Link href={`/category/${toSlug(product.catName || '')}`} className='hover:text-[#1565C0] transition-colors'>
                   {product.catName}
                 </Link>
                 <span>/</span>
@@ -1182,6 +1189,46 @@ const ProductDetails = ({ initialProduct = null, initialProductParam = null } = 
                 <span className='text-[14px]'>📱</span> WhatsApp
               </a>
             </div>
+
+            {/* Trust badges */}
+            <div className='grid grid-cols-2 gap-2 mt-4'>
+              {[
+                { icon: '🚚', label: 'Free Shipping', sub: 'Orders above ₹999' },
+                { icon: '↩️', label: '7-Day Returns', sub: 'Hassle-free policy' },
+                { icon: '🔒', label: 'Secure Payment', sub: '100% safe checkout' },
+                { icon: '✅', label: 'Genuine Product', sub: 'Quality guaranteed' },
+              ].map((b) => (
+                <div key={b.label} className='flex items-center gap-2 bg-[#F8FAFF] border border-gray-100 rounded-xl px-3 py-2'>
+                  <span className='text-[18px] flex-shrink-0'>{b.icon}</span>
+                  <div>
+                    <p className='text-[11px] font-[700] text-gray-800 leading-tight'>{b.label}</p>
+                    <p className='text-[10px] text-gray-400 leading-tight'>{b.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* More from this category */}
+            {relatedProducts && relatedProducts.length > 0 && (
+              <div className='mt-4'>
+                <p className='text-[11px] font-[700] uppercase tracking-wide text-gray-400 mb-2.5'>More from this category</p>
+                <div className='flex gap-2.5 overflow-x-auto pb-1' style={{ scrollbarWidth: 'none' }}>
+                  {relatedProducts.slice(0, 6).map(p => (
+                    <Link
+                      key={p.id}
+                      href={`/product/${p.slug || p.id}`}
+                      className='flex-shrink-0 w-[70px] group'
+                    >
+                      <div className='w-[70px] h-[70px] bg-[#F8FAFF] rounded-xl overflow-hidden border border-gray-100 group-hover:border-[#1565C0]/40 transition-colors'>
+                        <img src={imgUrl(p.images?.[0])} alt={p.name} className='w-full h-full object-contain p-1.5' />
+                      </div>
+                      <p className='text-[10px] text-gray-600 mt-1 line-clamp-2 leading-tight text-center'>{p.name}</p>
+                      <p className='text-[11px] font-[700] text-[#1565C0] text-center'>₹{fmt(p.price)}</p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* RIGHT: Product info */}
@@ -1191,7 +1238,7 @@ const ProductDetails = ({ initialProduct = null, initialProductParam = null } = 
             <div className='flex items-center gap-2 mb-2 flex-wrap'>
               {product.catName && (
                 <Link
-                  href={`/productListing?category=${product.catId}`}
+                  href={`/category/${toSlug(product.catName || '')}`}
                   className='text-[11px] font-[700] uppercase tracking-wider text-[#1565C0] bg-[#EEF4FF] border border-[#C0D9FF] px-2.5 py-1 rounded-full hover:bg-[#1565C0] hover:text-white transition-colors'
                 >
                   {product.catName}
@@ -1238,9 +1285,13 @@ const ProductDetails = ({ initialProduct = null, initialProductParam = null } = 
 
             {/* Rating */}
             <div className='flex items-center gap-3 mb-4 flex-wrap'>
-              <div className='flex items-center gap-1.5 bg-green-600 text-white text-[13px] font-[700] px-2.5 py-1 rounded-lg'>
-                {(Number(product.rating) || 0).toFixed(1)} <FaStar className='text-[11px]' />
-              </div>
+              {Number(product.rating) > 0 ? (
+                <div className='flex items-center gap-1.5 bg-green-600 text-white text-[13px] font-[700] px-2.5 py-1 rounded-lg'>
+                  {Number(product.rating).toFixed(1)} <FaStar className='text-[11px]' />
+                </div>
+              ) : (
+                <span className='text-[12px] text-gray-400 font-[500]'>No reviews yet</span>
+              )}
               <button
                 onClick={() => { setActiveTab(2); reviewsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
                 className='text-[13px] text-[#1565C0] hover:underline font-[500]'
@@ -1717,7 +1768,7 @@ const ProductDetails = ({ initialProduct = null, initialProductParam = null } = 
             <div className='flex items-center justify-between mb-4'>
               <h2 className='text-[18px] font-[800] text-gray-800'>Similar Products</h2>
               <Link
-                href={`/productListing?category=${product.catId}`}
+                href={`/category/${toSlug(product.catName || '')}`}
                 className='text-[13px] text-[#1565C0] font-[600] hover:underline'
               >
                 View all →

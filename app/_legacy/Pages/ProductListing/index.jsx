@@ -6,7 +6,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { IoGrid, IoMenu } from 'react-icons/io5';
 import { IoClose } from 'react-icons/io5';
 import { FaStar, FaBox } from 'react-icons/fa';
-import { FiFilter, FiX } from 'react-icons/fi';
+import { FiFilter, FiX, FiChevronDown } from 'react-icons/fi';
 import { MdOutlineShoppingCart } from 'react-icons/md';
 import { getData } from '../../utils/api';
 import ProductItem from '../../components/ProductItem';
@@ -27,12 +27,21 @@ const SORT_OPTIONS = [
 ];
 
 const PRICE_PRESETS = [
-  { label: 'Under ₹99',       min: '',    max: '99'   },
-  { label: '₹99 – ₹499',     min: '99',  max: '499'  },
-  { label: '₹500 – ₹999',    min: '500', max: '999'  },
-  { label: '₹1k – ₹2,499',  min: '1000',max: '2499' },
-  { label: '₹2,500+',        min: '2500',max: ''     },
+  { label: 'Under ₹99',      min: '',    max: '99'   },
+  { label: '₹99 – ₹499',    min: '99',  max: '499'  },
+  { label: '₹500 – ₹999',   min: '500', max: '999'  },
+  { label: '₹1k – ₹2,499', min: '1000',max: '2499' },
+  { label: '₹2,500+',       min: '2500',max: ''     },
 ];
+
+const flattenCategories = (cats, depth = 0) => {
+  const result = [];
+  for (const cat of cats || []) {
+    result.push({ ...cat, depth });
+    if (cat.children?.length) result.push(...flattenCategories(cat.children, depth + 1));
+  }
+  return result;
+};
 
 /* ── Active filter chip ──────────────────────────────────────────────────── */
 const FilterChip = ({ label, onRemove }) => (
@@ -42,7 +51,192 @@ const FilterChip = ({ label, onRemove }) => (
   </span>
 );
 
-/* ── Sidebar filter panel ────────────────────────────────────────────────── */
+/* ── Desktop top filter bar ──────────────────────────────────────────────── */
+const TopFilterBar = ({
+  categories, selectedCatId, handleCatChange,
+  minPrice, maxPrice, setMinPrice, setMaxPrice, applyPrice, applyPriceWith, appliedMin, appliedMax,
+  brands, selectedBrand, setSelectedBrand,
+  inStockOnly, setInStockOnly,
+  clearFilters, activeFiltersCount, lockedCatId,
+}) => {
+  const [open, setOpen] = useState(null);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const toggle = (name) => setOpen(prev => prev === name ? null : name);
+
+  const flatCats = flattenCategories(categories);
+  const selectedCatName = flatCats.find(c => String(c.id) === selectedCatId)?.name;
+  const priceLabel = (appliedMin || appliedMax)
+    ? `₹${appliedMin || '0'} – ₹${appliedMax || '∞'}`
+    : 'Any';
+
+  return (
+    <div ref={ref} className='hidden md:flex items-center gap-2 bg-white rounded-xl px-4 py-2.5 shadow-sm border border-gray-100 mb-4 flex-wrap relative'>
+      {/* Category */}
+      {!lockedCatId && (
+        <div className='relative'>
+          <button
+            onClick={() => toggle('category')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-[600] border transition-all ${
+              selectedCatId ? 'bg-[#EEF4FF] border-[#C5D9F5] text-[#1565C0]' : 'border-gray-200 text-gray-600 hover:border-[#1565C0] hover:text-[#1565C0]'
+            }`}
+          >
+            <span>Category: {selectedCatName || 'All'}</span>
+            <FiChevronDown className={`text-[13px] transition-transform duration-200 ${open === 'category' ? 'rotate-180' : ''}`} />
+          </button>
+          {open === 'category' && (
+            <div className='absolute top-full left-0 mt-1 w-[220px] bg-white rounded-xl shadow-xl border border-gray-100 z-50 max-h-[280px] overflow-y-auto'>
+              <div className='p-2'>
+                <button
+                  onClick={() => { handleCatChange(''); setOpen(null); }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-[13px] mb-0.5 transition-colors ${
+                    !selectedCatId ? 'bg-[#1565C0] text-white font-[700]' : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  All Categories
+                </button>
+                {flatCats.map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => { handleCatChange(String(cat.id)); setOpen(null); }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-[13px] transition-colors ${
+                      selectedCatId === String(cat.id) ? 'bg-[#1565C0] text-white font-[700]' : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                    style={{ paddingLeft: `${12 + cat.depth * 12}px` }}
+                  >
+                    {cat.depth > 0 && <span className='text-gray-300 mr-1'>└ </span>}{cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Price */}
+      <div className='relative'>
+        <button
+          onClick={() => toggle('price')}
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-[600] border transition-all ${
+            (appliedMin || appliedMax) ? 'bg-[#EEF4FF] border-[#C5D9F5] text-[#1565C0]' : 'border-gray-200 text-gray-600 hover:border-[#1565C0] hover:text-[#1565C0]'
+          }`}
+        >
+          <span>Price: {priceLabel}</span>
+          <FiChevronDown className={`text-[13px] transition-transform duration-200 ${open === 'price' ? 'rotate-180' : ''}`} />
+        </button>
+        {open === 'price' && (
+          <div className='absolute top-full left-0 mt-1 w-[250px] bg-white rounded-xl shadow-xl border border-gray-100 p-3 z-50'>
+            <div className='flex flex-wrap gap-1.5 mb-3'>
+              {PRICE_PRESETS.map(p => {
+                const active = appliedMin === p.min && appliedMax === p.max;
+                return (
+                  <button
+                    key={p.label}
+                    onClick={() => { applyPriceWith(p.min, p.max); setOpen(null); }}
+                    className={`text-[11px] font-[600] px-2.5 py-1 rounded-full border transition-all ${
+                      active ? 'bg-[#1565C0] text-white border-[#1565C0]' : 'border-gray-200 text-gray-600 hover:border-[#1565C0] hover:text-[#1565C0]'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className='flex gap-2 items-center mb-2'>
+              <input
+                type='number' placeholder='Min' value={minPrice}
+                onChange={e => setMinPrice(e.target.value)}
+                className='w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-[#1565C0]'
+              />
+              <span className='text-gray-300 font-[300]'>–</span>
+              <input
+                type='number' placeholder='Max' value={maxPrice}
+                onChange={e => setMaxPrice(e.target.value)}
+                className='w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-[#1565C0]'
+              />
+            </div>
+            <button
+              onClick={() => { applyPrice(); setOpen(null); }}
+              className='w-full bg-[#1565C0] text-white text-[12px] font-[600] py-1.5 rounded-lg hover:bg-[#0D47A1] transition-colors'
+            >
+              Apply Price
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Brand */}
+      {brands.length > 0 && (
+        <div className='relative'>
+          <button
+            onClick={() => toggle('brand')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-[600] border transition-all ${
+              selectedBrand ? 'bg-[#EEF4FF] border-[#C5D9F5] text-[#1565C0]' : 'border-gray-200 text-gray-600 hover:border-[#1565C0] hover:text-[#1565C0]'
+            }`}
+          >
+            <span>Brand: {selectedBrand || 'Any'}</span>
+            <FiChevronDown className={`text-[13px] transition-transform duration-200 ${open === 'brand' ? 'rotate-180' : ''}`} />
+          </button>
+          {open === 'brand' && (
+            <div className='absolute top-full left-0 mt-1 w-[200px] bg-white rounded-xl shadow-xl border border-gray-100 z-50 max-h-[240px] overflow-y-auto'>
+              <div className='p-2'>
+                <button
+                  onClick={() => { setSelectedBrand(''); setOpen(null); }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-[13px] mb-0.5 transition-colors ${
+                    !selectedBrand ? 'bg-[#1565C0] text-white font-[700]' : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  Any Brand
+                </button>
+                {brands.map(b => (
+                  <button
+                    key={b}
+                    onClick={() => { setSelectedBrand(prev => prev === b ? '' : b); setOpen(null); }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-[13px] transition-colors ${
+                      selectedBrand === b ? 'bg-[#1565C0] text-white font-[700]' : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* In Stock */}
+      <label className='flex items-center gap-2 text-[13px] font-[600] text-gray-600 cursor-pointer ml-1'>
+        <input
+          type='checkbox' checked={inStockOnly}
+          onChange={e => setInStockOnly(e.target.checked)}
+          className='accent-[#1565C0] w-4 h-4'
+        />
+        In Stock
+      </label>
+
+      {/* Clear all */}
+      {activeFiltersCount > 0 && (
+        <button
+          onClick={clearFilters}
+          className='ml-auto text-[12px] text-red-500 font-[600] hover:underline flex items-center gap-1'
+        >
+          <FiX className='text-[11px]' /> Clear filters ({activeFiltersCount})
+        </button>
+      )}
+    </div>
+  );
+};
+
+/* ── Mobile bottom-sheet filter panel ───────────────────────────────────── */
 const FilterPanel = ({
   categories, selectedCatId, handleCatChange,
   minPrice, maxPrice, setMinPrice, setMaxPrice, applyPrice, appliedMin, appliedMax,
@@ -64,8 +258,7 @@ const FilterPanel = ({
     <div>
       <label className='flex items-center gap-2.5 cursor-pointer group'>
         <input
-          type='checkbox'
-          checked={inStockOnly}
+          type='checkbox' checked={inStockOnly}
           onChange={(e) => setInStockOnly(e.target.checked)}
           className='accent-[#1565C0] w-4 h-4'
         />
@@ -101,8 +294,7 @@ const FilterPanel = ({
           {brands.map(b => (
             <label key={b} className='flex items-center gap-2.5 cursor-pointer group'>
               <input
-                type='checkbox'
-                checked={selectedBrand === b}
+                type='checkbox' checked={selectedBrand === b}
                 onChange={() => setSelectedBrand(prev => prev === b ? '' : b)}
                 className='accent-[#1565C0] w-4 h-4'
               />
@@ -116,7 +308,6 @@ const FilterPanel = ({
     {/* Price range */}
     <div>
       <h4 className='text-[11px] font-[700] uppercase tracking-wide text-gray-400 mb-3'>Price (₹)</h4>
-      {/* Quick presets */}
       <div className='flex flex-wrap gap-1.5 mb-3'>
         {PRICE_PRESETS.map(p => {
           const active = appliedMin === p.min && appliedMax === p.max;
@@ -135,17 +326,13 @@ const FilterPanel = ({
       </div>
       <div className='flex gap-2 items-center mb-2'>
         <input
-          type='number'
-          placeholder='Min'
-          value={minPrice}
+          type='number' placeholder='Min' value={minPrice}
           onChange={e => setMinPrice(e.target.value)}
           className='w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-[#1565C0]'
         />
         <span className='text-gray-300 font-[300]'>–</span>
         <input
-          type='number'
-          placeholder='Max'
-          value={maxPrice}
+          type='number' placeholder='Max' value={maxPrice}
           onChange={e => setMaxPrice(e.target.value)}
           className='w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-[#1565C0]'
         />
@@ -198,6 +385,7 @@ const ProductListing = ({
   initialCategories = [],
   initialBrands = [],
   initialFilters = null,
+  lockedCatId = null,
 } = {}) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -205,33 +393,36 @@ const ProductListing = ({
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const { addToCart } = useCart();
 
-  const [selectedCatId, setSelectedCatId]   = useState(searchParams.get('category') || '');
-  const [minPrice, setMinPrice]             = useState(searchParams.get('minPrice') || '');
-  const [maxPrice, setMaxPrice]             = useState(searchParams.get('maxPrice') || '');
-  const [appliedMin, setAppliedMin]         = useState(searchParams.get('minPrice') || '');
-  const [appliedMax, setAppliedMax]         = useState(searchParams.get('maxPrice') || '');
-  const [selectedRating, setSelectedRating] = useState(searchParams.get('minRating') ? Number(searchParams.get('minRating')) : null);
-  const [inStockOnly, setInStockOnly]       = useState(searchParams.get('inStockOnly') === 'true');
-  const [selectedBrand, setSelectedBrand]   = useState(searchParams.get('brand') || '');
-  const [sortBy, setSortBy]                 = useState(searchParams.get('sort') || 'newest');
-  const [viewMode, setViewMode]             = useState('grid');
-  const [page, setPage]                     = useState(1);
-  const [loadingMore, setLoadingMore]       = useState(false);
+  const [selectedCatId, setSelectedCatId]   = useState(searchParams.get('category') || initialFilters?.category || '');
+  const [minPrice, setMinPrice]             = useState(searchParams.get('minPrice') || initialFilters?.minPrice || '');
+  const [maxPrice, setMaxPrice]             = useState(searchParams.get('maxPrice') || initialFilters?.maxPrice || '');
+  const [appliedMin, setAppliedMin]         = useState(searchParams.get('minPrice') || initialFilters?.minPrice || '');
+  const [appliedMax, setAppliedMax]         = useState(searchParams.get('maxPrice') || initialFilters?.maxPrice || '');
+  const [selectedRating, setSelectedRating] = useState(
+    searchParams.get('minRating')
+      ? Number(searchParams.get('minRating'))
+      : initialFilters?.minRating ? Number(initialFilters.minRating) : null
+  );
+  const [inStockOnly, setInStockOnly] = useState(
+    searchParams.get('inStockOnly') === 'true' || initialFilters?.inStockOnly === 'true'
+  );
+  const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || initialFilters?.brand || '');
+  const [sortBy, setSortBy]               = useState(searchParams.get('sort') || initialFilters?.sort || 'newest');
+  const [viewMode, setViewMode]           = useState('grid');
+  const [page, setPage]                   = useState(1);
+  const [loadingMore, setLoadingMore]     = useState(false);
 
-  const [products, setProducts]         = useState(initialProducts);
-  const [totalPages, setTotalPages]     = useState(initialTotalPages);
-  const [totalCount, setTotalCount]     = useState(initialTotalCount);
-  const [categories, setCategories]     = useState(initialCategories);
-  const [brands, setBrands]             = useState(initialBrands);
+  const [products, setProducts]     = useState(initialProducts);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
+  const [categories, setCategories] = useState(initialCategories);
+  const [brands, setBrands]         = useState(initialBrands);
 
-  // The very first render already has products from the server — skip the
-  // client-side initial fetch. After any filter change, refetch normally.
   const skipInitialFetchRef = useRef(initialProducts !== null);
 
   const PER_PAGE = 20;
 
   useEffect(() => {
-    // Skip the network round-trip when the server already seeded these.
     if (!initialCategories || initialCategories.length === 0) {
       getData('/api/category').then(res => {
         if (res && !res.error) setCategories(res.categories || []);
@@ -247,7 +438,8 @@ const ProductListing = ({
 
   const buildParams = useCallback((p = 1) => {
     const params = new URLSearchParams({ page: String(p), perPage: String(PER_PAGE) });
-    if (selectedCatId) params.set('category', selectedCatId);
+    const catId = lockedCatId || selectedCatId;
+    if (catId) params.set('category', catId);
     if (appliedMin !== '') params.set('minPrice', appliedMin);
     if (appliedMax !== '') params.set('maxPrice', appliedMax);
     if (selectedRating) params.set('minRating', String(selectedRating));
@@ -257,9 +449,8 @@ const ProductListing = ({
     const search = searchParams.get('search');
     if (search) params.set('search', search);
     return params;
-  }, [selectedCatId, appliedMin, appliedMax, selectedRating, inStockOnly, selectedBrand, sortBy, searchParams]);
+  }, [lockedCatId, selectedCatId, appliedMin, appliedMax, selectedRating, inStockOnly, selectedBrand, sortBy, searchParams]);
 
-  // Fresh fetch (filter/sort change) — resets list
   const fetchProducts = useCallback(() => {
     setProducts(null);
     setPage(1);
@@ -274,7 +465,6 @@ const ProductListing = ({
     });
   }, [buildParams]);
 
-  // Load more — appends to existing list
   const handleLoadMore = useCallback(() => {
     const nextPage = page + 1;
     setLoadingMore(true);
@@ -290,8 +480,6 @@ const ProductListing = ({
   }, [page, buildParams]);
 
   useEffect(() => {
-    // First render is hydrated from the server-rendered list; only fetch on
-    // subsequent filter/sort changes.
     if (skipInitialFetchRef.current) {
       skipInitialFetchRef.current = false;
       return;
@@ -315,16 +503,20 @@ const ProductListing = ({
     setAppliedMin(minPrice); setAppliedMax(maxPrice); setPage(1);
   };
 
+  const applyPriceWith = useCallback((min, max) => {
+    setMinPrice(min); setMaxPrice(max);
+    setAppliedMin(min); setAppliedMax(max); setPage(1);
+  }, []);
+
   const isLoading = products === null;
   const isEmpty   = !isLoading && products.length === 0;
 
-  const activeCatName = selectedCatId ? categories.find(c => c.id == selectedCatId)?.name : null;
+  const activeCatName = selectedCatId
+    ? flattenCategories(categories).find(c => c.id == selectedCatId)?.name
+    : null;
   const seoTitle = activeCatName || 'All Products';
   const searchQuery = searchParams.get('search');
 
-  // Fire `search` analytics + log query server-side once results are in.
-  // Keyed on (query + zero-result flag) so we don't double-fire on filter
-  // tweaks within the same search.
   const lastTrackedSearchRef = useRef('');
   useEffect(() => {
     if (!searchQuery || isLoading) return;
@@ -332,13 +524,13 @@ const ProductListing = ({
     if (lastTrackedSearchRef.current === key) return;
     lastTrackedSearchRef.current = key;
     import('../../utils/analytics').then(({ trackSearch }) => trackSearch(searchQuery, products.length)).catch(() => {});
-    // Server-side log (no-auth, fire-and-forget) for admin search analytics.
     fetch('/api/search-log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: searchQuery, resultCount: products.length }),
     }).catch(() => {});
   }, [searchQuery, products, isLoading]);
+
   const listingQuery = searchParams.toString();
   const listingDescription = activeCatName
     ? `Shop ${activeCatName} at best wholesale prices on InfixMart.`
@@ -360,7 +552,6 @@ const ProductListing = ({
     })),
   };
 
-  // Active filter chips
   const activeFilters = [
     activeCatName && { key: 'cat', label: `Category: ${activeCatName}`, clear: () => { setSelectedCatId(''); setPage(1); } },
     (appliedMin || appliedMax) && { key: 'price', label: `Price: ₹${appliedMin || '0'} – ₹${appliedMax || '∞'}`, clear: () => { setMinPrice(''); setMaxPrice(''); setAppliedMin(''); setAppliedMax(''); setPage(1); } },
@@ -372,7 +563,7 @@ const ProductListing = ({
 
   const filterProps = {
     categories, selectedCatId, handleCatChange,
-    minPrice, maxPrice, setMinPrice, setMaxPrice, applyPrice, appliedMin, appliedMax,
+    minPrice, maxPrice, setMinPrice, setMaxPrice, applyPrice, applyPriceWith, appliedMin, appliedMax,
     selectedRating, setSelectedRating,
     inStockOnly, setInStockOnly,
     brands, selectedBrand, setSelectedBrand,
@@ -428,7 +619,6 @@ const ProductListing = ({
               aria-modal='true'
               aria-label='Filters'
             >
-              {/* Drag handle */}
               <div
                 className='flex justify-center pt-2.5 pb-1.5 cursor-grab'
                 onClick={() => setFilterDrawerOpen(false)}
@@ -452,145 +642,136 @@ const ProductListing = ({
           </>
         )}
 
-        <div className='flex gap-5'>
-          {/* ── Desktop sidebar ── */}
-          <aside className='hidden md:block w-[240px] flex-shrink-0'>
-            <div className='bg-white rounded-2xl p-5 shadow-sm border border-gray-100 sticky top-[72px]'>
-              <FilterPanel {...filterProps} />
-            </div>
-          </aside>
+        {/* ── Desktop top filter bar ── */}
+        <TopFilterBar
+          {...filterProps}
+          activeFiltersCount={activeFilters.length}
+          lockedCatId={lockedCatId}
+        />
 
-          {/* ── Right content ── */}
-          <div className='flex-1 min-w-0'>
-            {/* Top toolbar */}
-            <div className='bg-white rounded-xl px-4 py-3 mb-4 flex items-center justify-between shadow-sm border border-gray-100 gap-2 flex-wrap'>
-              <div className='flex items-center gap-2'>
-                <button
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${viewMode === 'list' ? 'bg-[#1565C0] text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100'}`}
-                  onClick={() => setViewMode('list')}
-                  title='List view'
-                >
-                  <IoMenu className='text-[18px]' />
-                </button>
-                <button
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-[#1565C0] text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100'}`}
-                  onClick={() => setViewMode('grid')}
-                  title='Grid view'
-                >
-                  <IoGrid className='text-[18px]' />
-                </button>
-                <span className='hidden md:inline text-[13px] text-gray-400 ml-1'>
-                  {isLoading ? 'Loading…' : <>{products.length} <span className='text-gray-600 font-[500]'>item{products.length !== 1 ? 's' : ''}</span></>}
-                </span>
-              </div>
-              <div className='flex items-center gap-2'>
-                <span className='text-[12px] text-gray-400 hidden sm:block'>Sort:</span>
-                <select
-                  value={sortBy}
-                  onChange={e => { setSortBy(e.target.value); setPage(1); }}
-                  className='border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px] font-[500] focus:outline-none focus:border-[#1565C0] cursor-pointer bg-white'
-                >
-                  {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </div>
-            </div>
-
-            {/* Active filter chips */}
-            {activeFilters.length > 0 && (
-              <div className='flex flex-wrap gap-2 mb-4'>
-                {activeFilters.map(f => (
-                  <FilterChip key={f.key} label={f.label} onRemove={f.clear} />
-                ))}
-                {activeFilters.length > 1 && (
-                  <button onClick={clearFilters} className='text-[12px] text-red-500 font-[600] hover:underline px-2'>
-                    Clear all
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Products */}
-            {isLoading ? (
-              <div className='grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-                {Array(12).fill(null).map((_, i) => <ProductCardSkeleton key={i} />)}
-              </div>
-            ) : isEmpty ? (
-              <div className='flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-gray-100'>
-                <div className='w-20 h-20 bg-[#F0F5FF] rounded-full flex items-center justify-center mb-4'>
-                  <FaBox className='text-[2rem] text-[#1565C0]/30' />
-                </div>
-                <h3 className='text-[18px] font-[700] text-gray-700 mb-1'>No products available</h3>
-                <p className='text-[13px] text-gray-400 mb-5'>Try adjusting your filters</p>
-                <button
-                  onClick={clearFilters}
-                  className='bg-[#1565C0] text-white px-6 py-2.5 rounded-xl hover:bg-[#0D47A1] transition-colors text-[13px] font-[600]'
-                >
-                  Clear Filters
-                </button>
-              </div>
-            ) : viewMode === 'grid' ? (
-              <div className='infix-stagger grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-                {products.map(p => <ProductItem key={p.id} item={p} />)}
-              </div>
-            ) : (
-              <div className='infix-stagger flex flex-col gap-3'>
-                {products.map(p => (
-                  <div key={p.id} className='bg-white rounded-xl border border-gray-100 p-3 flex gap-4 items-start shadow-sm hover:shadow-md hover:border-[#1565C0]/20 transition-all'>
-                    <Link href={`/product/${p.id}`} className='flex-shrink-0'>
-                      <div className='w-[110px] h-[110px] bg-[#F8FAFF] rounded-xl overflow-hidden flex items-center justify-center'>
-                        <img
-                          src={imgUrl(p.images?.[0])}
-                          alt={p.name}
-                          className='w-full h-full object-contain p-2'
-                        />
-                      </div>
-                    </Link>
-                    <div className='flex-1 min-w-0 flex flex-col gap-1'>
-                      {p.brand && <p className='text-[10px] font-[700] uppercase text-[#1565C0] tracking-wide'>{p.brand}</p>}
-                      <Link href={`/product/${p.id}`} className='font-[600] text-[14px] text-gray-800 hover:text-[#1565C0] transition-colors line-clamp-2 leading-snug'>
-                        {p.name}
-                      </Link>
-                      <Stars value={Number(p.rating) || 0} size='small' readOnly precision={0.5} />
-                      <div className='flex items-center gap-2 mt-0.5'>
-                        <span className='font-[800] text-[#1565C0] text-[16px]'>₹{fmt(p.price)}</span>
-                        {p.oldprice > 0 && <span className='text-gray-400 line-through text-[13px]'>₹{fmt(p.oldprice)}</span>}
-                        {p.discount > 0 && <span className='text-[11px] font-[700] text-green-600 bg-green-50 px-1.5 py-0.5 rounded'>{p.discount}% off</span>}
-                      </div>
-                      {Number(p.countInStock) === 0
-                        ? <span className='text-[11px] text-red-500 font-[600]'>Out of Stock</span>
-                        : <button
-                            onClick={() => addToCart(p.id)}
-                            className='mt-1 self-start flex items-center gap-1.5 bg-[#111827] text-white text-[12px] font-[700] px-4 py-1.5 rounded-lg hover:bg-[#1565C0] transition-colors'
-                          >
-                            <MdOutlineShoppingCart className='text-[13px]' /> Add to Cart
-                          </button>
-                      }
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Load More */}
-            {!isLoading && products && (
-              <div className='flex flex-col items-center gap-3 mt-8'>
-                <p className='text-[13px] text-gray-500'>
-                  Showing <span className='font-[700] text-gray-800'>{products.length}</span>
-                  {totalCount > 0 && <> of <span className='font-[700] text-gray-800'>{totalCount}</span></>} products
-                </p>
-                {page < totalPages && (
-                  <button
-                    onClick={handleLoadMore}
-                    disabled={loadingMore}
-                    className='px-8 py-3 border-2 border-[#1565C0] text-[#1565C0] font-[700] text-[14px] rounded-xl hover:bg-[#1565C0] hover:text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed'
-                  >
-                    {loadingMore ? 'Loading…' : 'Load More Products'}
-                  </button>
-                )}
-              </div>
-            )}
+        {/* ── Toolbar: view toggle + sort ── */}
+        <div className='bg-white rounded-xl px-4 py-3 mb-4 flex items-center justify-between shadow-sm border border-gray-100 gap-2 flex-wrap'>
+          <div className='flex items-center gap-2'>
+            <button
+              className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${viewMode === 'list' ? 'bg-[#1565C0] text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100'}`}
+              onClick={() => setViewMode('list')}
+              title='List view'
+            >
+              <IoMenu className='text-[18px]' />
+            </button>
+            <button
+              className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-[#1565C0] text-white shadow-sm' : 'text-gray-400 hover:bg-gray-100'}`}
+              onClick={() => setViewMode('grid')}
+              title='Grid view'
+            >
+              <IoGrid className='text-[18px]' />
+            </button>
+            <span className='text-[13px] text-gray-400 ml-1'>
+              {isLoading ? 'Loading…' : <>{products.length} <span className='text-gray-600 font-[500]'>item{products.length !== 1 ? 's' : ''}</span></>}
+            </span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <span className='text-[12px] text-gray-400 hidden sm:block'>Sort:</span>
+            <select
+              value={sortBy}
+              onChange={e => { setSortBy(e.target.value); setPage(1); }}
+              className='border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px] font-[500] focus:outline-none focus:border-[#1565C0] cursor-pointer bg-white'
+            >
+              {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
           </div>
         </div>
+
+        {/* Active filter chips */}
+        {activeFilters.length > 0 && (
+          <div className='flex flex-wrap gap-2 mb-4'>
+            {activeFilters.map(f => (
+              <FilterChip key={f.key} label={f.label} onRemove={f.clear} />
+            ))}
+            {activeFilters.length > 1 && (
+              <button onClick={clearFilters} className='text-[12px] text-red-500 font-[600] hover:underline px-2'>
+                Clear all
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Products */}
+        {isLoading ? (
+          <div className='grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'>
+            {Array(15).fill(null).map((_, i) => <ProductCardSkeleton key={i} />)}
+          </div>
+        ) : isEmpty ? (
+          <div className='flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-gray-100'>
+            <div className='w-20 h-20 bg-[#F0F5FF] rounded-full flex items-center justify-center mb-4'>
+              <FaBox className='text-[2rem] text-[#1565C0]/30' />
+            </div>
+            <h3 className='text-[18px] font-[700] text-gray-700 mb-1'>No products available</h3>
+            <p className='text-[13px] text-gray-400 mb-5'>Try adjusting your filters</p>
+            <button
+              onClick={clearFilters}
+              className='bg-[#1565C0] text-white px-6 py-2.5 rounded-xl hover:bg-[#0D47A1] transition-colors text-[13px] font-[600]'
+            >
+              Clear Filters
+            </button>
+          </div>
+        ) : viewMode === 'grid' ? (
+          <div className='infix-stagger grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'>
+            {products.map(p => <ProductItem key={p.id} item={p} />)}
+          </div>
+        ) : (
+          <div className='infix-stagger flex flex-col gap-3'>
+            {products.map(p => (
+              <div key={p.id} className='bg-white rounded-xl border border-gray-100 p-3 flex gap-4 items-start shadow-sm hover:shadow-md hover:border-[#1565C0]/20 transition-all'>
+                <Link href={`/product/${p.slug || p.id}`} className='flex-shrink-0'>
+                  <div className='w-[110px] h-[110px] bg-[#F8FAFF] rounded-xl overflow-hidden flex items-center justify-center'>
+                    <img src={imgUrl(p.images?.[0])} alt={p.name} className='w-full h-full object-contain p-2' />
+                  </div>
+                </Link>
+                <div className='flex-1 min-w-0 flex flex-col gap-1'>
+                  {p.brand && <p className='text-[10px] font-[700] uppercase text-[#1565C0] tracking-wide'>{p.brand}</p>}
+                  <Link href={`/product/${p.slug || p.id}`} className='font-[600] text-[14px] text-gray-800 hover:text-[#1565C0] transition-colors line-clamp-2 leading-snug'>
+                    {p.name}
+                  </Link>
+                  <Stars value={Number(p.rating) || 0} size='small' readOnly precision={0.5} />
+                  <div className='flex items-center gap-2 mt-0.5'>
+                    <span className='font-[800] text-[#1565C0] text-[16px]'>₹{fmt(p.price)}</span>
+                    {p.oldprice > 0 && <span className='text-gray-400 line-through text-[13px]'>₹{fmt(p.oldprice)}</span>}
+                    {p.discount > 0 && <span className='text-[11px] font-[700] text-green-600 bg-green-50 px-1.5 py-0.5 rounded'>{p.discount}% off</span>}
+                  </div>
+                  {Number(p.countInStock) === 0
+                    ? <span className='text-[11px] text-red-500 font-[600]'>Out of Stock</span>
+                    : <button
+                        onClick={() => addToCart(p.id)}
+                        className='mt-1 self-start flex items-center gap-1.5 bg-[#1565C0] text-white text-[12px] font-[700] px-4 py-1.5 rounded-lg hover:bg-[#0D47A1] transition-colors'
+                      >
+                        <MdOutlineShoppingCart className='text-[13px]' /> Add to Cart
+                      </button>
+                  }
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Load More */}
+        {!isLoading && products && (
+          <div className='flex flex-col items-center gap-3 mt-8'>
+            <p className='text-[13px] text-gray-500'>
+              Showing <span className='font-[700] text-gray-800'>{products.length}</span>
+              {totalCount > 0 && <> of <span className='font-[700] text-gray-800'>{totalCount}</span></>} products
+            </p>
+            {page < totalPages && (
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className='px-8 py-3 border-2 border-[#1565C0] text-[#1565C0] font-[700] text-[14px] rounded-xl hover:bg-[#1565C0] hover:text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed'
+              >
+                {loadingMore ? 'Loading…' : 'Load More Products'}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -109,7 +109,7 @@ const ProductDetailsComponent = ({ product }) => {
                         <button type="button" className='flex items-center gap-2 btn-org disabled:opacity-50 disabled:cursor-not-allowed' disabled={outOfStock} onClick={() => addToCart(product.id)}>
                         <MdOutlineShoppingCart className='text-[22px]'/> Add to Cart
                         </button>
-                        <Link href={`/product/${product.id}`} className='text-[14px] font-[600] text-primary hover:underline'>
+                        <Link href={`/product/${product.slug || product.id}`} className='text-[14px] font-[600] text-primary hover:underline'>
                           View Full Details
                         </Link>
                     </div>

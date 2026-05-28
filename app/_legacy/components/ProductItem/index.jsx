@@ -14,7 +14,7 @@ const HEART_BURST_PARTICLES = [
   { tx: '20px',  ty: '-2px'  },
   { tx: '0px',   ty: '-22px' },
 ];
-import { MdOutlineShoppingCart, MdZoomOutMap } from 'react-icons/md';
+import { MdOutlineShoppingCart, MdZoomOutMap, MdOutlineCompareArrows } from 'react-icons/md';
 import { MyContext } from '../../LegacyProviders';
 import { imgUrl } from '../../utils/imageUrl';
 import { useCart } from '../../context/CartContext';
@@ -24,7 +24,7 @@ import useCountdown from '../../hooks/useCountdown';
 
 const fmt = (n) => Number(n || 0).toLocaleString('en-IN');
 
-const ProductItem = ({ item }) => {
+const ProductItem = ({ item, hideRating = false }) => {
   const context = useContext(MyContext);
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
@@ -47,7 +47,7 @@ const ProductItem = ({ item }) => {
 
   const primaryImg  = imgUrl(item.images?.[0]);
   const hoverImg    = imgUrl(item.images?.[1] || item.images?.[0]);
-  const productLink = `/product/${item.id}`;
+  const productLink = `/product/${item.slug || item.id}`;
   const wishlisted  = isWishlisted(item.id);
   const outOfStock  = Number(item.countInStock) === 0;
   const discountPct = Number(item.discount) || 0;
@@ -59,7 +59,7 @@ const ProductItem = ({ item }) => {
     <div className='group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#1565C0]/30 hover:shadow-xl hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 ease-out flex flex-col will-change-transform'>
 
       {/* ── Image area ── */}
-      <div className='relative overflow-hidden bg-[#F8FAFF]' style={{ aspectRatio: '3/4' }}>
+      <div className='relative overflow-hidden bg-[#F8FAFF]' style={{ aspectRatio: '4/5' }}>
 
         {/* Discount badge — top left, big and bold like 99wholesale */}
         {discountPct > 0 && !outOfStock && (
@@ -163,9 +163,14 @@ const ProductItem = ({ item }) => {
         </h3>
 
         {/* Rating */}
-        <div className='mb-1.5'>
-          <Stars value={Number(item.rating) || 0} size='small' readOnly precision={0.5} />
-        </div>
+        {!hideRating && (
+          <div className='mb-1.5'>
+            {Number(item.rating) > 0
+              ? <Stars value={Number(item.rating)} size='small' readOnly precision={0.5} />
+              : <span className='text-[10px] text-gray-400'>No reviews yet</span>
+            }
+          </div>
+        )}
 
         {/* Price row — prominent like 99wholesale */}
         <div className='flex items-baseline gap-2 mb-3'>
@@ -202,41 +207,42 @@ const ProductItem = ({ item }) => {
           )
         )}
 
-        {/* Compare toggle */}
-        {(() => {
-          const comparing = isComparing(item.id);
-          const full = !comparing && compareList.length >= maxCompare;
-          return (
-            <button
-              onClick={() => comparing ? removeFromCompare(item.id) : addToCompare(item)}
-              disabled={full}
-              title={full ? 'Max 3 products' : comparing ? 'Remove from compare' : 'Add to compare'}
-              className={`w-full text-[11px] font-[600] py-1.5 rounded-xl mb-1.5 border transition-all ${
-                comparing
-                  ? 'bg-[#EEF4FF] border-[#1565C0] text-[#1565C0]'
-                  : full
-                    ? 'border-gray-100 text-gray-300 cursor-not-allowed'
-                    : 'border-gray-200 text-gray-500 hover:border-[#1565C0] hover:text-[#1565C0]'
-              }`}
-            >
-              {comparing ? '✓ Comparing' : '⇄ Compare'}
-            </button>
-          );
-        })()}
+        {/* Bottom row: Compare icon + Add to Cart */}
+        <div className='flex gap-2 mt-auto'>
+          {(() => {
+            const comparing = isComparing(item.id);
+            const full = !comparing && compareList.length >= maxCompare;
+            return (
+              <button
+                onClick={() => comparing ? removeFromCompare(item.id) : addToCompare(item)}
+                disabled={full}
+                title={full ? 'Max 3 products' : comparing ? 'Remove from compare' : 'Add to compare'}
+                className={`flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl border transition-all ${
+                  comparing
+                    ? 'bg-[#EEF4FF] border-[#1565C0] text-[#1565C0]'
+                    : full
+                      ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                      : 'border-gray-200 text-gray-400 hover:border-[#1565C0] hover:text-[#1565C0]'
+                }`}
+              >
+                <MdOutlineCompareArrows className='text-[16px]' />
+              </button>
+            );
+          })()}
 
-        {/* Add to Cart button — full width, pill style like 99wholesale */}
-        <button
-          disabled={outOfStock}
-          onClick={() => addToCart(item.id)}
-          className='w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-[700] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed'
-          style={{
-            background: outOfStock ? '#e5e7eb' : '#111827',
-            color: outOfStock ? '#9ca3af' : '#fff',
-          }}
-        >
-          {!outOfStock && <MdOutlineShoppingCart className='text-[15px]' />}
-          {outOfStock ? 'Out of Stock' : 'Add to Cart'}
-        </button>
+          <button
+            disabled={outOfStock}
+            onClick={() => addToCart(item.id)}
+            className='flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-[700] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed'
+            style={{
+              background: outOfStock ? '#e5e7eb' : '#1565C0',
+              color: outOfStock ? '#9ca3af' : '#fff',
+            }}
+          >
+            {!outOfStock && <MdOutlineShoppingCart className='text-[15px]' />}
+            {outOfStock ? 'Out of Stock' : 'Add to Cart'}
+          </button>
+        </div>
       </div>
     </div>
   );

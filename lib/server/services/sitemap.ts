@@ -2,6 +2,10 @@ import type { RowDataPacket } from "mysql2/promise";
 import { query } from "../db/mysql.js";
 import type { Id, SqlDateTime } from "../types.js";
 
+const toSlug = (str: string | null | undefined): string =>
+  String(str || "").toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 interface StaticRoute {
   path: string;
   changefreq: string;
@@ -41,8 +45,13 @@ interface BlogSitemapRow extends RowDataPacket {
   createdAt: SqlDateTime;
 }
 
+interface CategorySitemapRow extends RowDataPacket {
+  name: string;
+  updatedAt: SqlDateTime | null;
+}
+
 export async function buildSitemapXml(): Promise<string> {
-  const [products, blogs] = await Promise.all([
+  const [products, blogs, categories] = await Promise.all([
     query<ProductSitemapRow>(
       `SELECT id, slug, updatedAt
        FROM Products
@@ -55,6 +64,9 @@ export async function buildSitemapXml(): Promise<string> {
        WHERE published = 1
        ORDER BY updatedAt DESC
        LIMIT 5000`
+    ),
+    query<CategorySitemapRow>(
+      `SELECT name, updatedAt FROM Categories ORDER BY name LIMIT 1000`
     ),
   ]);
 
@@ -73,6 +85,13 @@ export async function buildSitemapXml(): Promise<string> {
 
   for (const blog of blogs) {
     xml += `\n  <url>\n    <loc>${escapeXml(`${frontendUrl}/blog/${blog.slug}`)}</loc>\n    <lastmod>${new Date((blog.updatedAt || blog.createdAt) as string | Date).toISOString()}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>`;
+  }
+
+  for (const cat of categories) {
+    const slug = toSlug(cat.name);
+    if (!slug) continue;
+    const lastmod = cat.updatedAt ? new Date(cat.updatedAt as string | Date).toISOString() : "";
+    xml += `\n  <url>\n    <loc>${escapeXml(`${frontendUrl}/category/${slug}`)}</loc>\n    ${lastmod ? `<lastmod>${lastmod}</lastmod>\n    ` : ""}<changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
   }
 
   xml += "\n</urlset>";

@@ -55,7 +55,7 @@ const CartItemRow = ({ item }) => {
   return (
     <div className='flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border-b border-[rgba(0,0,0,0.08)] last:border-b-0'>
       {/* Image */}
-      <Link href={`/product/${product?.id}`} className='flex-shrink-0'>
+      <Link href={`/product/${product?.slug || product?.id}`} className='flex-shrink-0'>
         <img
           src={image || 'https://via.placeholder.com/80'}
           alt={product?.name}
@@ -68,7 +68,7 @@ const CartItemRow = ({ item }) => {
         {product?.brand && (
           <p className='text-[12px] text-gray-400 mb-0 mt-0 leading-4'>{product.brand}</p>
         )}
-        <Link href={`/product/${product?.id}`} className='font-[500] text-[13px] sm:text-[14px] hover:text-[#1565C0] transition-colors line-clamp-2 block'>
+        <Link href={`/product/${product?.slug || product?.id}`} className='font-[500] text-[13px] sm:text-[14px] hover:text-[#1565C0] transition-colors line-clamp-2 block'>
           {product?.name}
         </Link>
 
