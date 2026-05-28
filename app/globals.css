@@ -280,6 +280,50 @@ select:focus-visible {
   outline: none;
 }
 
+/* ── Scroll-reveal (IntersectionObserver adds .is-visible) ───────────────── */
+.infix-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.55s ease-out, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.infix-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Stagger delay helpers */
+.infix-d1 { transition-delay: 60ms;  }
+.infix-d2 { transition-delay: 120ms; }
+.infix-d3 { transition-delay: 180ms; }
+.infix-d4 { transition-delay: 240ms; }
+.infix-d5 { transition-delay: 300ms; }
+.infix-d6 { transition-delay: 360ms; }
+.infix-d7 { transition-delay: 420ms; }
+.infix-d8 { transition-delay: 480ms; }
+
+/* ── Blog HTML prose ──────────────────────────────────────────────────────── */
+.blog-prose { color: #374151; font-size: 15px; line-height: 1.8; }
+.blog-prose h2 { font-size: 1.375rem; font-weight: 800; color: #0f172a; margin: 2rem 0 0.75rem; line-height: 1.3; }
+.blog-prose h3 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 1.5rem 0 0.5rem; line-height: 1.4; }
+.blog-prose h4 { font-size: 1rem; font-weight: 700; color: #374151; margin: 1.25rem 0 0.4rem; }
+.blog-prose p { margin-bottom: 1.1rem; }
+.blog-prose ul, .blog-prose ol { padding-left: 1.5rem; margin: 0.5rem 0 1.25rem; }
+.blog-prose ul li { list-style: disc; margin-bottom: 0.4rem; line-height: 1.75; }
+.blog-prose ol li { list-style: decimal; margin-bottom: 0.4rem; line-height: 1.75; }
+.blog-prose strong { font-weight: 700; color: #111827; }
+.blog-prose a { color: #1565C0; text-decoration: underline; }
+.blog-prose a:hover { color: #0D47A1; }
+.blog-prose blockquote {
+  border-left: 4px solid #1565C0;
+  padding: 0.5rem 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: #4b5563;
+  background: #F8FAFF;
+  border-radius: 0 8px 8px 0;
+}
+.blog-prose hr { border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-slideUp,
   .animate-fadeIn,
@@ -296,6 +340,11 @@ select:focus-visible {
   .infix-header,
   .infix-card-hover,
   button {
+    transition: none;
+  }
+  .infix-reveal {
+    opacity: 1;
+    transform: none;
     transition: none;
   }
 }

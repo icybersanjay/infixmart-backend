@@ -10,6 +10,7 @@ export const metadata = {
   description:
     "Browse thousands of wholesale products on InfixMart. Bulk deals across all categories — clothing, electronics, home, beauty, and more. Starting at ₹29.",
   keywords: ["wholesale products", "bulk buy", "wholesale shopping India", "cheap wholesale", "InfixMart shop"],
+  alternates: { canonical: "/productListing" },
   openGraph: {
     title: "Shop Wholesale Products | InfixMart",
     description:

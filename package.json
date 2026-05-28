@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "create-admin": "node scripts/create-admin.js",
+    "seed:blogs": "node scripts/seed-blogs.js",
     "check:production": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-production-env.ps1",
     "release:check": "npm run check:production && npm run build",
     "test": "vitest run",

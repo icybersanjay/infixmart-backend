@@ -6,7 +6,7 @@
  * and /api/homepage/section_config. Nothing is hard-coded except loading states.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SEO from '../../components/SEO';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -45,8 +45,8 @@ const parseMeta = (item) => {
 };
 
 /* ── Enhanced Section Header ─────────────────────────────────────────────── */
-const SectionHead = ({ tag, title, accent, sub, viewAll }) => (
-  <div className='flex items-end justify-between mb-8 sm:mb-10'>
+const SectionHead = ({ tag, title, accent, sub, viewAll, tight = false }) => (
+  <div className={`flex items-end justify-between ${tight ? 'mb-4 sm:mb-6' : 'mb-8 sm:mb-10'}`}>
     <div>
       {tag && <p className='text-[12px] font-[800] uppercase tracking-[4px] text-blue-600 mb-2'>{tag}</p>}
       <h2 className='text-[28px] md:text-[36px] font-[900] text-slate-900 tracking-tight leading-none'>
@@ -62,6 +62,36 @@ const SectionHead = ({ tag, title, accent, sub, viewAll }) => (
   </div>
 );
 
+const toSlug = (str) =>
+  String(str || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+/* Observes a grid container; when it enters the viewport all direct
+   children with `.infix-reveal` get `.is-visible` added (one-shot). */
+function useRevealGrid(deps = []) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          Array.from(el.children).forEach((c) => c.classList.add('is-visible'));
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.08 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+  return ref;
+}
+
 const CAT_PALETTES = [
   { bg: '#EEF4FF', border: '#C5D9F5', color: '#1565C0', emoji: '📱' },
   { bg: '#FFF3E0', border: '#FFD9AA', color: '#E65100', emoji: '🏠' },
@@ -75,10 +105,10 @@ const CAT_PALETTES = [
   { bg: '#E1F5FE', border: '#B3E5FC', color: '#01579B', emoji: '🏋️' },
 ];
 
-/* 1. Category Grid ─────────────────────────────────────────────────────────── */
+/* 1. Category Strip ─────────────────────────────────────────────────────────── */
 const CategoryGrid = ({ initialCategories = null }) => {
   const seeded = Array.isArray(initialCategories) && initialCategories.length > 0;
-  const [cats, setCats] = useState(seeded ? initialCategories.slice(0, 10) : []);
+  const [cats, setCats] = useState(seeded ? initialCategories.slice(0, 12) : []);
   const [loaded, setLoaded] = useState(seeded);
   const router = useRouter();
 
@@ -87,65 +117,56 @@ const CategoryGrid = ({ initialCategories = null }) => {
     getData('/api/category').then((res) => {
       if (res && !res.error) {
         const data = res.categories || res.data || [];
-        setCats(Array.isArray(data) ? data.slice(0, 10) : []);
+        setCats(Array.isArray(data) ? data.slice(0, 12) : []);
       }
-    }).catch(() => { }).finally(() => setLoaded(true));
+    }).catch(() => {}).finally(() => setLoaded(true));
   }, [seeded]);
 
-  const display = cats.length > 0 ? cats : Array(10).fill(null);
+  if (loaded && cats.length === 0) return null;
+
+  const tiles = cats.length > 0 ? cats : Array(8).fill(null);
 
   return (
-    <section className='py-10 sm:py-16 bg-white overflow-hidden'>
+    <section className='py-6 sm:py-8 bg-white overflow-hidden'>
       <div className='container'>
-        <SectionHead tag='Browse' title='Shop by' accent='Category' viewAll='/productListing' />
-        {loaded && cats.length === 0 ? (
-          <EmptyState
-            title='No products available'
-            subtitle='Categories will appear here once items are added.'
-          />
-        ) : (
-          <>
-        <div className='hidden sm:grid grid-cols-3 md:grid-cols-5 gap-6'>
-          {display.map((cat, i) => {
+        <SectionHead tag='Browse' title='Shop by' accent='Category' viewAll='/productListing' tight />
+        <Swiper
+          modules={[Autoplay]}
+          loop
+          autoplay={{ delay: 2000, disableOnInteraction: false, pauseOnMouseEnter: true }}
+          speed={500}
+          slidesPerView={3.5}
+          spaceBetween={10}
+          breakpoints={{
+            480: { slidesPerView: 4.5, spaceBetween: 10 },
+            640: { slidesPerView: 5.5, spaceBetween: 12 },
+            900: { slidesPerView: 7,   spaceBetween: 12 },
+            1200: { slidesPerView: 8,  spaceBetween: 14 },
+          }}
+        >
+          {tiles.map((cat, i) => {
             const p = CAT_PALETTES[i % CAT_PALETTES.length];
-            return cat ? (
-              <button key={cat.id ?? cat._id ?? cat.slug ?? cat.name ?? `home-category-${i}`} onClick={() => router.push(`/productListing?category=${cat.id}`)}
-                className='group relative flex flex-col items-center justify-center gap-4 p-6 rounded-3xl hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden border border-transparent'
-                style={{ background: `linear-gradient(135deg, ${p.bg} 0%, #ffffff 100%)`, borderColor: p.bg }}
-              >
-                <div className='absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/5 to-transparent' />
-                <span className='text-[3.5rem] drop-shadow-sm group-hover:scale-110 group-hover:rotate-3 transition-all duration-300'>{p.emoji}</span>
-                <p className='text-[14px] font-[800] text-center line-clamp-2 tracking-wide' style={{ color: p.color }}>{cat.name}</p>
-              </button>
-            ) : (
-              <div key={i} className='flex flex-col items-center gap-3 p-6 rounded-3xl bg-slate-50 border border-slate-100 animate-pulse'>
-                <div className='w-14 h-14 bg-slate-200 rounded-2xl' />
-                <div className='w-24 h-4 bg-slate-200 rounded' />
-              </div>
+            return (
+              <SwiperSlide key={cat?.id ?? `cat-${i}`}>
+                {cat ? (
+                  <button
+                    onClick={() => router.push(`/category/${toSlug(cat.name)}`)}
+                    className='flex flex-col items-center gap-2 p-3 rounded-2xl w-full cursor-pointer active:scale-95 hover:-translate-y-1 hover:shadow-md transition-all duration-200'
+                    style={{ background: p.bg }}
+                  >
+                    <span className='text-[1.8rem] leading-none'>{p.emoji}</span>
+                    <p className='text-[11px] font-[700] text-center line-clamp-2 leading-tight' style={{ color: p.color }}>{cat.name}</p>
+                  </button>
+                ) : (
+                  <div className='flex flex-col items-center gap-2 p-3 rounded-2xl bg-slate-50 animate-pulse'>
+                    <div className='w-8 h-8 bg-slate-200 rounded-xl' />
+                    <div className='w-14 h-2 bg-slate-200 rounded' />
+                  </div>
+                )}
+              </SwiperSlide>
             );
           })}
-        </div>
-        <div className='grid grid-cols-3 gap-2.5 sm:hidden'>
-          {display.slice(0, 9).map((cat, i) => {
-            const p = CAT_PALETTES[i % CAT_PALETTES.length];
-            return cat ? (
-              <button key={cat.id ?? cat._id ?? cat.slug ?? cat.name ?? `home-mobile-category-${i}`} onClick={() => router.push(`/productListing?category=${cat.id}`)}
-                className='flex flex-col items-center gap-2 p-3 rounded-2xl cursor-pointer active:scale-95 transition-transform'
-                style={{ background: p.bg }}
-              >
-                <span className='text-[2rem] drop-shadow-sm'>{p.emoji}</span>
-                <p className='text-[11px] font-[700] text-center line-clamp-2 leading-tight' style={{ color: p.color }}>{cat.name}</p>
-              </button>
-            ) : (
-              <div key={i} className='flex flex-col items-center gap-2 p-3 rounded-2xl bg-slate-50 animate-pulse'>
-                <div className='w-10 h-10 bg-slate-200 rounded-xl' />
-                <div className='w-16 h-2 bg-slate-200 rounded' />
-              </div>
-            );
-          })}
-        </div>
-          </>
-        )}
+        </Swiper>
       </div>
     </section>
   );
@@ -156,35 +177,51 @@ const ShopByPrice = ({ items }) => {
   const router = useRouter();
   if (!items || items.length === 0) return null;
   return (
-    <section className='py-10 sm:py-16 bg-slate-50'>
+    <section className='py-6 sm:py-8 bg-slate-50 overflow-hidden'>
       <div className='container'>
-        <SectionHead tag='Best Value' title='Find Your Perfect' accent='Deal' sub='Shop smarter — filter exactly by your budget' />
-        <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6'>
+        <SectionHead tag='Best Value' title='Find Your Perfect' accent='Deal' sub='Shop smarter — filter exactly by your budget' tight />
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          loop
+          autoplay={{ delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: true }}
+          speed={500}
+          navigation
+          slidesPerView={2}
+          spaceBetween={12}
+          breakpoints={{
+            480: { slidesPerView: 2.5, spaceBetween: 12 },
+            640: { slidesPerView: 3,   spaceBetween: 14 },
+            900: { slidesPerView: 4,   spaceBetween: 16 },
+            1200: { slidesPerView: 5,  spaceBetween: 16 },
+          }}
+          className='!pb-1'
+        >
           {items.map((tier, index) => {
             const meta = parseMeta(tier);
             return (
-              <button
-                key={tier.id ?? tier._id ?? tier.slug ?? tier.title ?? `price-tier-${index}`}
-                onClick={() => {
-                  const params = new URLSearchParams();
-                  if (meta.maxPrice) params.set('maxPrice', meta.maxPrice);
-                  if (meta.minPrice) params.set('minPrice', meta.minPrice);
-                  router.push(params.toString() ? `/productListing?${params.toString()}` : (tier.link || '/productListing'));
-                }}
-                className='group flex flex-col items-center justify-center gap-2 p-6 sm:p-8 rounded-3xl border-2 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer text-center relative overflow-hidden'
-                style={{ background: tier.bgColor, borderColor: tier.badgeColor || 'transparent' }}
-              >
-                <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300' />
-                <p className='text-[12px] font-[800] uppercase tracking-wider relative z-10' style={{ color: tier.textColor, opacity: 0.8 }}>{tier.badge}</p>
-                <p className='text-[28px] sm:text-[32px] font-[900] leading-none tracking-tight relative z-10' style={{ color: tier.textColor }}>{tier.title}</p>
-                <p className='text-[11px] font-[600] leading-tight relative z-10' style={{ color: tier.textColor, opacity: 0.7 }}>{tier.subtitle}</p>
-                <span className='mt-3 text-[12px] font-[800] px-4 py-1.5 rounded-full inline-flex items-center gap-1 group-hover:scale-105 transition-transform' style={{ background: tier.textColor, color: '#fff' }}>
-                  Explore <IoIosArrowRoundForward className='text-[18px]' />
-                </span>
-              </button>
+              <SwiperSlide key={tier.id ?? tier._id ?? tier.slug ?? tier.title ?? `price-tier-${index}`}>
+                <button
+                  onClick={() => {
+                    const params = new URLSearchParams();
+                    if (meta.maxPrice) params.set('maxPrice', meta.maxPrice);
+                    if (meta.minPrice) params.set('minPrice', meta.minPrice);
+                    router.push(params.toString() ? `/productListing?${params.toString()}` : (tier.link || '/productListing'));
+                  }}
+                  className='group flex flex-col items-center justify-center gap-1.5 p-4 sm:p-5 rounded-2xl border-2 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center relative overflow-hidden w-full'
+                  style={{ background: tier.bgColor, borderColor: tier.badgeColor || 'transparent' }}
+                >
+                  <div className='absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300' />
+                  <p className='text-[11px] font-[800] uppercase tracking-wider relative z-10' style={{ color: tier.textColor, opacity: 0.8 }}>{tier.badge}</p>
+                  <p className='text-[22px] sm:text-[26px] font-[900] leading-none tracking-tight relative z-10' style={{ color: tier.textColor }}>{tier.title}</p>
+                  <p className='text-[11px] font-[600] leading-tight relative z-10' style={{ color: tier.textColor, opacity: 0.7 }}>{tier.subtitle}</p>
+                  <span className='mt-2 text-[11px] font-[700] px-3 py-1 rounded-full inline-flex items-center gap-1 group-hover:scale-105 transition-transform' style={{ background: tier.textColor, color: '#fff' }}>
+                    Explore <IoIosArrowRoundForward className='text-[14px]' />
+                  </span>
+                </button>
+              </SwiperSlide>
             );
           })}
-        </div>
+        </Swiper>
       </div>
     </section>
   );
@@ -211,7 +248,7 @@ const TodaysBestDeals = ({ products }) => (
         >
           {products.map((p, index) => (
             <SwiperSlide key={p.id ?? p._id ?? p.slug ?? p.name ?? `deal-product-${index}`} className="pt-2">
-              <ProductItem item={p} />
+              <ProductItem item={p} hideRating />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -270,7 +307,7 @@ const FlashDealsGrid = ({ products, config }) => {
           />
         ) : (
           <div className='infix-stagger grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6'>
-            {filtered.map((p) => <ProductItem key={p.id} item={p} />)}
+            {filtered.map((p) => <ProductItem key={p.id} item={p} hideRating />)}
           </div>
         )}
       </div>
@@ -280,6 +317,7 @@ const FlashDealsGrid = ({ products, config }) => {
 
 /* 5. Shop by Collection ─────────────────────────────────────────────────────── */
 const ShopByCollection = ({ items }) => {
+  const gridRef = useRevealGrid([items]);
   return (
     <section className='py-10 sm:py-16 bg-white'>
       <div className='container'>
@@ -290,9 +328,9 @@ const ShopByCollection = ({ items }) => {
             subtitle='Collections will appear here once they are configured.'
           />
         ) : (
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+        <div ref={gridRef} className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
           {items.map((col, index) => (
-            <Link key={col.id ?? col._id ?? col.slug ?? col.title ?? `collection-${index}`} href={col.link || '/productListing'} className='group relative overflow-hidden rounded-3xl h-[280px] sm:h-[320px] shadow-sm hover:shadow-2xl transition-all duration-500 block'>
+            <Link key={col.id ?? col._id ?? col.slug ?? col.title ?? `collection-${index}`} href={col.link || '/productListing'} className={`infix-reveal infix-d${Math.min(index + 1, 8)} group relative overflow-hidden rounded-3xl h-[280px] sm:h-[320px] shadow-sm hover:shadow-2xl transition-all duration-500 block`}>
               <img src={col.image} alt={col.title} className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110' />
               <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent' />
               {col.badge && (
@@ -319,6 +357,7 @@ const ShopByCollection = ({ items }) => {
 
 /* 6. Why Choose Us ─────────────────────────────────────────────────────────── */
 const WhyChooseUs = ({ items }) => {
+  const gridRef = useRevealGrid([items]);
   return (
     <section className='py-12 sm:py-20 bg-slate-50 relative overflow-hidden'>
       {/* Decorative bg blobs */}
@@ -334,12 +373,12 @@ const WhyChooseUs = ({ items }) => {
             subtitle='This section will appear once content is added.'
           />
         ) : (
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8'>
+        <div ref={gridRef} className='grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8'>
           {items.map((w, index) => {
             const meta = parseMeta(w);
             const icon = ICON_MAP[meta.icon] || <BsBoxSeam className='text-[2rem]' />;
             return (
-              <div key={w.id ?? w._id ?? w.slug ?? w.title ?? `why-${index}`} className='group flex flex-col items-center text-center p-8 bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)] hover:-translate-y-2 transition-all duration-300 border border-slate-100'>
+              <div key={w.id ?? w._id ?? w.slug ?? w.title ?? `why-${index}`} className={`infix-reveal infix-d${Math.min(index + 1, 8)} group flex flex-col items-center text-center p-8 bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_40px_rgba(0,0,0,0.08)] hover:-translate-y-2 transition-all duration-300 border border-slate-100`}>
                 <div className='w-20 h-20 rounded-full flex items-center justify-center mb-6 transition-transform duration-500 group-hover:scale-110 shadow-inner'
                   style={{ background: w.bgColor, color: w.textColor }}>
                   {icon}
@@ -358,6 +397,7 @@ const WhyChooseUs = ({ items }) => {
 
 /* 7. Stats Bar ─────────────────────────────────────────────────────────────── */
 const StatsBar = ({ items }) => {
+  const gridRef = useRevealGrid([items]);
   return (
     <section className='py-10 sm:py-16' style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
       <div className='container'>
@@ -368,12 +408,12 @@ const StatsBar = ({ items }) => {
             className='text-white'
           />
         ) : (
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-8'>
+        <div ref={gridRef} className='grid grid-cols-2 md:grid-cols-4 gap-8'>
           {items.map((s, index) => {
             const meta = parseMeta(s);
             const icon = ICON_MAP[meta.icon] || <BsBoxSeam className='text-[2rem] text-sky-400' />;
             return (
-              <div key={s.id ?? s._id ?? s.slug ?? s.title ?? `stat-${index}`} className='flex flex-col items-center text-center group'>
+              <div key={s.id ?? s._id ?? s.slug ?? s.title ?? `stat-${index}`} className={`infix-reveal infix-d${Math.min(index + 1, 8)} flex flex-col items-center text-center group`}>
                 <div className='w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 transition-transform duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_0_20px_rgba(56,189,248,0.2)]'>
                   {icon}
                 </div>
@@ -460,7 +500,7 @@ const Newsletter = ({ config }) => {
    MAIN HOME
 ═══════════════════════════════════════════════════════════════════════════ */
 const SECTION_COMPONENTS = {
-  hero: ({ products, blogs, sectionData, initialSlides }) => <div style={{ height: 480 }}><HeroSlider initialSlides={initialSlides} /></div>,
+  hero: ({ products, blogs, sectionData, initialSlides }) => <div className='w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[480px]'><HeroSlider initialSlides={initialSlides} /></div>,
   categories: ({ products, blogs, sectionData, initialCategories }) => <CategoryGrid initialCategories={initialCategories} />,
   price_tiers: ({ products, blogs, sectionData }) => <ShopByPrice items={sectionData.price_tiers} />,
   todays_deals: ({ products, blogs, sectionData }) => <TodaysBestDeals products={products} />,
@@ -554,6 +594,8 @@ const Home = ({
 
   return (
     <main className="font-['Inter',_sans-serif] bg-slate-50">
+      {/* Screen-reader h1 — keeps heading hierarchy valid for SEO without visual impact */}
+      <h1 className='sr-only'>InfixMart — India&apos;s Wholesale Marketplace</h1>
       <SEO
         description="India's trusted wholesale store — buy single pieces or bulk at best prices. 10,000+ genuine products across all categories."
         url="/"

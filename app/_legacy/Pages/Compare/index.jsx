@@ -81,7 +81,7 @@ const ComparePage = () => {
                           }
                         </div>
                       </div>
-                      <Link href={`/product/${p.id}`} className='text-[13px] font-[600] text-gray-800 hover:text-[#1565C0] transition-colors line-clamp-2 text-center leading-snug'>
+                      <Link href={`/product/${p.slug || p.id}`} className='text-[13px] font-[600] text-gray-800 hover:text-[#1565C0] transition-colors line-clamp-2 text-center leading-snug'>
                         {p.name}
                       </Link>
                       <button

@@ -41,7 +41,7 @@ async function dispatchNativeRoute(request: NextRequest, segments: string[]) {
   if (request.method === "POST" && first === "upload-images") {
     await requireAdminRequest(request);
     const formData = await request.formData();
-    const images = await saveUploadedFiles(formData, "images");
+    const images = await saveUploadedFiles(formData, "images", { maxWidth: 1920, maxHeight: 640, quality: 90 });
     if (!images.length) {
       throw new HttpError(400, "No images provided");
     }

@@ -188,7 +188,7 @@ export default function SliderManagement() {
       {/* Tip */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-[12px] text-[#1A237E] leading-relaxed">
         {tab === "main"
-          ? <><strong>Main Sliders</strong> — full-width hero carousel at the top of homepage. Recommended: <strong>1920 × 600 px</strong> (landscape). JPG/WebP.</>
+          ? <><strong>Main Sliders</strong> — full-width hero carousel at the top of homepage. Recommended: <strong>1920 × 600 px</strong> (landscape). JPG/WebP. Link tip: <strong>/category/electronics</strong> to go to a category page.</>
           : <><strong>Side Banners</strong> — sidebar/secondary slot beside main slider. Recommended: <strong>400 × 500 px</strong> (portrait). JPG/WebP.</>
         }
       </div>
@@ -258,7 +258,7 @@ export default function SliderManagement() {
               </div>
               <div>
                 <label className={labelCls}>Link URL <span className="text-gray-400 normal-case font-[500]">(optional)</span></label>
-                <input className={inputCls} value={formLink} onChange={(e) => setFormLink(e.target.value)} placeholder="e.g. /productListing?category=sale" />
+                <input className={inputCls} value={formLink} onChange={(e) => setFormLink(e.target.value)} placeholder="e.g. /category/electronics or /productListing?category=5" />
               </div>
             </div>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
