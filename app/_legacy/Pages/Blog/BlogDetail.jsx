@@ -126,13 +126,15 @@ const BlogDetail = () => {
 
       {/* ── Hero image ── */}
       {blog.image && (
-        <div className='w-full h-[260px] sm:h-[420px] overflow-hidden relative'>
-          <img
-            src={imgUrl(blog.image)}
-            alt={blog.title}
-            className='w-full h-full object-cover'
-          />
-          <div className='absolute inset-0 bg-gradient-to-t from-[#F5F7FF] via-transparent to-transparent' />
+        <div className='pt-4 sm:pt-6'>
+          <div className='w-full h-[240px] sm:h-[400px] overflow-hidden relative rounded-b-2xl'>
+            <img
+              src={imgUrl(blog.image)}
+              alt={blog.title}
+              className='w-full h-full object-cover'
+            />
+            <div className='absolute inset-0 bg-gradient-to-t from-[#F5F7FF] via-transparent to-transparent' />
+          </div>
         </div>
       )}
 
