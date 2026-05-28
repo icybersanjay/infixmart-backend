@@ -11,41 +11,227 @@ const imgUrl = (p) => (p ? p : "");
 
 /* ── Preset 3D-style emoji icons organised by common e-commerce categories ── */
 const PRESET_ICONS = [
-  { label: "Home & Kitchen",   icon: "🏠" },
-  { label: "Electronics",      icon: "📱" },
-  { label: "Laptop / PC",      icon: "💻" },
-  { label: "TV / Display",     icon: "📺" },
-  { label: "Smartwatch",       icon: "⌚" },
-  { label: "Headphones",       icon: "🎧" },
-  { label: "Camera",           icon: "📷" },
-  { label: "Toys",             icon: "🧸" },
-  { label: "Gaming",           icon: "🎮" },
-  { label: "Sports & Fitness", icon: "🏋️" },
-  { label: "Ball Sports",      icon: "⚽" },
-  { label: "Cycling",          icon: "🚴" },
-  { label: "Clothing",         icon: "👕" },
-  { label: "Footwear",         icon: "👟" },
-  { label: "Bags",             icon: "👜" },
-  { label: "Jewellery",        icon: "💍" },
-  { label: "Beauty / Makeup",  icon: "💄" },
-  { label: "Skincare",         icon: "🧴" },
-  { label: "Personal Care",    icon: "🪥" },
-  { label: "Health",           icon: "💊" },
-  { label: "Kitchen Cookware", icon: "🍳" },
-  { label: "Bottles & Flasks", icon: "🥤" },
-  { label: "Cleaning",         icon: "🧹" },
-  { label: "Tools & Hardware", icon: "🔧" },
-  { label: "Auto & Bikes",     icon: "🚗" },
-  { label: "Smart Gadgets",    icon: "⚡" },
-  { label: "Books & Stationery", icon: "📚" },
-  { label: "Pets",             icon: "🐾" },
-  { label: "Home Decor",       icon: "🪴" },
-  { label: "Furniture",        icon: "🛋️" },
-  { label: "Gifts",            icon: "🎁" },
-  { label: "Outdoors",         icon: "🏕️" },
-  { label: "Baby Products",    icon: "🍼" },
-  { label: "Food & Grocery",   icon: "🛒" },
-  { label: "Other / General",  icon: "🌟" },
+  // Electronics & Tech
+  { label: "Mobile / Phones",     icon: "📱" },
+  { label: "Laptop / PC",         icon: "💻" },
+  { label: "TV / Display",        icon: "📺" },
+  { label: "Monitor / Desktop",   icon: "🖥️" },
+  { label: "Tablet",              icon: "📲" },
+  { label: "Smartwatch",          icon: "⌚" },
+  { label: "Headphones",          icon: "🎧" },
+  { label: "Earbuds",             icon: "🎵" },
+  { label: "Speaker",             icon: "🔊" },
+  { label: "Camera",              icon: "📷" },
+  { label: "Photography",         icon: "📸" },
+  { label: "Gaming",              icon: "🎮" },
+  { label: "Game Controller",     icon: "🕹️" },
+  { label: "Mouse / Keyboard",    icon: "🖱️" },
+  { label: "Printer",             icon: "🖨️" },
+  { label: "Charger / Power",     icon: "🔋" },
+  { label: "Router / Network",    icon: "📡" },
+  { label: "Drone",               icon: "🛸" },
+  { label: "Smart Devices",       icon: "🤖" },
+  { label: "Smart Gadgets",       icon: "⚡" },
+  // Clothing & Fashion
+  { label: "Clothing / T-Shirt",  icon: "👕" },
+  { label: "Dresses",             icon: "👗" },
+  { label: "Footwear",            icon: "👟" },
+  { label: "Formal Shoes",        icon: "👞" },
+  { label: "Sandals / Slippers",  icon: "🩴" },
+  { label: "Hats & Caps",         icon: "🧢" },
+  { label: "Sunglasses",          icon: "🕶️" },
+  { label: "Jackets & Coats",     icon: "🧥" },
+  { label: "Winter Wear / Scarf", icon: "🧣" },
+  { label: "Swimwear",            icon: "🩱" },
+  { label: "Bags / Handbags",     icon: "👜" },
+  { label: "Backpacks",           icon: "🎒" },
+  { label: "Luggage / Travel Bag",icon: "🧳" },
+  { label: "Socks / Hosiery",     icon: "🧦" },
+  // Jewellery & Accessories
+  { label: "Jewellery / Rings",   icon: "💍" },
+  { label: "Beads / Bracelets",   icon: "📿" },
+  { label: "Premium / Luxury",    icon: "👑" },
+  // Beauty & Health
+  { label: "Beauty / Makeup",     icon: "💄" },
+  { label: "Skincare",            icon: "🧴" },
+  { label: "Personal Care",       icon: "🪥" },
+  { label: "Health / Medicine",   icon: "💊" },
+  { label: "Medical / First Aid", icon: "🩹" },
+  { label: "Gym / Supplements",   icon: "💪" },
+  { label: "Yoga / Wellness",     icon: "🧘" },
+  // Kitchen & Food
+  { label: "Kitchen Cookware",    icon: "🍳" },
+  { label: "Bottles & Flasks",    icon: "🥤" },
+  { label: "Coffee & Tea",        icon: "☕" },
+  { label: "Dinnerware / Plates", icon: "🍽️" },
+  { label: "Cutlery",             icon: "🍴" },
+  { label: "Baking",              icon: "🧁" },
+  { label: "Food & Snacks",       icon: "🍕" },
+  { label: "Meat & Seafood",      icon: "🥩" },
+  { label: "Vegetables",          icon: "🥦" },
+  { label: "Fruits",              icon: "🍎" },
+  { label: "Dairy / Eggs",        icon: "🥛" },
+  // Home & Living
+  { label: "Home & Kitchen",      icon: "🏠" },
+  { label: "Furniture",           icon: "🛋️" },
+  { label: "Bedroom",             icon: "🛏️" },
+  { label: "Home Decor / Plants", icon: "🪴" },
+  { label: "Lighting",            icon: "💡" },
+  { label: "Cleaning",            icon: "🧹" },
+  { label: "Bathroom",            icon: "🛁" },
+  { label: "Mirrors",             icon: "🪞" },
+  { label: "Clocks",              icon: "⏰" },
+  { label: "Candles & Fragrance", icon: "🕯️" },
+  { label: "Hook / Wall Hook",    icon: "🪝" },
+  { label: "Cloth Hanger",        icon: "👔" },
+  { label: "Storage & Organiser", icon: "🗂️" },
+  // Sports & Outdoors
+  { label: "Sports & Fitness",    icon: "🏋️" },
+  { label: "Ball Sports",         icon: "⚽" },
+  { label: "Cricket",             icon: "🏏" },
+  { label: "Tennis / Badminton",  icon: "🎾" },
+  { label: "Basketball",          icon: "🏀" },
+  { label: "Swimming",            icon: "🏊" },
+  { label: "Cycling",             icon: "🚴" },
+  { label: "Boxing / Martial Arts", icon: "🥊" },
+  { label: "Golf",                icon: "⛳" },
+  { label: "Fishing",             icon: "🎣" },
+  { label: "Outdoors / Camping",  icon: "🏕️" },
+  { label: "Winter Sports",       icon: "⛷️" },
+  // Automotive
+  { label: "Auto & Cars",         icon: "🚗" },
+  { label: "Motorcycles",         icon: "🏍️" },
+  { label: "Tyres & Wheels",      icon: "🛞" },
+  // Tools & Office
+  { label: "Tools & Hardware",    icon: "🔧" },
+  { label: "Hand Tools",          icon: "🔨" },
+  { label: "Books & Stationery",  icon: "📚" },
+  { label: "Pens & Pencils",      icon: "✏️" },
+  { label: "Office / Briefcase",  icon: "💼" },
+  { label: "Office Equipment",    icon: "🖨️" },
+  // Kids, Baby & Pets
+  { label: "Toys",                icon: "🧸" },
+  { label: "Baby Products",       icon: "🍼" },
+  { label: "Kids / Rides",        icon: "🎠" },
+  { label: "Pets",                icon: "🐾" },
+  { label: "Dogs",                icon: "🐕" },
+  { label: "Cats",                icon: "🐈" },
+  // Automotive additions
+  { label: "Scooter / Two-Wheeler", icon: "🛵" },
+  { label: "Auto Rickshaw",       icon: "🛺" },
+  // Tools & Hardware additions
+  { label: "Locks & Keys",        icon: "🔑" },
+  { label: "Ladders",             icon: "🪜" },
+  { label: "Magnets / Hardware",  icon: "🧲" },
+  { label: "Fire Safety",         icon: "🧯" },
+  { label: "Measuring Tools",     icon: "📏" },
+  { label: "Drafting / Architect",icon: "📐" },
+  // Sports additions
+  { label: "Trophies / Awards",   icon: "🏆" },
+  { label: "Medals",              icon: "🥇" },
+  { label: "Darts / Target Games",icon: "🎯" },
+  { label: "Board Games / Dice",  icon: "🎲" },
+  { label: "Puzzles",             icon: "🧩" },
+  { label: "Yo-yo / Spin Toys",   icon: "🪀" },
+  { label: "Table Tennis",        icon: "🏓" },
+  { label: "Archery",             icon: "🏹" },
+  { label: "Skateboard",          icon: "🛹" },
+  { label: "Roller Skates",       icon: "🛼" },
+  { label: "Surfing / Water Sports", icon: "🏄" },
+  { label: "Horse Riding",        icon: "🏇" },
+  { label: "Gymnastics",          icon: "🤸" },
+  { label: "Sports Net / Goal",   icon: "🥅" },
+  // Clothing additions
+  { label: "Women's Hat",         icon: "👒" },
+  { label: "Formal Hat",          icon: "🎩" },
+  { label: "Eyeglasses",          icon: "👓" },
+  { label: "Gloves",              icon: "🧤" },
+  { label: "Innerwear",           icon: "🩲" },
+  { label: "Shorts / Casuals",    icon: "🩳" },
+  { label: "Sportswear / Jersey", icon: "🎽" },
+  { label: "Boots / Trekking Shoes", icon: "🥾" },
+  { label: "Ethnic Wear / Saree", icon: "🥻" },
+  // Jewellery addition
+  { label: "Diamond / Luxury",    icon: "💎" },
+  // Health additions
+  { label: "Eye Care / Opticals", icon: "👁️" },
+  { label: "Dental Care",         icon: "🦷" },
+  { label: "Thermometer",         icon: "🌡️" },
+  { label: "Stethoscope",         icon: "🩺" },
+  { label: "Injections / Vaccine",icon: "💉" },
+  { label: "Lab / Testing Kits",  icon: "🧪" },
+  // Kitchen & Food additions
+  { label: "Teapot / Kettle",     icon: "🫖" },
+  { label: "Tiffin / Lunchbox",   icon: "🍱" },
+  { label: "Spices / Masala",     icon: "🌶️" },
+  { label: "Salt / Condiments",   icon: "🧂" },
+  { label: "Jars / Pickles",      icon: "🫙" },
+  { label: "Canned Goods",        icon: "🥫" },
+  { label: "Cakes / Desserts",    icon: "🍰" },
+  { label: "Salads / Health Food",icon: "🥗" },
+  { label: "Noodles / Pasta",     icon: "🍜" },
+  { label: "Bread / Bakery",      icon: "🥐" },
+  { label: "Juices / Beverages",  icon: "🧃" },
+  // Home additions
+  { label: "Doors / Entry",       icon: "🚪" },
+  { label: "Windows / Curtains",  icon: "🪟" },
+  { label: "Chairs / Seating",    icon: "🪑" },
+  { label: "Wall Art / Frames",   icon: "🖼️" },
+  { label: "Baskets / Laundry",   icon: "🧺" },
+  { label: "Buckets / Mopping",   icon: "🪣" },
+  { label: "Shower / Bath",       icon: "🚿" },
+  { label: "Tissue / Paper",      icon: "🧻" },
+  { label: "Wood / Natural",      icon: "🪵" },
+  // Music & Arts
+  { label: "Microphone / Karaoke",icon: "🎤" },
+  { label: "Piano / Keyboard Inst",icon: "🎹" },
+  { label: "Drums",               icon: "🥁" },
+  { label: "Wind Instruments",    icon: "🎺" },
+  { label: "String Instruments",  icon: "🎻" },
+  { label: "Ukulele / Folk Music",icon: "🪕" },
+  { label: "Scissors / Craft",    icon: "✂️" },
+  { label: "Thread / Sewing",     icon: "🧵" },
+  { label: "Yarn / Knitting",     icon: "🧶" },
+  { label: "Paintbrush / Art",    icon: "🖌️" },
+  { label: "Costumes / Theater",  icon: "🎭" },
+  // Travel & Arts
+  { label: "Travel",              icon: "✈️" },
+  { label: "Railway / Train",     icon: "🚂" },
+  { label: "Trekking / Hiking",   icon: "🏔️" },
+  { label: "Beach Gear",          icon: "🏖️" },
+  { label: "Water Sports",        icon: "🌊" },
+  { label: "Maps / GPS",          icon: "🗺️" },
+  { label: "Art & Craft",         icon: "🎨" },
+  { label: "Music Instruments",   icon: "🎸" },
+  { label: "Movies / Media",      icon: "🎬" },
+  // Office & School
+  { label: "Notice Board / Pins", icon: "📌" },
+  { label: "Clips / Fasteners",   icon: "📎" },
+  { label: "Calculator",          icon: "🧮" },
+  { label: "Bookmarks / Planner", icon: "🔖" },
+  { label: "Ball Pen / Writing",  icon: "🖊️" },
+  { label: "School / Education",  icon: "🏫" },
+  // Pets additions
+  { label: "Aquarium / Fish",     icon: "🐠" },
+  { label: "Birds / Exotic Pets", icon: "🐦" },
+  { label: "Rabbits / Small Pets",icon: "🐇" },
+  { label: "Hamsters / Rodents",  icon: "🐹" },
+  // Kids additions
+  { label: "Science Toys",        icon: "🔭" },
+  { label: "Space / Tech Toys",   icon: "🚀" },
+  // Misc
+  { label: "Gifts",               icon: "🎁" },
+  { label: "Food & Grocery",      icon: "🛒" },
+  { label: "Garden & Plants",     icon: "🌱" },
+  { label: "Flowers / Floral",    icon: "🌺" },
+  { label: "Garden / Sunflower",  icon: "🌻" },
+  { label: "Ribbons / Gift Wrap", icon: "🎀" },
+  { label: "Magic / Novelty",     icon: "🪄" },
+  { label: "Eco / Sustainable",   icon: "♻️" },
+  { label: "Organic / Herbal",    icon: "🌿" },
+  { label: "Spiritual / Décor",   icon: "🧿" },
+  { label: "Featured / Special",  icon: "💫" },
+  { label: "Other / General",     icon: "🌟" },
 ];
 
 /* Resolve display value: returns { type:'emoji'|'img', value:string } */
@@ -82,6 +268,7 @@ export default function CategoryManagement() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting,     setDeleting]     = useState(false);
   const [iconTab,      setIconTab]      = useState("preset"); // "preset" | "upload"
+  const [iconSearch,   setIconSearch]   = useState("");
   const fileRef = useRef();
 
   const loadCategories = async () => {
@@ -102,6 +289,7 @@ export default function CategoryManagement() {
     setEditItem(null);
     setForm({ name: "", parentCatId: "", parentCatName: "", images: [] });
     setNameError("");
+    setIconSearch("");
     setModal(true);
   };
 
@@ -109,6 +297,7 @@ export default function CategoryManagement() {
     setEditItem(cat);
     setForm({ name: cat.name, parentCatId: cat.parentCatId ? String(cat.parentCatId) : "", parentCatName: cat.parentCatName || "", images: cat.images || [] });
     setNameError("");
+    setIconSearch("");
     setModal(true);
   };
 
@@ -322,9 +511,18 @@ export default function CategoryManagement() {
 
                 {iconTab === "preset" ? (
                   <div>
-                    <p className="text-[11px] text-gray-400 mb-2">Click an icon to select it for this category.</p>
-                    <div className="grid grid-cols-7 gap-1.5 max-h-[200px] overflow-y-auto pr-1">
-                      {PRESET_ICONS.map(({ icon, label }) => {
+                    <input
+                      type="text"
+                      value={iconSearch}
+                      onChange={(e) => setIconSearch(e.target.value)}
+                      placeholder="🔍  Search icons… (e.g. kitchen, sport)"
+                      className="w-full px-3 py-2 text-[12px] bg-[#F8FAFF] border border-gray-200 rounded-xl outline-none focus:border-[#1565C0] focus:ring-2 focus:ring-[#1565C0]/10 transition-all mb-2"
+                    />
+                    <div className="grid grid-cols-8 gap-1.5 max-h-[240px] overflow-y-auto pr-1">
+                      {(iconSearch.trim()
+                        ? PRESET_ICONS.filter(({ label }) => label.toLowerCase().includes(iconSearch.toLowerCase()))
+                        : PRESET_ICONS
+                      ).map(({ icon, label }) => {
                         const val = `emoji:${icon}`;
                         const selected = form.images?.[0] === val;
                         return (
@@ -343,6 +541,9 @@ export default function CategoryManagement() {
                           </button>
                         );
                       })}
+                      {iconSearch.trim() && PRESET_ICONS.filter(({ label }) => label.toLowerCase().includes(iconSearch.toLowerCase())).length === 0 && (
+                        <p className="col-span-8 text-center text-[11px] text-gray-400 py-4">No icons found for "{iconSearch}"</p>
+                      )}
                     </div>
                   </div>
                 ) : (
