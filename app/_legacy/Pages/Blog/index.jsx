@@ -20,7 +20,7 @@ const readingTime = (content) => {
 };
 
 /* Observes a grid container; when visible adds .is-visible to all children */
-function useRevealGrid() {
+function useRevealGrid(deps = []) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -36,7 +36,8 @@ function useRevealGrid() {
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
   return ref;
 }
 
@@ -158,7 +159,7 @@ const BlogListing = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const perPage = 9;
-  const gridRef = useRevealGrid();
+  const gridRef = useRevealGrid([blogs]);
 
   useEffect(() => {
     setBlogs(null);
