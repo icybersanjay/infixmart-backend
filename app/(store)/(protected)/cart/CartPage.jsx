@@ -405,10 +405,24 @@ const CartPage = () => {
               )}
 
               {belowMinOrder && !showMemberCTA && (
-                <div className='mt-4 p-3 rounded-md bg-amber-50 border border-amber-200 text-[12px] text-amber-800 leading-5'>
-                  Minimum order value is ₹{fmt(effectiveMinOrder)}. Add{' '}
-                  <span className='font-[700]'>₹{fmt(effectiveMinOrder - subtotal)}</span> more to checkout.
-                </div>
+                <>
+                  <div className='mt-4 p-3 rounded-md bg-amber-50 border border-amber-200 text-[12px] text-amber-800 leading-5'>
+                    Minimum order value is ₹{fmt(effectiveMinOrder)}. Add{' '}
+                    <span className='font-[700]'>₹{fmt(effectiveMinOrder - subtotal)}</span> more to checkout.
+                  </div>
+                  {isLogin && !isMember && membershipEnabled && (
+                    <button
+                      onClick={openMembershipModal}
+                      className='mt-2 w-full flex items-center justify-between gap-2 bg-gradient-to-r from-[#0D47A1] to-[#1565C0] text-white px-4 py-2.5 rounded-xl text-[12px] font-[600] hover:opacity-90 transition-opacity'
+                    >
+                      <span className='flex items-center gap-2'>
+                        <MdWorkspacePremium className='text-amber-300 text-[16px] flex-shrink-0' />
+                        <span>InfixPass members checkout from ₹499</span>
+                      </span>
+                      <span className='bg-amber-400 text-white text-[11px] font-[700] px-2 py-0.5 rounded-full whitespace-nowrap'>₹{membershipPrice || 49} only</span>
+                    </button>
+                  )}
+                </>
               )}
 
               {/* InfixPass CTA — shown when cart ₹499–₹998 and not a member */}

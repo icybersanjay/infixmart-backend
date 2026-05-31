@@ -12,8 +12,8 @@ import Spinner from '../../../_legacy/components/ui/Spinner';
 import { FaMapMarkerAlt, FaPlus, FaTrash, FaCheck, FaCreditCard, FaMobileAlt, FaUniversity, FaWallet, FaMoneyBillWave } from 'react-icons/fa';
 import useStoreSettings from '../../../_legacy/hooks/useStoreSettings';
 import { useForm, required, exactDigits, minLength } from '../../../_legacy/hooks/useForm';
-import { MdLocalShipping } from 'react-icons/md';
-import { BsFillBagCheckFill } from 'react-icons/bs';
+import { MdLocalShipping, MdWorkspacePremium } from 'react-icons/md';
+import { BsFillBagCheckFill, BsArrowRight } from 'react-icons/bs';
 import { IoClose } from 'react-icons/io5';
 
 const FREE_SHIPPING_THRESHOLD = 999;
@@ -155,13 +155,44 @@ const AddressForm = ({ onSave, onCancel, saving }) => {
 };
 
 // ─── Price summary sidebar ─────────────────────────────────────────────────────
-const PriceSummary = ({ cartItems, discount, couponMsg, couponStatus, gstAmount, gstPercent, milestoneShippingFree, shipping, walletDeduction }) => {
+const PriceSummary = ({ cartItems, discount, couponMsg, couponStatus, gstAmount, gstPercent, milestoneShippingFree, shipping, walletDeduction, isMember, membershipEnabled, membershipPrice, openMembershipModal }) => {
   const subtotal = cartItems.reduce((s, i) => s + (i.productId?.price || 0) * (i.quantity || 1), 0);
   const gst = gstAmount ?? 0;
   const total = Math.max(0, subtotal + gst + shipping - (discount || 0) - (walletDeduction || 0));
 
   return (
     <div className="bg-white rounded-lg border border-[rgba(0,0,0,0.08)] p-5 lg:sticky lg:top-[80px]">
+      {/* InfixPass banner for non-members */}
+      {!isMember && membershipEnabled && (
+        <div className="mb-4 rounded-xl overflow-hidden border border-blue-100">
+          <div className="bg-gradient-to-r from-[#0D47A1] to-[#1565C0] px-3 py-2 flex items-center gap-2">
+            <MdWorkspacePremium className="text-amber-400 text-[16px] flex-shrink-0" />
+            <span className="text-white text-[11px] font-[700]">InfixPass — Lifetime Membership</span>
+          </div>
+          <div className="bg-blue-50 px-3 py-2.5">
+            <p className="text-[11px] text-gray-600 mb-2 leading-4">
+              Get <span className="font-[700]">free delivery</span> on every order + checkout from just <span className="font-[700]">₹499</span>
+            </p>
+            <button
+              onClick={openMembershipModal}
+              className="w-full bg-[#1565C0] hover:bg-[#0D47A1] text-white py-2 rounded-lg font-[700] text-[12px] transition-colors flex items-center justify-center gap-1.5"
+            >
+              <MdWorkspacePremium className="text-amber-300 text-[14px]" />
+              Unlock InfixPass — ₹{membershipPrice || 49} only
+              <BsArrowRight className="text-[12px]" />
+            </button>
+          </div>
+        </div>
+      )}
+      {isMember && (
+        <div className="mb-4 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          <MdWorkspacePremium className="text-amber-500 text-[18px] flex-shrink-0" />
+          <div>
+            <p className="text-[11px] font-[700] text-amber-700">InfixPass Active</p>
+            <p className="text-[10px] text-amber-600">Free delivery applied</p>
+          </div>
+        </div>
+      )}
       <h3 className="text-[14px] font-[700] text-gray-800 mb-4 pb-3 border-b border-gray-100">Price Details</h3>
       <div className="space-y-3 text-[13px]">
         <div className="flex justify-between">
@@ -226,7 +257,7 @@ const Checkout = () => {
   const context = useContext(MyContext);
   const { cartItems, fetchCart } = useCart();
   const router = useRouter();
-  const { codEnabled, gstPercent, cartMilestones } = useStoreSettings();
+  const { codEnabled, gstPercent, cartMilestones, membershipEnabled, membershipPrice } = useStoreSettings();
 
   const [step, setStep] = useState(1);
 
@@ -866,6 +897,10 @@ const Checkout = () => {
               milestoneShippingFree={milestoneShippingFree}
               shipping={shipping}
               walletDeduction={walletDeduction}
+              isMember={Boolean(context?.userData?.is_member)}
+              membershipEnabled={membershipEnabled}
+              membershipPrice={membershipPrice}
+              openMembershipModal={context?.openMembershipModal}
             />
           </div>
         </div>

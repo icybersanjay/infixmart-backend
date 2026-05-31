@@ -9,10 +9,13 @@ import { MyContext } from "../../../_legacy/LegacyProviders";
 import { putData, postData, getData } from "../../../_legacy/utils/api";
 import { imgUrl } from "../../../_legacy/utils/imageUrl";
 import toast from "react-hot-toast";
+import useStoreSettings from "../../../_legacy/hooks/useStoreSettings";
+import { FaCheck, FaTruck } from "react-icons/fa";
+import { BsArrowRight } from "react-icons/bs";
 import {
   MdPerson, MdEmail, MdPhone, MdLock, MdEdit, MdSave, MdClose,
   MdShoppingBag, MdFavorite, MdLocationOn, MdAccountBalanceWallet,
-  MdVisibility, MdVisibilityOff, MdVerified,
+  MdVisibility, MdVisibilityOff, MdVerified, MdWorkspacePremium,
 } from "react-icons/md";
 const QUICK_LINKS = [
   { href: "/my-orders",  icon: MdShoppingBag,          label: "My Orders",      color: "bg-blue-50 text-[#1565C0]" },
@@ -50,6 +53,8 @@ function InputField({ label, icon: Icon, value, onChange, name, type = "text", d
 const MyAccount = ({ initialOrders = null }) => {
   const context = useContext(MyContext);
   const user = context?.userData;
+  const { membershipEnabled, membershipPrice } = useStoreSettings();
+  const isMember = Boolean(user?.is_member);
 
   const [editing, setEditing]   = useState(false);
   const [saving,  setSaving]    = useState(false);
@@ -349,6 +354,61 @@ const MyAccount = ({ initialOrders = null }) => {
                 </form>
               )}
             </div>
+
+            {/* InfixPass membership card */}
+            {membershipEnabled && (
+              isMember ? (
+                <div className="bg-gradient-to-br from-[#06266F] via-[#0D47A1] to-[#1565C0] rounded-2xl p-5 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <MdWorkspacePremium className="text-white text-[24px]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-white text-[15px] font-[800]">InfixPass Active</p>
+                      <span className="bg-amber-400 text-white text-[10px] font-[700] px-2 py-0.5 rounded-full">LIFETIME</span>
+                    </div>
+                    <p className="text-white/70 text-[12px]">Free delivery + ₹499 minimum on all orders</p>
+                    <div className="flex items-center gap-3 mt-2 text-[11px] text-white/60">
+                      <span className="flex items-center gap-1"><FaCheck className="text-green-400 text-[9px]" /> ₹499 min order</span>
+                      <span className="flex items-center gap-1"><FaTruck className="text-green-400 text-[9px]" /> Free delivery</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl overflow-hidden border border-blue-100 shadow-sm">
+                  <div className="bg-gradient-to-r from-[#0D47A1] to-[#1565C0] px-4 py-3 flex items-center gap-2">
+                    <MdWorkspacePremium className="text-amber-400 text-[20px] flex-shrink-0" />
+                    <div>
+                      <p className="text-white text-[13px] font-[800]">Upgrade to InfixPass</p>
+                      <p className="text-white/60 text-[11px]">Lifetime membership — pay once, benefit forever</p>
+                    </div>
+                    <span className="ml-auto bg-amber-400 text-white text-[12px] font-[800] px-3 py-1 rounded-full whitespace-nowrap">₹{membershipPrice || 49}</span>
+                  </div>
+                  <div className="bg-blue-50 px-4 py-3">
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      {[
+                        { icon: <FaCheck className="text-green-500 text-[9px]" />, label: "Shop from ₹499" },
+                        { icon: <FaTruck className="text-green-500 text-[9px]" />, label: "Free delivery always" },
+                        { icon: <MdWorkspacePremium className="text-amber-500 text-[10px]" />, label: "Priority support" },
+                        { icon: <FaCheck className="text-green-500 text-[9px]" />, label: "Lifetime validity" },
+                      ].map((b) => (
+                        <div key={b.label} className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                          {b.icon} {b.label}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={context?.openMembershipModal}
+                      className="w-full bg-[#1565C0] hover:bg-[#0D47A1] text-white py-2.5 rounded-xl font-[700] text-[13px] transition-colors flex items-center justify-center gap-2"
+                    >
+                      <MdWorkspacePremium className="text-amber-300 text-[16px]" />
+                      Get InfixPass — ₹{membershipPrice || 49} only
+                      <BsArrowRight />
+                    </button>
+                  </div>
+                </div>
+              )
+            )}
 
             {/* Quick Links */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
