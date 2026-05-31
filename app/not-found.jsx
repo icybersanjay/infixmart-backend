@@ -81,7 +81,7 @@ export default async function NotFound() {
               {topCategories.map((c) => (
                 <li key={c.id}>
                   <Link
-                    href={`/productListing?category=${c.id}`}
+                    href={`/productListing?category=${String(c.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`}
                     className="block px-3 py-3 rounded-xl bg-white border border-gray-100 hover:border-[#1565C0] hover:bg-[#F5F8FF] text-center text-[13px] font-[600] text-gray-700 hover:text-[#1565C0] transition-colors"
                   >
                     {c.name}

@@ -43,6 +43,15 @@ const flattenCategories = (cats, depth = 0) => {
   return result;
 };
 
+const toSlug = (name) =>
+  String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const slugToId = (slug, allCategories) => {
+  if (!slug) return '';
+  const flat = flattenCategories(allCategories);
+  return String(flat.find(c => toSlug(c.name) === slug)?.id || '');
+};
+
 /* ── Active filter chip ──────────────────────────────────────────────────── */
 const FilterChip = ({ label, onRemove }) => (
   <span className='inline-flex items-center gap-1.5 bg-[#EEF4FF] border border-[#C5D9F5] text-[#1565C0] text-[12px] font-[600] px-3 py-1 rounded-full'>
@@ -73,7 +82,7 @@ const TopFilterBar = ({
   const toggle = (name) => setOpen(prev => prev === name ? null : name);
 
   const flatCats = flattenCategories(categories);
-  const selectedCatName = flatCats.find(c => String(c.id) === selectedCatId)?.name;
+  const selectedCatName = flatCats.find(c => toSlug(c.name) === selectedCatId)?.name;
   const priceLabel = (appliedMin || appliedMax)
     ? `₹${appliedMin || '0'} – ₹${appliedMax || '∞'}`
     : 'Any';
@@ -106,9 +115,9 @@ const TopFilterBar = ({
                 {flatCats.map(cat => (
                   <button
                     key={cat.id}
-                    onClick={() => { handleCatChange(String(cat.id)); setOpen(null); }}
+                    onClick={() => { handleCatChange(toSlug(cat.name)); setOpen(null); }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-[13px] transition-colors ${
-                      selectedCatId === String(cat.id) ? 'bg-[#1565C0] text-white font-[700]' : 'text-gray-600 hover:bg-gray-50'
+                      selectedCatId === toSlug(cat.name) ? 'bg-[#1565C0] text-white font-[700]' : 'text-gray-600 hover:bg-gray-50'
                     }`}
                     style={{ paddingLeft: `${12 + cat.depth * 12}px` }}
                   >
@@ -276,8 +285,8 @@ const FilterPanel = ({
           <label key={cat.id} className='flex items-center gap-2.5 cursor-pointer group'>
             <input
               type='checkbox'
-              checked={selectedCatId === String(cat.id)}
-              onChange={() => handleCatChange(String(cat.id))}
+              checked={selectedCatId === toSlug(cat.name)}
+              onChange={() => handleCatChange(toSlug(cat.name))}
               className='accent-[#1565C0] w-4 h-4'
             />
             <span className='text-[13px] text-gray-700 group-hover:text-[#1565C0] transition-colors'>{cat.name}</span>
@@ -438,7 +447,7 @@ const ProductListing = ({
 
   const buildParams = useCallback((p = 1) => {
     const params = new URLSearchParams({ page: String(p), perPage: String(PER_PAGE) });
-    const catId = lockedCatId || selectedCatId;
+    const catId = lockedCatId || slugToId(selectedCatId, categories);
     if (catId) params.set('category', catId);
     if (appliedMin !== '') params.set('minPrice', appliedMin);
     if (appliedMax !== '') params.set('maxPrice', appliedMax);
@@ -449,7 +458,7 @@ const ProductListing = ({
     const search = searchParams.get('search');
     if (search) params.set('search', search);
     return params;
-  }, [lockedCatId, selectedCatId, appliedMin, appliedMax, selectedRating, inStockOnly, selectedBrand, sortBy, searchParams]);
+  }, [lockedCatId, selectedCatId, categories, appliedMin, appliedMax, selectedRating, inStockOnly, selectedBrand, sortBy, searchParams]);
 
   const fetchProducts = useCallback(() => {
     setProducts(null);
@@ -512,7 +521,7 @@ const ProductListing = ({
   const isEmpty   = !isLoading && products.length === 0;
 
   const activeCatName = selectedCatId
-    ? flattenCategories(categories).find(c => c.id == selectedCatId)?.name
+    ? flattenCategories(categories).find(c => toSlug(c.name) === selectedCatId)?.name
     : null;
   const seoTitle = activeCatName || 'All Products';
   const searchQuery = searchParams.get('search');

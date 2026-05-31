@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { getData, postData, putData } from "../../utils/api";
 import toast from "react-hot-toast";
+import AccountSidebar from "../../components/AccountSidebar";
+import AccountMobileNav from "../../components/AccountMobileNav";
 
 const REFERRAL_REWARD = 50;
 const PRESET_AMOUNTS = [100, 250, 500, 1000];
@@ -140,10 +142,16 @@ const Referral = () => {
   }
 
   return (
-    <section className="py-10 bg-[#F5F7FF] min-h-screen">
-      <div className="container max-w-2xl mx-auto">
+    <section className="w-full py-8 bg-[#F5F7FF] min-h-screen">
+      <div className="container">
+        <AccountMobileNav />
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="hidden md:block w-64 flex-shrink-0">
+            <AccountSidebar />
+          </div>
+          <div className="flex-1 min-w-0">
         <h1 className="text-[24px] font-[800] text-gray-900 mb-2">Refer & Earn</h1>
-        <p className="text-[14px] text-gray-500 mb-8">
+        <p className="text-[14px] text-gray-500 mb-6">
           Share your link — your friend gets{" "}
           <span className="font-[700] text-[#1565C0]">₹{REFERRAL_REWARD} off</span> on their first order,
           and you earn{" "}
@@ -256,6 +264,8 @@ const Referral = () => {
               ))}
             </div>
           )}
+        </div>
+          </div>
         </div>
       </div>
     </section>

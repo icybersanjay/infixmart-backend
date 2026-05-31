@@ -107,7 +107,7 @@ const Navigation = () => {
                   <button
                     key={cat.id ?? cat._id ?? cat.slug ?? cat.name ?? `category-${index}`}
                     role='option'
-                    onClick={() => { router.push(`/productListing?category=${cat.id}`); closeAll(); }}
+                    onClick={() => { router.push(`/productListing?category=${String(cat.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`); closeAll(); }}
                     className='w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-gray-700 hover:bg-[#EEF4FF] hover:text-[#1565C0] transition-colors text-left'
                   >
                     <span className='w-1.5 h-1.5 rounded-full bg-[#1565C0] flex-shrink-0' />
@@ -197,7 +197,7 @@ const Navigation = () => {
           {categories.slice(0, 4).map((cat, index) => (
             <button
               key={cat.id ?? cat._id ?? cat.slug ?? cat.name ?? `quick-category-${index}`}
-              onClick={() => router.push(`/productListing?category=${cat.id}`)}
+              onClick={() => router.push(`/productListing?category=${String(cat.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`)}
               className='flex-shrink-0 px-3.5 py-3 text-[13px] font-[500] text-white/80 hover:text-white border-b-2 border-transparent hover:border-white/30 transition-colors whitespace-nowrap'
             >
               {cat.name}

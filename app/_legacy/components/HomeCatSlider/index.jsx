@@ -68,7 +68,7 @@ const HomeCatSlider = () => {
               <SwiperSlide key={cat.id}>
                 <div
                   className='flex flex-col items-center py-3 cursor-pointer group'
-                  onClick={() => router.push(`/productListing?category=${cat.id}`)}
+                  onClick={() => router.push(`/productListing?category=${String(cat.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`)}
                 >
                   {/* Hexagon container */}
                   <div className='relative mb-3 transition-transform duration-300 group-hover:scale-110'>

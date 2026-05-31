@@ -3,6 +3,18 @@ import ProductListingPage from "../../_legacy/Pages/ProductListing/index.jsx";
 import { getAllProducts, getProductBrands } from "../../../lib/server/services/products.js";
 import { getAllCategories } from "../../../lib/server/services/categories.js";
 
+const toSlug = (name) =>
+  String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const flattenCats = (cats) => {
+  const result = [];
+  for (const cat of cats || []) {
+    result.push(cat);
+    if (cat.children?.length) result.push(...flattenCats(cat.children));
+  }
+  return result;
+};
+
 export const dynamic = "force-dynamic";
 
 export const metadata = {
@@ -57,11 +69,18 @@ export default async function Page({ searchParams }) {
   const sp = (await searchParams) || {};
   const filters = buildFiltersFromSearchParams(sp);
 
-  // Parallel server-side prefetch — biggest LCP win on the listing page.
-  const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-    safe(getAllProducts(filters),       { products: [], totalPages: 1, totalProducts: 0 }),
-    safe(getAllCategories(),            { categories: [] }),
-    safe(getProductBrands(),            { brands: [] }),
+  // Get categories first so we can resolve slug → numeric ID before fetching products.
+  const categoriesRes = await safe(getAllCategories(), { categories: [] });
+
+  if (filters.category && isNaN(Number(filters.category))) {
+    const flat = flattenCats(categoriesRes.categories || []);
+    const matched = flat.find(c => toSlug(c.name) === filters.category);
+    filters.category = matched ? String(matched.id) : '';
+  }
+
+  const [productsRes, brandsRes] = await Promise.all([
+    safe(getAllProducts(filters),  { products: [], totalPages: 1, totalProducts: 0 }),
+    safe(getProductBrands(),       { brands: [] }),
   ]);
 
   return (
