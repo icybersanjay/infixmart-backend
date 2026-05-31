@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { MdSearch, MdExpandMore, MdExpandLess, MdLocalShipping, MdCheckCircle, MdInventory, MdCancel, MdShoppingBag, MdFileDownload, MdContentCopy } from "react-icons/md";
+import { MdSearch, MdExpandMore, MdExpandLess, MdLocalShipping, MdCheckCircle, MdInventory, MdCancel, MdShoppingBag, MdFileDownload, MdContentCopy, MdReceipt, MdPrint, MdClose } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
 import adminAxios from "../_lib/adminAxios";
 import toast, { Toaster } from "react-hot-toast";
@@ -291,6 +291,216 @@ function OrderDetail({ order, onStatusUpdated }) {
   );
 }
 
+const inrFull = (n) =>
+  `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+function InvoiceModal({ order, onClose }) {
+  const a = readShippingAddress(order.shippingAddress);
+  let items = [];
+  try { items = Array.isArray(order.items) ? order.items : JSON.parse(order.items || "[]"); } catch {}
+  const subtotal = items.reduce((s, i) => s + (i.price || 0) * (i.qty || i.quantity || 1), 0);
+  const received = order.isPaid ? Number(order.totalPrice || 0) : 0;
+  const remaining = Number(order.totalPrice || 0) - received;
+
+  const handlePrint = () => {
+    const billTo = [a.flatHouse, a.areaStreet, a.townCity, a.state, a.pincode].filter(Boolean).join(", ");
+    const rows = items.map((item, idx) => {
+      const qty = item.qty || item.quantity || 1;
+      const price = item.price || 0;
+      return `<tr>
+        <td>${idx + 1}</td>
+        <td>${item.image ? `<img src="${item.image}" alt="" />` : "—"}</td>
+        <td>${item.name || "—"}</td>
+        <td>${item.variantName || "—"}</td>
+        <td>${item.variantSku || "—"}</td>
+        <td>${qty}</td>
+        <td>${inrFull(price)}</td>
+        <td>${inrFull(price * qty)}</td>
+      </tr>`;
+    }).join("");
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/>
+<title>Invoice #O-${order.id}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:36px;max-width:780px;margin:auto}
+  .logo{text-align:center;margin-bottom:4px;font-size:20px;font-weight:900;color:#1A237E}
+  .inv-title{text-align:center;font-size:17px;font-weight:800;color:#333;margin-bottom:6px}
+  hr{border:none;border-top:1px solid #e0e0e0;margin:14px 0}
+  .meta{display:flex;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+  .meta p{margin-bottom:5px;font-size:13px}
+  .meta .right{text-align:right}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px}
+  th{background:#f0f4ff;padding:8px 10px;text-align:left;font-weight:700;border:1px solid #d0d8f0;color:#1A237E;font-size:11px;text-transform:uppercase}
+  td{padding:8px 10px;border:1px solid #e0e8f8;vertical-align:middle}
+  td img{width:40px;height:40px;object-fit:cover;border-radius:4px;display:block}
+  .totals{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+  .pay-info p{margin-bottom:6px}
+  .pay-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-weight:700;font-size:12px}
+  .paid{background:#dcfce7;color:#16a34a}.unpaid{background:#fee2e2;color:#dc2626}
+  .total-box{text-align:right;min-width:180px}
+  .grand{font-size:17px;font-weight:900;color:#1A237E;border-top:2px solid #1A237E;padding-top:8px;margin-top:8px}
+  .thank{text-align:center;margin-top:28px;padding-top:14px;border-top:1px solid #eee;font-weight:700;color:#1565C0;font-size:13px}
+  @media print{body{padding:20px}}
+</style></head><body>
+<div class="logo">InfixMart</div>
+<div class="inv-title">Invoice #O-${order.id}</div>
+<hr/>
+<div class="meta">
+  <div>
+    <p><strong>Customer:</strong> ${a.name || order.user?.name || "—"}${a.mobile ? ` &nbsp;(${a.mobile})` : ""}</p>
+    ${order.user?.email ? `<p><strong>Email:</strong> ${order.user.email}</p>` : ""}
+    ${billTo ? `<p style="color:#555"><strong>Bill To:</strong> ${billTo}</p>` : ""}
+  </div>
+  <div class="right">
+    <p><strong>Order Date:</strong> ${fmtDate(order.createdAt)}</p>
+    <p><strong>Order #:</strong> O-${order.id}</p>
+  </div>
+</div>
+<table>
+  <thead>
+    <tr><th>#</th><th>Image</th><th>Name</th><th>Variant</th><th>Code / SKU</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="totals">
+  <div class="pay-info">
+    <p><strong>Payment Status:</strong> <span class="pay-badge ${order.isPaid ? "paid" : "unpaid"}">${order.isPaid ? "Paid" : "Unpaid"}</span></p>
+    <p><strong>Payment Method:</strong> ${order.paymentMethod || "COD"}</p>
+    <p><strong>Received:</strong> ${inrFull(received)}</p>
+    <p><strong>Remaining:</strong> ${inrFull(remaining)}</p>
+  </div>
+  <div class="total-box">
+    <p><strong>Subtotal:</strong> ${inrFull(subtotal)}</p>
+    <div class="grand">Total: ${inrFull(order.totalPrice)}</div>
+  </div>
+</div>
+<p class="thank">Thank you for your purchase!</p>
+</body></html>`;
+
+    const win = window.open("", "_blank", "width=860,height=700");
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 400);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="text-[15px] font-[800] text-[#1A237E]">Invoice #O-{order.id}</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#1565C0] text-white text-[13px] font-[600] rounded-xl hover:bg-[#1251A3] transition-colors"
+            >
+              <MdPrint className="text-[16px]" /> Print / Download PDF
+            </button>
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500 transition-colors">
+              <MdClose className="text-[18px]" />
+            </button>
+          </div>
+        </div>
+
+        {/* Invoice preview */}
+        <div className="p-6 sm:p-8">
+          {/* Store */}
+          <div className="text-center mb-6">
+            <div className="text-[22px] font-[900] text-[#1A237E] mb-1">InfixMart</div>
+            <div className="text-[17px] font-[800] text-gray-700">Invoice #O-{order.id}</div>
+            <div className="w-12 h-0.5 bg-[#1565C0] mx-auto mt-3" />
+          </div>
+
+          {/* Meta */}
+          <div className="flex flex-wrap justify-between gap-4 mb-6 text-[13px]">
+            <div className="space-y-1">
+              <p><span className="font-[700]">Customer:</span> {a.name || order.user?.name || "—"}{a.mobile ? ` (${a.mobile})` : ""}</p>
+              {order.user?.email && <p><span className="font-[700]">Email:</span> {order.user.email}</p>}
+              {[a.flatHouse, a.areaStreet, a.townCity, a.state, a.pincode].filter(Boolean).length > 0 && (
+                <p className="text-gray-500">{[a.flatHouse, a.areaStreet, a.townCity, a.state, a.pincode].filter(Boolean).join(", ")}</p>
+              )}
+            </div>
+            <div className="text-right space-y-1">
+              <p><span className="font-[700]">Order Date:</span> {fmtDate(order.createdAt)}</p>
+              <p><span className="font-[700]">Order #:</span> O-{order.id}</p>
+            </div>
+          </div>
+
+          {/* Items table */}
+          <div className="overflow-x-auto rounded-xl border border-gray-200 mb-6">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="bg-[#EEF4FF]">
+                  {["#", "Image", "Name", "Variant", "Code", "Qty", "Price", "Subtotal"].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-[11px] font-[700] text-[#1A237E] uppercase tracking-wider whitespace-nowrap border-b border-[#D0D8F0]">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, idx) => {
+                  const qty = item.qty || item.quantity || 1;
+                  const price = item.price || 0;
+                  return (
+                    <tr key={idx} className="border-b border-gray-100 last:border-0">
+                      <td className="px-3 py-2.5 text-gray-400">{idx + 1}</td>
+                      <td className="px-3 py-2.5">
+                        {item.image
+                          ? <img src={item.image} alt={item.name} className="w-9 h-9 rounded object-cover border border-gray-100" />
+                          : <div className="w-9 h-9 bg-gray-100 rounded flex items-center justify-center text-gray-300 text-[11px]">—</div>
+                        }
+                      </td>
+                      <td className="px-3 py-2.5 font-[500] text-gray-800 max-w-[160px]">
+                        <div className="truncate">{item.name}</div>
+                      </td>
+                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{item.variantName || "—"}</td>
+                      <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap font-mono text-[12px]">{item.variantSku || "—"}</td>
+                      <td className="px-3 py-2.5 text-gray-700 text-center">{qty}</td>
+                      <td className="px-3 py-2.5 text-gray-700 whitespace-nowrap">{inrFull(price)}</td>
+                      <td className="px-3 py-2.5 font-[700] text-[#1A237E] whitespace-nowrap">{inrFull(price * qty)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Payment + Totals */}
+          <div className="flex flex-wrap justify-between items-start gap-6">
+            <div className="space-y-2 text-[13px]">
+              <p>
+                <span className="font-[700]">Payment Status:</span>{" "}
+                {order.isPaid
+                  ? <span className="px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[12px] font-[700]">Paid</span>
+                  : <span className="px-2.5 py-0.5 bg-red-100 text-red-600 rounded-full text-[12px] font-[700]">Unpaid</span>
+                }
+              </p>
+              <p><span className="font-[700]">Payment Method:</span> {order.paymentMethod || "COD"}</p>
+              <p><span className="font-[700]">Received:</span> {inrFull(received)}</p>
+              <p><span className="font-[700]">Remaining:</span> {inrFull(remaining)}</p>
+            </div>
+            <div className="text-right min-w-[170px]">
+              <p className="text-[13px] mb-1"><span className="font-[700]">Subtotal:</span> {inrFull(subtotal)}</p>
+              <div className="border-t-2 border-[#1A237E] pt-2 mt-2">
+                <p className="text-[17px] font-[900] text-[#1A237E]">Total: {inrFull(order.totalPrice)}</p>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-[13px] font-[700] text-[#1565C0] mt-8 pt-5 border-t border-gray-100">
+            Thank you for your purchase!
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OrderManagement() {
   const router = useRouter();
   const pathname = usePathname();
@@ -309,6 +519,7 @@ export default function OrderManagement() {
   const [exportFrom, setExportFrom] = useState("");
   const [exportTo, setExportTo] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [invoiceOrder, setInvoiceOrder] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkBusy, setBulkBusy] = useState("");
   const debounceRef = useRef(null);
@@ -543,10 +754,16 @@ export default function OrderManagement() {
                         </td>
                         <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
                         <td className="px-4 py-3">
-                          <button onClick={() => setExpanded(isExpanded ? null : order.id)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 rounded-lg text-[12px] font-[500] text-[#1565C0] hover:bg-blue-100 transition-colors">
-                            {isExpanded ? <MdExpandLess /> : <MdExpandMore />} View
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button onClick={() => setExpanded(isExpanded ? null : order.id)}
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 rounded-lg text-[12px] font-[500] text-[#1565C0] hover:bg-blue-100 transition-colors">
+                              {isExpanded ? <MdExpandLess /> : <MdExpandMore />} View
+                            </button>
+                            <button onClick={() => setInvoiceOrder(order)}
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 rounded-lg text-[12px] font-[500] text-amber-700 hover:bg-amber-100 transition-colors whitespace-nowrap">
+                              <MdReceipt className="text-[14px]" /> Invoice
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -590,10 +807,16 @@ export default function OrderManagement() {
                           <span className="text-[14px] font-[800] text-gray-800">{inr(order.totalPrice)}</span>
                           <span className="ml-2 text-[11px] text-gray-400">{items.length} item{items.length !== 1 ? "s" : ""}</span>
                         </div>
-                        <button onClick={() => setExpanded(isExpanded ? null : order.id)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 rounded-lg text-[12px] font-[600] text-[#1565C0]">
-                          {isExpanded ? <MdExpandLess /> : <MdExpandMore />} Details
-                        </button>
+                        <div className="flex gap-1.5">
+                          <button onClick={() => setExpanded(isExpanded ? null : order.id)}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 rounded-lg text-[12px] font-[600] text-[#1565C0]">
+                            {isExpanded ? <MdExpandLess /> : <MdExpandMore />} Details
+                          </button>
+                          <button onClick={() => setInvoiceOrder(order)}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-amber-50 rounded-lg text-[12px] font-[600] text-amber-700">
+                            <MdReceipt className="text-[13px]" /> Invoice
+                          </button>
+                        </div>
                       </div>
                     </div>
                     {isExpanded && (
@@ -641,6 +864,8 @@ export default function OrderManagement() {
 
         <Pagination page={urlPage} totalPages={totalPages} onChange={(p) => writeUrl({ page: p })} />
       </div>
+
+      {invoiceOrder && <InvoiceModal order={invoiceOrder} onClose={() => setInvoiceOrder(null)} />}
     </div>
   );
 }
