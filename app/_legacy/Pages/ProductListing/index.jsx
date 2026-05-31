@@ -429,6 +429,11 @@ const ProductListing = ({
 
   const skipInitialFetchRef = useRef(initialProducts !== null);
 
+  // Sync selectedCatId when URL changes (e.g. nav category links do router.push without remounting)
+  useEffect(() => {
+    setSelectedCatId(searchParams.get('category') || '');
+  }, [searchParams]);
+
   const PER_PAGE = 20;
 
   useEffect(() => {
