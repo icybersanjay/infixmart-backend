@@ -213,7 +213,8 @@ export default function BlogManagement() {
       {/* Blog list */}
       {!showingForm && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="bg-[#F8FAFF] border-b border-gray-100">
@@ -266,6 +267,43 @@ export default function BlogManagement() {
                   ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden divide-y divide-gray-50">
+            {loading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="p-4 flex gap-3 animate-pulse">
+                    <div className="w-16 h-11 bg-gray-200 rounded-lg flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3.5 bg-gray-200 rounded w-3/4" />
+                      <div className="h-3 bg-gray-100 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))
+              : blogs.length === 0
+              ? <EmptyState icon={<MdArticle />} title="No blog posts yet" subtitle='Click "New Post" to publish your first article.' />
+              : blogs.map((blog) => (
+                  <div key={blog.id} className="p-4 flex gap-3">
+                    {blog.image
+                      ? <img src={imgUrl(blog.image)} alt={blog.title} className="w-16 h-11 object-cover rounded-lg border border-gray-200 flex-shrink-0" />
+                      : <div className="w-16 h-11 bg-[#E8EAF6] rounded-lg flex items-center justify-center text-[#7986CB] flex-shrink-0"><MdArticle className="text-[20px]" /></div>
+                    }
+                    <div className="flex-1 min-w-0">
+                      <p className="font-[700] text-[#1A237E] truncate text-[13px]">{blog.title}</p>
+                      <p className="text-[11px] text-gray-400 mb-1">{blog.author} · {fmtDate(blog.createdAt)}</p>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleTogglePublish(blog)}
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-[700] transition-colors ${blog.published ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                          {blog.published ? "Published" : "Draft"}
+                        </button>
+                        <button onClick={() => setEditing(blog)} className="p-1.5 bg-blue-50 text-[#1565C0] rounded-lg hover:bg-blue-100 transition-colors"><MdEdit className="text-[14px]" /></button>
+                        <button onClick={() => setDeleteTarget(blog)} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"><MdDelete className="text-[14px]" /></button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+            }
           </div>
         </div>
       )}

@@ -64,21 +64,51 @@ export default function ReturnManagement() {
     }
   };
 
-  return (
-    <div className="p-6">
-      <Toaster />
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-[20px] font-[700] text-gray-800">Return Requests</h1>
-          <p className="text-[13px] text-gray-500">Manage customer return and refund requests</p>
-        </div>
+  const ReturnActions = ({ ret }) => (
+    ret.status === "pending" ? (
+      <div className="flex items-center gap-2">
+        <button onClick={() => { setActionId({ id: ret.id, next: "approved" }); setNote(""); }}
+          className="flex items-center gap-1 px-2.5 py-1 text-[12px] font-[600] text-green-700 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+          <FaCheck className="text-[10px]" /> Approve
+        </button>
+        <button onClick={() => { setActionId({ id: ret.id, next: "rejected" }); setNote(""); }}
+          className="flex items-center gap-1 px-2.5 py-1 text-[12px] font-[600] text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+          <FaTimes className="text-[10px]" /> Reject
+        </button>
+      </div>
+    ) : ret.status === "approved" ? (
+      <div className="flex items-center gap-2 flex-wrap">
+        <button onClick={() => { setActionId({ id: ret.id, next: "completed" }); setNote("Refund processed"); }}
+          className="px-2.5 py-1 text-[12px] font-[600] text-[#1565C0] bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+          Mark Complete
+        </button>
+        <Link href={`/return-label/${ret.id}`} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1 px-2.5 py-1 text-[12px] font-[600] text-gray-500 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <FaPrint className="text-[10px]" /> Label
+        </Link>
+      </div>
+    ) : ret.status === "completed" ? (
+      <Link href={`/return-label/${ret.id}`} target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-1 px-2.5 py-1 text-[12px] font-[600] text-gray-500 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+        <FaPrint className="text-[10px]" /> Reprint
+      </Link>
+    ) : (
+      <span className="text-[12px] text-gray-300">—</span>
+    )
+  );
 
-        {/* Status filter */}
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:border-[#1565C0]"
-        >
+  return (
+    <div className="space-y-4">
+      <Toaster />
+
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[16px] font-[800] text-[#1A237E]">
+          Return Requests
+          {!loading && <span className="ml-2 text-[13px] font-[400] text-gray-400">({returns.length} total)</span>}
+        </h2>
+        <select value={filter} onChange={(e) => setFilter(e.target.value)}
+          className="border border-gray-200 rounded-xl px-3.5 py-2 text-[13px] text-gray-700 focus:outline-none focus:border-[#1565C0] bg-[#F8FAFF]">
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
@@ -87,111 +117,83 @@ export default function ReturnManagement() {
         </select>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {loading ? (
-          <table className="w-full">
-            <tbody>{Array.from({ length: 8 }).map((_, i) => <TableRowSkeleton key={i} cols={6} />)}</tbody>
-          </table>
+          <table className="w-full"><tbody>{Array.from({ length: 8 }).map((_, i) => <TableRowSkeleton key={i} cols={7} />)}</tbody></table>
         ) : returns.length === 0 ? (
           <EmptyState icon={<FaUndo />} title="No return requests" subtitle="Customer return requests will appear here." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-[13px] text-left text-gray-600">
-              <thead className="bg-gray-50 border-b border-gray-100 text-[11px] uppercase text-gray-500">
-                <tr>
-                  <th className="px-4 py-3">ID</th>
-                  <th className="px-4 py-3">Order</th>
-                  <th className="px-4 py-3">Customer</th>
-                  <th className="px-4 py-3">Reason</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {returns.map((ret) => (
-                  <tr key={ret.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-[600] text-gray-700">#{ret.id}</td>
-                    <td className="px-4 py-3 text-[#1565C0] font-[500]">#{ret.orderId}</td>
-                    <td className="px-4 py-3">
-                      <p className="font-[500] text-gray-800">{ret.user?.name || "—"}</p>
-                      <p className="text-[11px] text-gray-400">{ret.user?.email || ""}</p>
-                    </td>
-                    <td className="px-4 py-3 max-w-[200px]">
-                      <p className="line-clamp-2 text-gray-600">{ret.reason}</p>
-                      {ret.adminNote && (
-                        <p className="text-[11px] text-blue-500 mt-0.5 line-clamp-1">Note: {ret.adminNote}</p>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-gray-400">
-                      {new Date(ret.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-                    </td>
-                    <td className="px-4 py-3"><StatusBadge status={ret.status} /></td>
-                    <td className="px-4 py-3">
-                      {ret.status === "pending" ? (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => { setActionId({ id: ret.id, next: "approved" }); setNote(""); }}
-                            className="flex items-center gap-1 text-[12px] font-[600] text-green-600 hover:text-green-700 transition-colors"
-                          >
-                            <FaCheck className="text-[10px]" /> Approve
-                          </button>
-                          <button
-                            onClick={() => { setActionId({ id: ret.id, next: "rejected" }); setNote(""); }}
-                            className="flex items-center gap-1 text-[12px] font-[600] text-red-500 hover:text-red-600 transition-colors"
-                          >
-                            <FaTimes className="text-[10px]" /> Reject
-                          </button>
-                        </div>
-                      ) : ret.status === "approved" ? (
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => { setActionId({ id: ret.id, next: "completed" }); setNote("Refund processed"); }}
-                            className="text-[12px] font-[600] text-[#1565C0] hover:underline"
-                          >
-                            Mark Complete
-                          </button>
-                          <Link
-                            href={`/return-label/${ret.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-[12px] font-[600] text-gray-500 hover:text-[#1565C0] transition-colors"
-                          >
-                            <FaPrint className="text-[10px]" /> Label
-                          </Link>
-                        </div>
-                      ) : ret.status === "completed" ? (
-                        <Link
-                          href={`/return-label/${ret.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[12px] font-[600] text-gray-500 hover:text-[#1565C0] transition-colors"
-                        >
-                          <FaPrint className="text-[10px]" /> Reprint Label
-                        </Link>
-                      ) : (
-                        <span className="text-[12px] text-gray-300">—</span>
-                      )}
-                    </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-[13px] text-left text-gray-600">
+                <thead>
+                  <tr className="bg-[#F8FAFF] border-b border-gray-100">
+                    {["ID", "Order", "Customer", "Reason", "Date", "Status", "Actions"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-[11px] font-[700] uppercase tracking-wider text-gray-400 whitespace-nowrap">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {returns.map((ret) => (
+                    <tr key={ret.id} className="hover:bg-[#F8FAFF] transition-colors">
+                      <td className="px-4 py-3 font-[700] text-[#1A237E]">#{ret.id}</td>
+                      <td className="px-4 py-3 text-[#1565C0] font-[500]">#{ret.orderId}</td>
+                      <td className="px-4 py-3">
+                        <p className="font-[500] text-gray-800">{ret.user?.name || "—"}</p>
+                        <p className="text-[11px] text-gray-400">{ret.user?.email || ""}</p>
+                      </td>
+                      <td className="px-4 py-3 max-w-[200px]">
+                        <p className="line-clamp-2 text-gray-600">{ret.reason}</p>
+                        {ret.adminNote && <p className="text-[11px] text-blue-500 mt-0.5 line-clamp-1">Note: {ret.adminNote}</p>}
+                      </td>
+                      <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
+                        {new Date(ret.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                      </td>
+                      <td className="px-4 py-3"><StatusBadge status={ret.status} /></td>
+                      <td className="px-4 py-3"><ReturnActions ret={ret} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden divide-y divide-gray-50">
+              {returns.map((ret) => (
+                <div key={ret.id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[13px] font-[700] text-[#1A237E]">Return #{ret.id}</span>
+                      <span className="ml-2 text-[12px] text-[#1565C0] font-[500]">Order #{ret.orderId}</span>
+                    </div>
+                    <StatusBadge status={ret.status} />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-[500] text-gray-800">{ret.user?.name || "—"}</p>
+                    {ret.user?.email && <p className="text-[11px] text-gray-400">{ret.user.email}</p>}
+                  </div>
+                  <p className="text-[12px] text-gray-600 line-clamp-2">{ret.reason}</p>
+                  {ret.adminNote && <p className="text-[11px] text-blue-500">Note: {ret.adminNote}</p>}
+                  <p className="text-[11px] text-gray-400">
+                    {new Date(ret.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                  </p>
+                  <ReturnActions ret={ret} />
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-1.5 flex-wrap">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              onClick={() => fetch(p, filter)}
-              className={`w-8 h-8 rounded-full text-[13px] font-[600] border transition-colors ${
+            <button key={p} onClick={() => fetch(p, filter)}
+              className={`w-8 h-8 rounded-lg text-[13px] font-[600] border transition-colors ${
                 p === page ? "bg-[#1565C0] text-white border-[#1565C0]" : "border-gray-200 text-gray-600 hover:border-[#1565C0]"
-              }`}
-            >
+              }`}>
               {p}
             </button>
           ))}

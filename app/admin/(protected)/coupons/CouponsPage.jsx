@@ -106,7 +106,8 @@ export default function CouponManagement() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="bg-[#F8FAFF] border-b border-gray-100">
@@ -149,6 +150,52 @@ export default function CouponManagement() {
                 ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden">
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-4 border-b border-gray-50 space-y-2 animate-pulse">
+                  <div className="h-4 w-24 bg-gray-200 rounded" />
+                  <div className="h-3 w-36 bg-gray-100 rounded" />
+                </div>
+              ))
+            : coupons.length === 0
+            ? <EmptyState icon={<MdLocalOffer />} title="No coupons yet" subtitle="Create your first coupon to offer discounts." />
+            : coupons.map((c) => (
+                <div key={c.id} className="p-4 border-b border-gray-50 last:border-0 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[15px] font-[800] text-[#1A237E] tracking-wider">{c.code}</span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-[700] ${c.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {c.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[13px] font-[700] text-gray-800">
+                      {c.type === "percent" ? `${c.value}% off` : `${inr(c.value)} flat`}
+                    </span>
+                    <span className="text-[11px] text-gray-400 capitalize">{c.type}</span>
+                    {c.restrictionType === "first_order" && <span className="px-2 py-0.5 rounded-full text-[11px] font-[700] bg-amber-100 text-amber-700">First Order</span>}
+                    {c.restrictionType === "email" && <span className="px-2 py-0.5 rounded-full text-[11px] font-[700] bg-purple-100 text-purple-700">Email Only</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-[12px] text-gray-500">
+                    {c.minOrderValue > 0 && <span>Min: {inr(c.minOrderValue)}</span>}
+                    {c.maxDiscount && <span>Max disc: {inr(c.maxDiscount)}</span>}
+                    <span>{c.usageCount ?? 0}{c.usageLimit ? `/${c.usageLimit}` : ""} uses</span>
+                    {c.expiresAt && <span>Expires {fmtDate(c.expiresAt)}</span>}
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button onClick={() => openEdit(c)} className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-[#1565C0] rounded-lg text-[12px] font-[600] hover:bg-blue-100 transition-colors">
+                      <MdEdit className="text-[13px]" /> Edit
+                    </button>
+                    <button onClick={() => setDeleteTarget(c)} className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-500 rounded-lg text-[12px] font-[600] hover:bg-red-100 transition-colors">
+                      <MdDelete className="text-[13px]" /> Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+          }
         </div>
       </div>
 

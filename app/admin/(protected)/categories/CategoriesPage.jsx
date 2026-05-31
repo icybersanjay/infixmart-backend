@@ -383,7 +383,8 @@ export default function CategoryManagement() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="bg-[#F8FAFF] border-b border-gray-100">
@@ -445,6 +446,56 @@ export default function CategoryManagement() {
                   ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden divide-y divide-gray-50">
+          {loading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="p-4 flex items-center gap-3 animate-pulse">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 bg-gray-200 rounded w-1/2" />
+                    <div className="h-3 bg-gray-100 rounded w-1/3" />
+                  </div>
+                </div>
+              ))
+            : categories.length === 0
+            ? <EmptyState title="No categories yet" subtitle="Add your first category to organise products." actionLabel="Add Category" onAction={openAdd} />
+            : categories.map((cat) => {
+                const icon = resolveIcon(cat.images);
+                return (
+                  <div key={cat.id} className="p-4 flex items-center gap-3">
+                    {!icon ? (
+                      <div className="w-10 h-10 rounded-full bg-[#E8EAF6] flex items-center justify-center text-[#7986CB] text-[14px] font-[700] flex-shrink-0">
+                        {cat.name.charAt(0).toUpperCase()}
+                      </div>
+                    ) : icon.type === "emoji" ? (
+                      <div className="w-10 h-10 rounded-full bg-[#EEF4FF] flex items-center justify-center text-[1.5rem] flex-shrink-0">
+                        {icon.value}
+                      </div>
+                    ) : (
+                      <img src={icon.value} alt={cat.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[13px] ${cat.depth === 0 ? "font-[700] text-gray-800" : "font-[400] text-gray-600"}`}>
+                          {cat.depth > 0 && <span className="text-gray-300 mr-1">└ </span>}{cat.name}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-[700] ${DEPTH_BADGE[cat.depth] ?? DEPTH_BADGE[1]}`}>
+                          {DEPTH_LABEL[cat.depth] ?? "Sub"}
+                        </span>
+                      </div>
+                      {cat.parentCatName && <p className="text-[11px] text-gray-400 mt-0.5">{cat.parentCatName}</p>}
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button onClick={() => openEdit(cat)} className="p-1.5 bg-blue-50 text-[#1565C0] rounded-lg hover:bg-blue-100 transition-colors"><MdEdit className="text-[15px]" /></button>
+                      <button onClick={() => setDeleteTarget(cat)} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"><MdDelete className="text-[15px]" /></button>
+                    </div>
+                  </div>
+                );
+              })
+          }
         </div>
       </div>
 
