@@ -134,11 +134,12 @@ async function dispatchNativeRoute(request: NextRequest, segments: string[]) {
     const csv = await exportProductsCsv({
       status: searchParams.get("status") || "",
       category: searchParams.get("category") || "",
+      search: searchParams.get("search") || "",
     });
     return new Response(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="products-export-${Date.now()}.csv"`,
+        "Content-Disposition": `attachment; filename="meta-catalog-products-${Date.now()}.csv"`,
       },
     });
   }

@@ -28,6 +28,18 @@ async function requireAdminRequest(request: NextRequest): Promise<Id> {
 async function dispatch(request: NextRequest, segments: string[]) {
   const [first] = segments;
 
+  if (request.method === "GET" && first === "detail") {
+    await requireAdminRequest(request);
+    const { searchParams } = new URL(request.url);
+    const userId = Number(searchParams.get("userId"));
+    if (!userId) {
+      return fail(400, "User ID is required");
+    }
+    const { getCartItems } = await import("../../../../lib/server/services/cart.js");
+    const result = await getCartItems(userId);
+    return ok(result);
+  }
+
   if (request.method === "GET" && segments.length === 0) {
     await requireAdminRequest(request);
     const { searchParams } = new URL(request.url);

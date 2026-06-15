@@ -273,6 +273,29 @@ function escapeCsvField(val: unknown): string {
   return str.includes(",") || str.includes('"') || str.includes("\n") ? `"${str}"` : str;
 }
 
+function stripHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildPublicUrl(path: unknown): string {
+  const value = String(path ?? "").trim();
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.FRONTEND_URL ||
+    "https://infixmart.com"
+  ).replace(/\/+$/, "");
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${siteUrl}${value.startsWith("/") ? value : `/${value}`}`;
+}
+
+function formatCatalogPrice(value: unknown): string {
+  return `${Number(value || 0).toFixed(2)} INR`;
+}
+
 export async function exportOrdersCsv({
   from,
   to,
@@ -309,7 +332,8 @@ export async function exportOrdersCsv({
 export async function exportProductsCsv({
   status,
   category,
-}: { status?: string; category?: string } = {}) {
+  search,
+}: { status?: string; category?: string; search?: string } = {}) {
   const { listProducts } = await import("../repositories/products.js");
   const result = await listProducts({
     page: 1,
@@ -317,38 +341,39 @@ export async function exportProductsCsv({
     status: status || "active",
     includeAllStatuses: !status,
     category: category || "",
+    search: search || "",
   });
 
   const headers = [
-    "ID", "Name", "Slug", "SKU", "Status", "Brand", "Category", "Price ₹",
-    "Old Price ₹", "Discount %", "Stock", "Reorder ≤", "Rating",
-    "Views", "Purchases", "Featured", "Created",
+    "id",
+    "title",
+    "description",
+    "availability",
+    "condition",
+    "price",
+    "link",
+    "image_link",
+    "brand",
   ];
   const lines = [headers.join(",")];
 
   for (const p of result.products) {
+    const imageUrl = p.images && p.images.length > 0 ? buildPublicUrl(p.images[0]) : "";
     lines.push([
       p.id,
       escapeCsvField(p.name),
-      escapeCsvField(p.slug || ""),
-      escapeCsvField(p.sku || ""),
-      p.status || "active",
-      escapeCsvField(p.brand || ""),
-      escapeCsvField(p.catName || ""),
-      Number(p.price || 0).toFixed(2),
-      Number(p.oldprice || 0).toFixed(2),
-      Number(p.discount || 0),
-      Number(p.countInStock || 0),
-      Number(p.reorderThreshold ?? 5),
-      Number(p.rating || 0),
-      Number(p.viewCount || 0),
-      Number(p.purchaseCount || 0),
-      p.isFeatured ? "Yes" : "No",
-      p.createdAt ? new Date(p.createdAt as string | Date).toISOString().slice(0, 10) : "",
+      escapeCsvField(stripHtml(p.description || p.name)),
+      p.countInStock > 0 ? "in stock" : "out of stock",
+      "new",
+      formatCatalogPrice(p.price),
+      buildPublicUrl(`/product/${p.slug || p.id}`),
+      imageUrl,
+      escapeCsvField(p.brand || "InfixMart"),
     ].join(","));
   }
   return lines.join("\n");
 }
+
 
 export async function exportUsersCsv({ segment }: { segment?: string } = {}) {
   const { users } = await listUsers({ page: 1, perPage: 100000, search: "", segment: segment || "" });
