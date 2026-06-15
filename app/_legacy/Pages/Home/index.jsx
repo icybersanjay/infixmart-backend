@@ -515,7 +515,7 @@ const Newsletter = ({ config }) => {
    MAIN HOME
 ═══════════════════════════════════════════════════════════════════════════ */
 const SECTION_COMPONENTS = {
-  hero: ({ products, blogs, sectionData, initialSlides }) => <div className='w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[480px]'><HeroSlider initialSlides={initialSlides} /></div>,
+  hero: ({ products, blogs, sectionData, initialSlides }) => <div className='w-full h-[200px] sm:h-[300px] md:h-[400px] md:mt-2 lg:h-auto lg:aspect-[16/5] lg:max-h-[600px]'><HeroSlider initialSlides={initialSlides} /></div>,
   categories: ({ products, blogs, sectionData, initialCategories }) => <CategoryGrid initialCategories={initialCategories} />,
   price_tiers: ({ products, blogs, sectionData }) => <ShopByPrice items={sectionData.price_tiers} />,
   todays_deals: ({ products, blogs, sectionData }) => <TodaysBestDeals products={products} />,
