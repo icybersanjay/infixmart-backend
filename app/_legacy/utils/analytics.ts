@@ -13,7 +13,8 @@ declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
     fbq?: (...args: unknown[]) => void;
-    __infixFbqPageViewed?: boolean;
+    __infixLastPageViewKey?: string;
+    __infixPendingPageViewKey?: string;
   }
 }
 
@@ -44,11 +45,61 @@ function setConsent(state: ConsentState | string): void {
       ad_personalization: value,
     });
   }
-  if (value === "granted" && typeof window.fbq === "function" && !window.__infixFbqPageViewed) {
-    window.fbq("track", "PageView");
-    window.__infixFbqPageViewed = true;
-  }
   window.dispatchEvent(new CustomEvent("infix:consent", { detail: { value } }));
+}
+
+function getPageViewKey(path?: string): string {
+  if (typeof window === "undefined") return "/";
+  return path || `${window.location.pathname}${window.location.search}`;
+}
+
+function trackPageView(path?: string): void {
+  if (typeof window === "undefined") return;
+  if (!isConsentGranted()) return;
+
+  const key = getPageViewKey(path);
+  if (window.__infixLastPageViewKey === key) return;
+
+  const send = (): boolean => {
+    if (window.__infixLastPageViewKey === key) return true;
+
+    const url = new URL(key, window.location.origin);
+    let sent = false;
+
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "page_view", {
+        page_path: `${url.pathname}${url.search}`,
+        page_location: url.href,
+        page_title: document.title,
+      });
+      sent = true;
+    }
+
+    if (typeof window.fbq === "function") {
+      window.fbq("track", "PageView");
+      sent = true;
+    }
+
+    if (sent) {
+      window.__infixLastPageViewKey = key;
+      window.__infixPendingPageViewKey = undefined;
+    }
+
+    return sent;
+  };
+
+  if (send() || window.__infixPendingPageViewKey === key) return;
+
+  window.__infixPendingPageViewKey = key;
+  let attempts = 0;
+  const retry = () => {
+    attempts += 1;
+    if (send()) return;
+    if (attempts < 10 && window.__infixPendingPageViewKey === key) {
+      window.setTimeout(retry, 300);
+    }
+  };
+  window.setTimeout(retry, 300);
 }
 
 function gtagEvent(name: string, params: Record<string, unknown> = {}): void {
@@ -194,6 +245,7 @@ export {
   setConsent,
   trackAddToCart,
   trackBeginCheckout,
+  trackPageView,
   trackPurchase,
   trackSearch,
   trackViewItem,

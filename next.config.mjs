@@ -46,10 +46,10 @@ const contentSecurityPolicy =
         // 'unsafe-inline' kept because Next.js injects inline bootstrap scripts
         // without a CSP nonce. 'unsafe-eval' deliberately omitted — only needed
         // for dev HMR; Razorpay/Google/Workbox don't use eval in production.
-        "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://apis.google.com https://accounts.google.com",
+        "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://apis.google.com https://accounts.google.com https://www.googletagmanager.com https://connect.facebook.net",
         // ws: only used by Next dev-server HMR, so keep prod to wss: only.
         "connect-src 'self' https: wss:",
-        "frame-src 'self' https://*.razorpay.com https://accounts.google.com",
+        "frame-src 'self' https://*.razorpay.com https://accounts.google.com https://www.googletagmanager.com",
         "worker-src 'self' blob:",
         "manifest-src 'self'",
         "upgrade-insecure-requests",

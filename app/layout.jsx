@@ -29,9 +29,11 @@ import "./vendor/react-range-slider-input.css";
 import "swiper/css";
 import "swiper/css/navigation";
 
+import { Suspense } from "react";
 import LegacyProviders from "./_legacy/LegacyProviders.jsx";
 import TopProgressBar from "./_legacy/components/TopProgressBar";
 import CookieConsent from "./_legacy/components/CookieConsent";
+import AnalyticsPageViews from "./_legacy/components/AnalyticsPageViews";
 
 const siteUrl =
   process.env.FRONTEND_URL ||
@@ -99,6 +101,7 @@ const websiteJsonLd = {
   },
 };
 
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID;
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
@@ -122,6 +125,26 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
+        {GTM_ID && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        )}
+
+        {GTM_ID && (
+          <Script id="google-tag-manager" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: `
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','${GTM_ID}');
+          `}} />
+        )}
         {/* Suppress PWA install prompt — keep push notifications only */}
         <script dangerouslySetInnerHTML={{ __html: `window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();});` }} />
 
@@ -156,7 +179,7 @@ export default function RootLayout({ children }) {
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`} strategy="afterInteractive" />
             <Script id="ga4-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: `
               gtag('js', new Date());
-              gtag('config', '${GA4_ID}', { page_path: window.location.pathname });
+              gtag('config', '${GA4_ID}', { send_page_view: false });
             `}} />
           </>
         )}
@@ -172,13 +195,6 @@ export default function RootLayout({ children }) {
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${META_PIXEL_ID}');
-            try {
-              var stored = window.localStorage.getItem('infix_cookie_consent');
-              if (stored === 'granted') {
-                fbq('track', 'PageView');
-                window.__infixFbqPageViewed = true;
-              }
-            } catch(e) {}
           `}} />
         )}
 
@@ -189,6 +205,9 @@ export default function RootLayout({ children }) {
           <LegacyProviders>{children}</LegacyProviders>
         </div>
 
+        <Suspense fallback={null}>
+          <AnalyticsPageViews />
+        </Suspense>
         <CookieConsent />
       </body>
     </html>
