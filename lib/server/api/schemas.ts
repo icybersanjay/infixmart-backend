@@ -25,6 +25,9 @@ export const registerSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   email: emailSchema,
   password: passwordSchema,
+  referralCode: z.string().optional(),
+  childAccountId: z.string().nullable().optional(),
+  dob: z.string().nullable().optional(),
 });
 
 export const forgotPasswordSchema = z.object({

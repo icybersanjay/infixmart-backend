@@ -1,83 +1,195 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { CONSENT_KEY, readConsent, setConsent } from "../../utils/analytics";
+import { useEffect, useState, useContext } from "react";
+import { MyContext } from "../../LegacyProviders.jsx";
+import { setGranularConsent } from "../../utils/analytics";
 
-/**
- * Bottom-of-screen cookie consent banner. First visit shows it; the user's
- * choice (granted/denied) is persisted to localStorage and re-applied on
- * subsequent visits without showing the banner again.
- *
- * GA4 Consent Mode v2 picks up the choice via setConsent() in the helper.
- */
+// Native SHA-256 hashing helper using browser Web Crypto API
+async function sha256(message) {
+  if (!message) return "";
+  try {
+    const msgBuffer = new TextEncoder().encode(message.trim().toLowerCase());
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  } catch (error) {
+    console.error("[DPDPAShield] Hashing error:", error);
+    return "";
+  }
+}
+
 export default function CookieConsent() {
-  const [visible, setVisible] = useState(false);
+  const context = useContext(MyContext) || {};
+  const { userData, isLogin } = context;
+  const [purposes, setPurposes] = useState([]);
+  const [emailHash, setEmailHash] = useState("");
 
+  const apiKey = process.env.NEXT_PUBLIC_DPDPA_API_KEY;
+  const isDemo = !apiKey || apiKey === "dpdpa_live_your_public_key_here";
+
+  // Compute if the logged in user is a child/minor under 18
+  const isChild = (() => {
+    if (!userData) return false;
+    if (userData.childAccountId) return true;
+    if (userData.dob) {
+      const birthDate = new Date(userData.dob);
+      if (isNaN(birthDate.getTime())) return false;
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age < 18;
+    }
+    return false;
+  })();
+
+  // Set child user flag in local storage and force opt-out of optional tracking
   useEffect(() => {
-    const current = readConsent();
-    // Show banner only when no decision has been recorded yet.
-    if (!current) {
-      setVisible(true);
+    if (isChild) {
+      try {
+        window.localStorage.setItem("infix_is_child_user", "true");
+      } catch {}
+      setGranularConsent({ analytics: false, marketing: false });
+    } else {
+      try {
+        window.localStorage.removeItem("infix_is_child_user");
+      } catch {}
+    }
+  }, [isChild]);
+
+  // 1. Fetch active notice purposes for dynamic GA4 mapping (skip for minors)
+  useEffect(() => {
+    if (isDemo || isChild) return;
+
+    fetch(`https://api.dpdpashield.in/api/v1/consent/public-notice?apiKey=${apiKey}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json?.data?.purposes) {
+          setPurposes(json.data.purposes);
+        }
+      })
+      .catch((err) => {
+        console.error("[DPDPAShield] Failed to fetch notice purposes:", err);
+      });
+  }, [apiKey, isDemo, isChild]);
+
+  // 2. Hash email client-side when user logs in (skip for minors)
+  useEffect(() => {
+    if (isChild) {
+      setEmailHash("");
       return;
     }
-    // If user previously chose, ensure GA4 reflects it on each load.
-    setConsent(current === "granted" ? "granted" : "denied");
+    if (isLogin && userData?.email) {
+      sha256(userData.email).then((hash) => {
+        if (hash) setEmailHash(hash);
+      });
+    } else {
+      setEmailHash("");
+    }
+  }, [isLogin, userData, isChild]);
 
-    // Detect a fresh "no value" via storage probe — readConsent treats
-    // missing as "denied" but we want the banner to show on a fresh browser.
-    try {
-      if (window.localStorage.getItem(CONSENT_KEY) == null) {
-        setVisible(true);
+  // 3. Initialize/update DPDPA Shield Consent Widget (skip for minors)
+  useEffect(() => {
+    if (isChild) return;
+    let attempts = 0;
+
+    function initWidget() {
+      if (typeof window === "undefined") return;
+
+      if (window.DPDPAShield) {
+        window.DPDPAShield.init({
+          apiKey: isDemo ? "demo" : apiKey,
+          position: "bottom-right",
+          demo: isDemo,
+          identifierHash: emailHash || undefined,
+          onConsent: function (result) {
+            if (!result) return;
+            console.log(
+              "[DPDPAShield] Consent recorded:",
+              result.consentRecordId,
+              "lang:",
+              result.language,
+              "status:",
+              result.status
+            );
+
+            // Handle Dynamic Mapping to GA4 Consent Mode v2 and Meta Pixel
+            let analytics = false;
+            let marketing = false;
+
+            if (result.status === "ACCEPTED") {
+              analytics = true;
+              marketing = true;
+            } else if (result.status === "REJECTED") {
+              analytics = false;
+              marketing = false;
+            } else if (result.consents) {
+              // PARTIAL consent status: map based on notice purposes
+              Object.entries(result.consents).forEach(([purposeId, consented]) => {
+                if (!consented) return;
+
+                // Find purpose details from our fetched notice purposes
+                const detail = purposes.find((p) => p.id === purposeId);
+                if (detail) {
+                  const name = (detail.name || "").toLowerCase();
+                  const desc = (detail.description || "").toLowerCase();
+                  const categories = (detail.dataCategories || []).map((c) =>
+                    String(c).toLowerCase()
+                  );
+
+                  const isAnalyticsField =
+                    name.includes("analytics") ||
+                    name.includes("tracking") ||
+                    desc.includes("analytics") ||
+                    desc.includes("tracking") ||
+                    categories.some(
+                      (c) =>
+                        c.includes("analytics") ||
+                        c.includes("usage") ||
+                        c.includes("device")
+                    );
+
+                  const isMarketingField =
+                    name.includes("marketing") ||
+                    name.includes("ads") ||
+                    name.includes("advertise") ||
+                    name.includes("promotion") ||
+                    desc.includes("marketing") ||
+                    desc.includes("ads") ||
+                    desc.includes("advertise") ||
+                    desc.includes("promotion") ||
+                    categories.some(
+                      (c) =>
+                        c.includes("marketing") ||
+                        c.includes("ads") ||
+                        c.includes("ad_data")
+                    );
+
+                  if (isAnalyticsField) analytics = true;
+                  if (isMarketingField) marketing = true;
+                } else {
+                  // Fallback if notice details haven't finished loading yet:
+                  // treat any toggle as analytics/marketing
+                  analytics = true;
+                  marketing = true;
+                }
+              });
+            }
+
+            // Sync states to local storage and trigger GA4/Meta Pixel consent update
+            setGranularConsent({ analytics, marketing });
+          },
+        });
+      } else if (attempts < 50) {
+        attempts++;
+        setTimeout(initWidget, 100);
       }
-    } catch {}
-  }, []);
+    }
 
-  if (!visible) return null;
+    initWidget();
+  }, [apiKey, isDemo, emailHash, purposes]);
 
-  const handleAccept = () => {
-    setConsent("granted");
-    setVisible(false);
-  };
-
-  const handleReject = () => {
-    setConsent("denied");
-    setVisible(false);
-  };
-
-  return (
-    <div
-      role="dialog"
-      aria-live="polite"
-      aria-label="Cookie consent"
-      className="fixed bottom-0 left-0 right-0 z-[60] px-3 sm:px-6 pb-3 sm:pb-5 pointer-events-none"
-    >
-      <div className="pointer-events-auto mx-auto max-w-3xl bg-white border border-gray-100 rounded-2xl shadow-2xl px-4 sm:px-5 py-4 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div className="text-[20px] flex-shrink-0">🍪</div>
-        <div className="text-[12.5px] sm:text-[13px] text-gray-700 leading-relaxed flex-1 min-w-0">
-          We use cookies to keep the site working and, with your permission, to understand how visitors use it (Google Analytics + Meta Pixel).{" "}
-          <Link href="/privacy-policy" className="text-[#1565C0] font-[600] hover:underline">
-            Privacy policy
-          </Link>
-          .
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0 self-stretch sm:self-auto">
-          <button
-            type="button"
-            onClick={handleReject}
-            className="flex-1 sm:flex-none h-9 px-4 text-[12px] font-[600] text-gray-600 hover:text-gray-800 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
-          >
-            Reject
-          </button>
-          <button
-            type="button"
-            onClick={handleAccept}
-            className="flex-1 sm:flex-none h-9 px-4 text-[12px] font-[700] text-white bg-[#1565C0] hover:bg-[#0D47A1] rounded-lg transition-colors"
-          >
-            Accept all
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }

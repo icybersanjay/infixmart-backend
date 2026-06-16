@@ -21,6 +21,11 @@ declare global {
 function readConsent(): ConsentState {
   if (typeof window === "undefined") return "denied";
   try {
+    if (window.localStorage.getItem("infix_is_child_user") === "true") {
+      return "denied";
+    }
+    const granular = window.localStorage.getItem("infix_cookie_consent_analytics");
+    if (granular) return granular as ConsentState;
     return (window.localStorage.getItem(CONSENT_KEY) as ConsentState) || "denied";
   } catch {
     return "denied";
@@ -28,24 +33,47 @@ function readConsent(): ConsentState {
 }
 
 function isConsentGranted(): boolean {
+  if (typeof window !== "undefined") {
+    try {
+      if (window.localStorage.getItem("infix_is_child_user") === "true") {
+        return false;
+      }
+    } catch {}
+  }
   return readConsent() === "granted";
+}
+
+function setGranularConsent(consents: { analytics: boolean; marketing: boolean }): void {
+  if (typeof window === "undefined") return;
+
+  let isChild = false;
+  try {
+    isChild = window.localStorage.getItem("infix_is_child_user") === "true";
+  } catch {}
+
+  const analyticsValue: ConsentState = (consents.analytics && !isChild) ? "granted" : "denied";
+  const marketingValue: ConsentState = (consents.marketing && !isChild) ? "granted" : "denied";
+  try {
+    window.localStorage.setItem("infix_cookie_consent_analytics", analyticsValue);
+    window.localStorage.setItem("infix_cookie_consent_marketing", marketingValue);
+    window.localStorage.setItem(CONSENT_KEY, analyticsValue);
+  } catch {}
+
+  if (typeof window.gtag === "function") {
+    window.gtag("consent", "update", {
+      analytics_storage: analyticsValue,
+      ad_storage: marketingValue,
+      ad_user_data: marketingValue,
+      ad_personalization: marketingValue,
+    });
+  }
+  window.dispatchEvent(new CustomEvent("infix:consent", { detail: { value: analyticsValue } }));
 }
 
 function setConsent(state: ConsentState | string): void {
   if (typeof window === "undefined") return;
   const value: ConsentState = state === "granted" ? "granted" : "denied";
-  try {
-    window.localStorage.setItem(CONSENT_KEY, value);
-  } catch {}
-  if (typeof window.gtag === "function") {
-    window.gtag("consent", "update", {
-      analytics_storage: value,
-      ad_storage: value,
-      ad_user_data: value,
-      ad_personalization: value,
-    });
-  }
-  window.dispatchEvent(new CustomEvent("infix:consent", { detail: { value } }));
+  setGranularConsent({ analytics: value === "granted", marketing: value === "granted" });
 }
 
 function getPageViewKey(path?: string): string {
@@ -243,6 +271,7 @@ export {
   isConsentGranted,
   readConsent,
   setConsent,
+  setGranularConsent,
   trackAddToCart,
   trackBeginCheckout,
   trackPageView,

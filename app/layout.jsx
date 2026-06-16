@@ -157,13 +157,21 @@ export default function RootLayout({ children }) {
               window.gtag = gtag;
               // Re-apply persisted choice early so GA4 starts with the right state.
               try {
-                var stored = window.localStorage.getItem('infix_cookie_consent');
-                var state = stored === 'granted' ? 'granted' : 'denied';
+                var isChild = window.localStorage.getItem('infix_is_child_user') === 'true';
+                var storedAnalytics = window.localStorage.getItem('infix_cookie_consent_analytics');
+                var storedMarketing = window.localStorage.getItem('infix_cookie_consent_marketing');
+                if (storedAnalytics == null && storedMarketing == null) {
+                  var legacy = window.localStorage.getItem('infix_cookie_consent');
+                  storedAnalytics = legacy;
+                  storedMarketing = legacy;
+                }
+                var analyticsState = (storedAnalytics === 'granted' && !isChild) ? 'granted' : 'denied';
+                var marketingState = (storedMarketing === 'granted' && !isChild) ? 'granted' : 'denied';
                 gtag('consent', 'default', {
-                  analytics_storage: state,
-                  ad_storage: state,
-                  ad_user_data: state,
-                  ad_personalization: state,
+                  analytics_storage: analyticsState,
+                  ad_storage: marketingState,
+                  ad_user_data: marketingState,
+                  ad_personalization: marketingState,
                   wait_for_update: 500,
                 });
               } catch (e) {
@@ -198,17 +206,25 @@ export default function RootLayout({ children }) {
           `}} />
         )}
 
+        {/* ── DPDPA Shield Compliance Widget ── */}
+        <Script
+          src="https://cdn.dpdpashield.in/sdk.js"
+          strategy="afterInteractive"
+        />
+
         <TopProgressBar />
 
         {/* #page-wrapper clips horizontal overflow WITHOUT breaking position:sticky */}
         <div id="page-wrapper">
-          <LegacyProviders>{children}</LegacyProviders>
+          <LegacyProviders>
+            {children}
+            <CookieConsent />
+          </LegacyProviders>
         </div>
 
         <Suspense fallback={null}>
           <AnalyticsPageViews />
         </Suspense>
-        <CookieConsent />
       </body>
     </html>
   );

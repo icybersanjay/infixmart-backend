@@ -196,6 +196,8 @@ export interface UserRow {
   lockedUntil: SqlDateTime | null;
   lastFailedLoginAt: SqlDateTime | null;
   deletedAt: SqlDateTime | null;
+  childAccountId: string | null;
+  dob: string | null;
   createdAt: SqlDateTime;
   updatedAt: SqlDateTime;
 }

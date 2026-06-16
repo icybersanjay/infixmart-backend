@@ -28,6 +28,8 @@ const USER_SELECT = `
   referralCode,
   referredBy,
   walletBalance,
+  childAccountId,
+  dob,
   createdAt,
   updatedAt
 `;
@@ -57,6 +59,8 @@ const USER_UPDATE_COLUMNS = new Set<string>([
   "referralCode",
   "referredBy",
   "walletBalance",
+  "childAccountId",
+  "dob",
 ]);
 
 type UserDbRow = UserRow & RowDataPacket;
@@ -167,6 +171,8 @@ export interface CreateUserPayload {
   role?: string;
   referralCode?: string | null;
   referredBy?: Id | null;
+  childAccountId?: string | null;
+  dob?: string | null;
 }
 
 export async function createUser({
@@ -187,6 +193,8 @@ export async function createUser({
   role = "user",
   referralCode = null,
   referredBy = null,
+  childAccountId = null,
+  dob = null,
 }: CreateUserPayload): Promise<MappedUser | null> {
   const result = await execute(
     `INSERT INTO Users (
@@ -207,6 +215,8 @@ export async function createUser({
       role,
       referralCode,
       referredBy,
+      childAccountId,
+      dob,
       createdAt,
       updatedAt
     ) VALUES (
@@ -227,6 +237,8 @@ export async function createUser({
       :role,
       :referralCode,
       :referredBy,
+      :childAccountId,
+      :dob,
       NOW(),
       NOW()
     )`,
@@ -248,6 +260,8 @@ export async function createUser({
       role,
       referralCode,
       referredBy,
+      childAccountId,
+      dob,
     }
   );
 

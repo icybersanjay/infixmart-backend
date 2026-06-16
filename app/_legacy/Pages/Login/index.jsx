@@ -115,28 +115,69 @@ const Login = () => {
   });
 
   return (
-    <section className="min-h-[calc(100vh-140px)] flex items-center justify-center py-10 bg-[#F0F5FF]">
+    <section className="min-h-[calc(100vh-140px)] flex items-center justify-center py-10 lg:py-16 bg-[#F5F8FF] px-4">
       <SEO title="Login" url="/login" noIndex />
-      <div className="w-full max-w-[440px] mx-auto px-4">
-
-        {/* Card */}
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-
-          {/* Brand header */}
-          <div className="bg-gradient-to-br from-[#1565C0] to-[#0D47A1] px-8 pt-8 pb-7 text-white">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <MdOutlineShoppingBag className="text-[20px] text-white" />
+      <div className="w-full max-w-[1000px] bg-white rounded-[32px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        
+        {/* Left Side: Premium Info Panel */}
+        <div className="w-full md:w-[45%] bg-gradient-to-br from-[#0D47A1] via-[#1565C0] to-[#1E88E5] p-8 sm:p-12 text-white flex flex-col justify-between relative overflow-hidden">
+          {/* Subtle overlay shape for depth */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-black/10 rounded-full -ml-24 -mb-24 blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10">
+            {/* Brand Logo */}
+            <div className="flex items-center gap-3 mb-10">
+              <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                <MdOutlineShoppingBag className="text-[22px] text-white" />
               </div>
-              <span className="text-[20px] font-[900] tracking-tight">InfixMart</span>
+              <span className="text-[22px] font-[900] tracking-tight">InfixMart</span>
             </div>
-            <h1 className="text-[22px] font-[800] leading-snug">Welcome back</h1>
-            <p className="text-white/70 text-[13px] mt-1">Sign in to your wholesale account</p>
+
+            <h2 className="text-[26px] sm:text-[32px] font-[900] leading-tight mb-4 tracking-tight">
+              India's Premier Wholesale Hub
+            </h2>
+            <p className="text-white/85 text-[14px] leading-relaxed mb-8 font-[500]">
+              Unlock factory-direct bulk pricing, verified suppliers, and seamless bulk ordering.
+            </p>
+
+            {/* Feature List */}
+            <div className="flex flex-col gap-5">
+              {[
+                { icon: "🏷️", title: "Factory-Direct Pricing", desc: "Bulk products starting from ₹29" },
+                { icon: "🚚", title: "Free Shipping Above ₹999", desc: "Delivered straight to your shop doorstep" },
+                { icon: "🛡️", title: "DPDPA 2023 Compliant", desc: "Your data is strictly processed with consent" },
+              ].map((f, i) => (
+                <div key={i} className="flex gap-3.5 items-start">
+                  <span className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[16px] backdrop-blur-sm flex-shrink-0">
+                    {f.icon}
+                  </span>
+                  <div>
+                    <h4 className="text-[13.5px] font-[700] text-white">{f.title}</h4>
+                    <p className="text-white/70 text-[12px] mt-0.5 font-[500]">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Form */}
-          <div className="px-8 py-7">
-            <form onSubmit={handleSubmit} noValidate>
+          {/* Footer of panel */}
+          <div className="mt-12 relative z-10 pt-6 border-t border-white/15">
+            <p className="text-[11.5px] text-white/60 font-[500] leading-relaxed">
+              Join 10,000+ wholesale buyers scaling their margins daily across India.
+            </p>
+          </div>
+        </div>
+
+        {/* Right Side: Form Panel */}
+        <div className="flex-1 p-8 sm:p-12 flex flex-col justify-center bg-white">
+          <div className="w-full max-w-[360px] mx-auto">
+            <div className="mb-8">
+              <h1 className="text-[24px] font-[800] text-gray-900 leading-snug">Welcome back</h1>
+              <p className="text-gray-500 text-[13.5px] mt-1 font-[500]">Sign in to your wholesale account</p>
+            </div>
+
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
               {/* Email */}
               <Field
                 label="Email address"
@@ -152,11 +193,10 @@ const Login = () => {
                 onBlur={handleBlur}
                 error={!!errors.email}
                 helperText={errors.email}
-                className="mb-4"
               />
 
               {/* Password */}
-              <div className="mb-2">
+              <div className="relative">
                 <Field
                   label="Password"
                   icon={FiLock}
@@ -173,7 +213,7 @@ const Login = () => {
                 >
                   <button
                     type="button"
-                    className="absolute right-3 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-3.5 top-[37px] text-gray-400 hover:text-gray-600 transition-colors"
                     onClick={() => setIsShowPassword(!isShowPassword)}
                     aria-label={isShowPassword ? "Hide password" : "Show password"}
                   >
@@ -183,11 +223,11 @@ const Login = () => {
               </div>
 
               {/* Forgot password */}
-              <div className="flex justify-end mb-5">
+              <div className="flex justify-end -mt-1.5">
                 <button
                   type="button"
                   onClick={forgotPassword}
-                  className="text-[12px] font-[600] text-[#1565C0] hover:underline"
+                  className="text-[12px] font-[700] text-[#1565C0] hover:underline"
                 >
                   Forgot password?
                 </button>
@@ -197,7 +237,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading || hasErrors}
-                className="w-full h-[48px] bg-gradient-to-r from-[#1565C0] to-[#0D47A1] text-white font-[700] text-[15px] rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed hover:from-[#0D47A1] hover:to-[#1565C0] transition-all shadow-lg shadow-blue-200 active:scale-[0.98]"
+                className="w-full h-[48px] mt-2 bg-gradient-to-r from-[#1565C0] to-[#0D47A1] text-white font-[700] text-[15px] rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed hover:from-[#0D47A1] hover:to-[#1565C0] transition-all shadow-lg shadow-blue-100 active:scale-[0.98]"
               >
                 {isLoading ? (
                   <Spinner size={20} className="text-white" />
@@ -207,10 +247,10 @@ const Login = () => {
               </button>
 
               {/* Divider */}
-              <div className="flex items-center gap-3 my-5">
-                <span className="flex-1 h-px bg-gray-200" />
-                <span className="text-[11px] font-[600] text-gray-400 uppercase tracking-wider">or</span>
-                <span className="flex-1 h-px bg-gray-200" />
+              <div className="flex items-center gap-3 my-4">
+                <span className="flex-1 h-px bg-gray-150" />
+                <span className="text-[11px] font-[700] text-gray-400 uppercase tracking-wider">or</span>
+                <span className="flex-1 h-px bg-gray-150" />
               </div>
 
               {/* Google */}
@@ -218,7 +258,7 @@ const Login = () => {
                 type="button"
                 disabled={isGoogleLoading}
                 onClick={() => loginWithGoogle()}
-                className="w-full h-[46px] flex items-center justify-center gap-2.5 border-2 border-gray-200 rounded-xl text-[14px] font-[600] text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all disabled:opacity-60"
+                className="w-full h-[46px] flex items-center justify-center gap-2.5 border-2 border-gray-200 rounded-xl text-[14px] font-[700] text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all disabled:opacity-60"
               >
                 {isGoogleLoading ? (
                   <Spinner size={18} className="text-gray-500" />
@@ -230,21 +270,15 @@ const Login = () => {
             </form>
 
             {/* Register link */}
-            <p className="text-center text-[13px] text-gray-500 mt-5">
+            <p className="text-center text-[13.5px] text-gray-500 mt-6 font-[500]">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="font-[700] text-[#1565C0] hover:underline">
+              <Link href="/register" className="font-[750] text-[#1565C0] hover:underline">
                 Create account
               </Link>
             </p>
           </div>
         </div>
 
-        {/* Trust strip */}
-        <div className="flex items-center justify-center gap-6 mt-5">
-          {["🔒 SSL secured", "✅ 10,000+ buyers", "🏷️ Wholesale prices"].map(t => (
-            <span key={t} className="text-[11px] text-gray-400 font-[500]">{t}</span>
-          ))}
-        </div>
       </div>
     </section>
   );

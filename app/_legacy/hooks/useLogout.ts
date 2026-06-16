@@ -21,6 +21,9 @@ const useLogout = () => {
   return async () => {
     // server-side logout clears httpOnly cookies
     await postData('/api/user/logout', {}).catch(() => {});
+    try {
+      window.localStorage.removeItem("infix_is_child_user");
+    } catch {}
     context.setIsLogin(false);
     context.setUserData(null);
     clearCart();

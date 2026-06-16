@@ -93,10 +93,19 @@ interface RegisterPayload {
   email?: string;
   password?: string;
   referralCode?: string;
+  childAccountId?: string | null;
+  dob?: string | null;
 }
 
 export async function registerUser(payload: RegisterPayload | unknown) {
-  const { name, email, password, referralCode: refCode } = validate(registerSchema, payload) as RegisterPayload;
+  const {
+    name,
+    email,
+    password,
+    referralCode: refCode,
+    childAccountId,
+    dob,
+  } = validate(registerSchema, payload) as RegisterPayload;
 
   const existingUser = await findUserByEmail(email!);
   if (existingUser) {
@@ -121,6 +130,8 @@ export async function registerUser(payload: RegisterPayload | unknown) {
     otp_expires: new Date(Date.now() + 10 * 60 * 1000),
     referralCode,
     referredBy,
+    childAccountId,
+    dob,
   });
 
   if (referredBy && newUser?.id) {

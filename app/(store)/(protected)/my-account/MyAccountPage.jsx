@@ -56,6 +56,23 @@ const MyAccount = ({ initialOrders = null }) => {
   const { membershipEnabled, membershipPrice } = useStoreSettings();
   const isMember = Boolean(user?.is_member);
 
+  const isChildUser = (() => {
+    if (!user) return false;
+    if (user.childAccountId) return true;
+    if (user.dob) {
+      const birthDate = new Date(user.dob);
+      if (isNaN(birthDate.getTime())) return false;
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age < 18;
+    }
+    return false;
+  })();
+
   const [editing, setEditing]   = useState(false);
   const [saving,  setSaving]    = useState(false);
   const [formFields, setFormFields] = useState({ name: "", mobile: "" });
@@ -296,6 +313,46 @@ const MyAccount = ({ initialOrders = null }) => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Parental Supervision Card (DPDPA 2023 compliance) */}
+            {isChildUser && (
+              <div className="bg-gradient-to-br from-[#E8EAF6] to-[#C5CAE9] border border-blue-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <h3 className="text-[15px] font-[800] text-[#1A237E] mb-2 flex items-center gap-2">
+                  <MdVerified className="text-[#1565C0] text-[20px]" /> Account Supervision (DPDPA Compliance)
+                </h3>
+                <p className="text-[12.5px] text-gray-700 leading-relaxed mb-4">
+                  This account is verified under parental/guardian consent as a minor under 18 years of age (DPDPA 2023 Section 9).
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex items-start gap-3 p-3.5 bg-white/75 backdrop-blur-sm rounded-xl border border-white">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-[700] uppercase tracking-wider text-gray-500">Account Status</p>
+                      <p className="text-[13px] font-[700] text-[#1A237E] mt-0.5">Supervised Minor</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3.5 bg-white/75 backdrop-blur-sm rounded-xl border border-white">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-[700] uppercase tracking-wider text-gray-500">Date of Birth</p>
+                      <p className="text-[13px] font-[700] text-gray-800 mt-0.5">
+                        {user?.dob ? new Date(user.dob).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3.5 bg-white/75 backdrop-blur-sm rounded-xl border border-white">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-[700] uppercase tracking-wider text-gray-500">Consent Reference ID</p>
+                      <p className="text-[13px] font-[700] text-gray-800 mt-0.5 truncate select-all" title={user?.childAccountId || ""}>
+                        {user?.childAccountId || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2.5 text-[11px] font-[600] text-green-700 bg-green-50/70 border border-green-200/50 rounded-xl px-3.5 py-2.5">
+                  <span className="text-[14px]">🛡️</span>
+                  <span>Targeted advertising, profiling, and behavioral tracking are disabled for your protection.</span>
                 </div>
               </div>
             )}

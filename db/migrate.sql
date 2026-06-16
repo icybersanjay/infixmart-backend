@@ -311,5 +311,12 @@ CREATE TABLE IF NOT EXISTS `ProductVariants` (
 
 CREATE UNIQUE INDEX IF NOT EXISTS `uq_variants_sku` ON `ProductVariants` (`sku`);
 
+-- ============================================================
+-- 2026-06 DPDPA Compliance (Section H)
+-- ============================================================
+ALTER TABLE `Users`
+  ADD COLUMN IF NOT EXISTS `childAccountId` VARCHAR(100) NULL AFTER `deletedAt`,
+  ADD COLUMN IF NOT EXISTS `dob`            DATE         NULL AFTER `childAccountId`;
+
 -- Done.
 SELECT 'Migration complete' AS status;

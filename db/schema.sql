@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `lockedUntil`          DATETIME           NULL,
   `lastFailedLoginAt`    DATETIME           NULL,
   `deletedAt`            DATETIME           NULL,
+  `childAccountId`       VARCHAR(100)       NULL,
+  `dob`                  DATE               NULL,
   `createdAt`            DATETIME       NOT NULL,
   `updatedAt`            DATETIME       NOT NULL,
   PRIMARY KEY (`id`),
