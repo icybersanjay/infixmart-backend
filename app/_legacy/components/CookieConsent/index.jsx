@@ -101,7 +101,7 @@ export default function CookieConsent() {
       if (window.DPDPAShield) {
         window.DPDPAShield.init({
           apiKey: isDemo ? "demo" : apiKey,
-          position: "bottom-right",
+          position: "bottom-left",
           demo: isDemo,
           identifierHash: emailHash || undefined,
           onConsent: function (result) {

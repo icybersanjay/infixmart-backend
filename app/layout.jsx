@@ -208,7 +208,7 @@ export default function RootLayout({ children }) {
 
         {/* ── DPDPA Shield Compliance Widget ── */}
         <Script
-          src="https://cdn.dpdpashield.in/sdk.js"
+          src="https://api.dpdpashield.in/sdk/dpdpashield-sdk.js"
           strategy="afterInteractive"
         />
 
